@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <UserSecretsId>4a1c1d2c-2d84-4a8c-b0de-9c97e7e10163</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CartBuddy.Client\CartBuddy.Client.csproj" />
+    <ProjectReference Include="..\CartBuddy.Shared\CartBuddy.Shared.csproj" />
+  </ItemGroup>
+
+</Project>
