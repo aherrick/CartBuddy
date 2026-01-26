@@ -10,7 +10,10 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddBlazoredLocalStorage();
-builder.Services.AddSweetAlert2();
+builder.Services.AddSweetAlert2(options =>
+{
+    options.Theme = SweetAlertTheme.Dark;
+});
 builder.Services.AddScoped(sp => new HttpClient
 {
     BaseAddress = new Uri(builder.HostEnvironment.BaseAddress),
