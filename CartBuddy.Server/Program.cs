@@ -66,8 +66,11 @@ app.MapPost(
             "Kroger:ClientId"
         ];
         var redirectUri = $"{context.Request.Scheme}://{context.Request.Host}/api/oauth/callback";
+        // Kroger Cart API requires CustomerContext (Authorization Code grant).
+        // Including profile.compact is commonly required for customer-context APIs.
+        var scopes = "cart.basic:write profile.compact";
         var authUrl =
-            $"https://api.kroger.com/v1/connect/oauth2/authorize?scope=cart.basic:write&response_type=code&client_id={clientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&state={state}";
+            $"https://api.kroger.com/v1/connect/oauth2/authorize?scope={Uri.EscapeDataString(scopes)}&response_type=code&client_id={clientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&state={state}";
 
         return Results.Ok(new CheckoutResponse { AuthUrl = authUrl });
     }
@@ -80,7 +83,8 @@ app.MapGet(
         string code,
         string state,
         KrogerService kroger,
-        SessionService session
+        SessionService session,
+        ILogger<Program> logger
     ) =>
     {
         var pending = session.GetPendingCheckout(state);
@@ -89,11 +93,20 @@ app.MapGet(
 
         session.ClearPendingCheckout(state);
 
-        var redirectUri = $"{context.Request.Scheme}://{context.Request.Host}/api/oauth/callback";
-        var userToken = await kroger.ExchangeCodeForToken(code, redirectUri);
-        await kroger.AddToCart(userToken, pending.Items);
+        try
+        {
+            var redirectUri = $"{context.Request.Scheme}://{context.Request.Host}/api/oauth/callback";
+            var scopes = "cart.basic:write profile.compact";
+            var userToken = await kroger.ExchangeCodeForToken(code, redirectUri, scopes);
+            await kroger.CreateCart(userToken, pending.Items);
 
-        return Results.Redirect("https://www.kroger.com/cart");
+            return Results.Redirect("/?success=true");
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "Kroger cart creation failed");
+            return Results.Redirect("/?error=cart");
+        }
     }
 );
 

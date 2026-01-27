@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Net.Http.Headers;
 using CartBuddy.Shared.Models;
 
 namespace CartBuddy.Server;
@@ -133,7 +134,7 @@ public class KrogerService(
         return results;
     }
 
-    public async Task<string> ExchangeCodeForToken(string code, string redirectUri)
+    public async Task<string> ExchangeCodeForToken(string code, string redirectUri, string scope)
     {
         var clientId = configuration["Kroger:ClientId"];
         var clientSecret = configuration["Kroger:ClientSecret"];
@@ -148,6 +149,7 @@ public class KrogerService(
                 new("grant_type", "authorization_code"),
                 new("code", code),
                 new("redirect_uri", redirectUri),
+                new("scope", scope),
             ]
         );
 
@@ -159,19 +161,39 @@ public class KrogerService(
         return doc.RootElement.GetProperty("access_token").GetString();
     }
 
-    public async Task AddToCart(string userToken, List<CartItem> items)
+    public async Task<string> CreateCart(string userToken, List<CartItem> items)
     {
-        HttpRequestMessage request = new(HttpMethod.Put, "cart/add");
+        HttpRequestMessage request = new(HttpMethod.Post, "carts");
         request.Headers.Authorization = new("Bearer", userToken);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         request.Content = new StringContent(
             JsonSerializer.Serialize(
-                new { items = items.Select(i => new { upc = i.Upc, quantity = i.Quantity }) }
+                new
+                {
+                    items = items.Select(i => new
+                    {
+                        upc = i.Upc,
+                        quantity = i.Quantity,
+                        modality = "PICKUP"
+                    })
+                }
             ),
             Encoding.UTF8,
             "application/json"
         );
 
         var response = await httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+        var json = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new HttpRequestException(
+                $"Kroger CreateCart failed: {(int)response.StatusCode} {response.ReasonPhrase}. Body: {json}",
+                null,
+                response.StatusCode
+            );
+        }
+
+        var doc = JsonDocument.Parse(json);
+        return doc.RootElement.GetProperty("data").GetProperty("id").GetString();
     }
 }

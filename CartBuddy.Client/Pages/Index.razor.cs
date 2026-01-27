@@ -1,6 +1,7 @@
 using Blazored.LocalStorage;
 using CartBuddy.Client.Services;
 using CartBuddy.Shared.Models;
+using CurrieTechnologies.Razor.SweetAlert2;
 using Microsoft.AspNetCore.Components;
 
 namespace CartBuddy.Client.Pages;
@@ -15,6 +16,9 @@ public partial class Index
 
     [Inject]
     private ILocalStorageService LocalStorage { get; set; }
+
+    [Inject]
+    private SweetAlertService Swal { get; set; }
 
     private string zipCode = "";
     private string itemsText = "";
@@ -38,6 +42,29 @@ public partial class Index
             locationId = stored.LocationId;
             showLocationSearch = false;
             status = "Store loaded from storage";
+        }
+
+        var uri = Nav.ToAbsoluteUri(Nav.Uri);
+        if (uri.Query.Contains("success=true"))
+        {
+            var result = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Cart created!",
+                Icon = SweetAlertIcon.Success,
+                Html = "Your items were added to your Kroger cart.",
+                ShowCancelButton = true,
+                ConfirmButtonText = "View on Kroger.com",
+                CancelButtonText = "Continue shopping",
+            });
+
+            if (result.IsConfirmed)
+            {
+                Nav.NavigateTo("https://www.kroger.com/cart", true);
+            }
+            else
+            {
+                Nav.NavigateTo("/", replace: true);
+            }
         }
     }
 
