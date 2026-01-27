@@ -3,11 +3,15 @@ using CartBuddy.Client.Services;
 using CartBuddy.Shared.Models;
 using CurrieTechnologies.Razor.SweetAlert2;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 
 namespace CartBuddy.Client.Pages;
 
 public partial class Index
 {
+    [Inject]
+    private IJSRuntime JS { get; set; }
+
     [Inject]
     private ApiService Api { get; set; }
 
@@ -51,15 +55,18 @@ public partial class Index
             {
                 Title = "Cart created!",
                 Icon = SweetAlertIcon.Success,
-                Html = "Your items were added to your Kroger cart.",
+                Text = "Your items were added to your Kroger cart.",
                 ShowCancelButton = true,
                 ConfirmButtonText = "View on Kroger.com",
                 CancelButtonText = "Continue shopping",
+                ConfirmButtonColor = "#198754",
+                CancelButtonColor = "#6c757d"
             });
 
             if (result.IsConfirmed)
             {
-                Nav.NavigateTo("https://www.kroger.com/cart", true);
+                await JS.InvokeVoidAsync("open", "https://www.kroger.com/cart", "_blank");
+                Nav.NavigateTo("/", replace: true);
             }
             else
             {
