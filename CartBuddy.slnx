@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="CartBuddy.Client/CartBuddy.Client.csproj" />
+  <Project Path="CartBuddy.Console/CartBuddy.Console.csproj" />
   <Project Path="CartBuddy.Server/CartBuddy.Server.csproj" />
   <Project Path="CartBuddy.Shared/CartBuddy.Shared.csproj" />
 </Solution>

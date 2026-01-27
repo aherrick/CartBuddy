@@ -36,6 +36,7 @@ public partial class Index
     private readonly Dictionary<string, int> termOffsets = [];
     private readonly Dictionary<string, bool> termCollapsed = [];
     private bool allCollapsed = true;
+    private bool hasCheckedSuccess = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -47,30 +48,37 @@ public partial class Index
             showLocationSearch = false;
             status = "Store loaded from storage";
         }
+    }
 
-        var uri = Nav.ToAbsoluteUri(Nav.Uri);
-        if (uri.Query.Contains("success=true"))
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !hasCheckedSuccess)
         {
-            var result = await Swal.FireAsync(new SweetAlertOptions
+            hasCheckedSuccess = true;
+            var uri = Nav.ToAbsoluteUri(Nav.Uri);
+            if (uri.Query.Contains("success=true"))
             {
-                Title = "Cart created!",
-                Icon = SweetAlertIcon.Success,
-                Text = "Your items were added to your Kroger cart.",
-                ShowCancelButton = true,
-                ConfirmButtonText = "🛒 View on Kroger.com",
-                CancelButtonText = "Continue shopping",
-                ConfirmButtonColor = "#0033A0",
-                CancelButtonColor = "#6c757d"
-            });
+                var result = await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Cart created!",
+                    Icon = SweetAlertIcon.Success,
+                    Text = "Your items were added to your Kroger cart.",
+                    ShowCancelButton = true,
+                    ConfirmButtonText = "🛒 View on Kroger.com",
+                    CancelButtonText = "Continue shopping",
+                    ConfirmButtonColor = "#0033A0",
+                    CancelButtonColor = "#6c757d"
+                });
 
-            if (result.IsConfirmed)
-            {
-                await JS.InvokeVoidAsync("open", "https://www.kroger.com/cart", "_blank");
-                Nav.NavigateTo("/", replace: true);
-            }
-            else
-            {
-                Nav.NavigateTo("/", replace: true);
+                if (result.IsConfirmed)
+                {
+                    await JS.InvokeVoidAsync("open", "https://www.kroger.com/cart", "_blank");
+                    Nav.NavigateTo("/", replace: true);
+                }
+                else
+                {
+                    Nav.NavigateTo("/", replace: true);
+                }
             }
         }
     }

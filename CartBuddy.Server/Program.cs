@@ -1,3 +1,4 @@
+using AspNetCoreRateLimit;
 using CartBuddy.Server;
 using CartBuddy.Shared.Models;
 
@@ -9,6 +10,37 @@ if (builder.Environment.IsDevelopment())
 }
 
 builder.Services.AddMemoryCache();
+
+// Rate limiting configuration
+
+builder.Services.Configure<IpRateLimitOptions>(options =>
+{
+    options.EnableEndpointRateLimiting = true;
+    options.GeneralRules =
+    [
+        new()
+        {
+            Endpoint = "*:/api/*",
+            Period = "1m",
+            Limit = 100,
+        },
+        //new()
+        //{
+        //    Endpoint = "*:/api/search",
+        //    Period = "1m",
+        //    Limit = 60,
+        //},
+        new()
+        {
+            Endpoint = "POST:/api/checkout",
+            Period = "5m",
+            Limit = 10,
+        },
+    ];
+});
+builder.Services.AddInMemoryRateLimiting();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
 builder.Services.AddScoped<SessionService>();
 builder.Services.AddSingleton<KrogerTokenCache>();
 builder.Services.AddHttpClient<KrogerService>(client =>
@@ -29,6 +61,7 @@ else
 }
 
 app.UseHttpsRedirection();
+app.UseIpRateLimiting();
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 
@@ -40,6 +73,8 @@ app.MapGet(
         return Results.Ok(new LocationResponse { Locations = locations });
     }
 );
+
+app.MapGet("/api/health", () => Results.Ok());
 
 app.MapGet(
     "/api/search",
