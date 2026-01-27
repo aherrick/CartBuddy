@@ -1,6 +1,6 @@
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Net.Http.Headers;
 using CartBuddy.Shared.Models;
 
 namespace CartBuddy.Server;
@@ -134,6 +134,10 @@ public class KrogerService(
         return results;
     }
 
+    /// <summary>
+    /// Exchanges an OAuth authorization code for a user access token.
+    /// This token represents the authenticated user and has the scopes they approved.
+    /// </summary>
     public async Task<string> ExchangeCodeForToken(string code, string redirectUri)
     {
         var clientId = configuration["Kroger:ClientId"];
@@ -161,6 +165,11 @@ public class KrogerService(
         return doc.RootElement.GetProperty("access_token").GetString();
     }
 
+    /// <summary>
+    /// Adds items to the authenticated user's Kroger cart using the Cart API.
+    /// Requires a user access token with the cart.basic:write scope.
+    /// Uses PUT /v1/cart/add (the public Cart API endpoint).
+    /// </summary>
     public async Task<string> CreateCart(string userToken, List<CartItem> items)
     {
         HttpRequestMessage request = new(HttpMethod.Put, "cart/add");
@@ -168,15 +177,7 @@ public class KrogerService(
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         request.Content = new StringContent(
             JsonSerializer.Serialize(
-                new
-                {
-                    items = items.Select(i => new
-                    {
-                        upc = i.Upc,
-                        quantity = i.Quantity,
-                        modality = "PICKUP"
-                    })
-                }
+                new { items = items.Select(i => new { upc = i.Upc, quantity = i.Quantity }) }
             ),
             Encoding.UTF8,
             "application/json"
@@ -184,7 +185,7 @@ public class KrogerService(
 
         var response = await httpClient.SendAsync(request);
         var json = await response.Content.ReadAsStringAsync();
-        
+
         if (!response.IsSuccessStatusCode)
         {
             throw new HttpRequestException(

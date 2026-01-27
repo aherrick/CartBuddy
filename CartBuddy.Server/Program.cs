@@ -43,13 +43,7 @@ app.MapGet(
 
 app.MapGet(
     "/api/search",
-    async (
-        string locationId,
-        string term,
-        KrogerService kroger,
-        int start = 0,
-        int limit = 5
-    ) =>
+    async (string locationId, string term, KrogerService kroger, int start = 0, int limit = 5) =>
     {
         var results = await kroger.SearchProducts(locationId, term, start, limit);
         return Results.Ok(results);
@@ -71,7 +65,7 @@ app.MapPost(
         ];
         var redirectUri = $"{context.Request.Scheme}://{context.Request.Host}/api/oauth/callback";
         var scopes = "cart.basic:write";
-        
+
         // Build the Kroger OAuth authorization URL
         var authUrl =
             $"https://api.kroger.com/v1/connect/oauth2/authorize?scope={Uri.EscapeDataString(scopes)}&response_type=code&client_id={clientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&state={state}";
@@ -104,11 +98,12 @@ app.MapGet(
 
         try
         {
-            var redirectUri = $"{context.Request.Scheme}://{context.Request.Host}/api/oauth/callback";
-            
+            var redirectUri =
+                $"{context.Request.Scheme}://{context.Request.Host}/api/oauth/callback";
+
             // Exchange the authorization code for a user access token
             var userToken = await kroger.ExchangeCodeForToken(code, redirectUri);
-            
+
             // Use the token to add items to the user's Kroger cart via the Cart API
             await kroger.CreateCart(userToken, pending.Items);
 
