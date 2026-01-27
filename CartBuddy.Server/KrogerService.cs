@@ -134,7 +134,7 @@ public class KrogerService(
         return results;
     }
 
-    public async Task<string> ExchangeCodeForToken(string code, string redirectUri, string scope)
+    public async Task<string> ExchangeCodeForToken(string code, string redirectUri)
     {
         var clientId = configuration["Kroger:ClientId"];
         var clientSecret = configuration["Kroger:ClientSecret"];
@@ -149,7 +149,6 @@ public class KrogerService(
                 new("grant_type", "authorization_code"),
                 new("code", code),
                 new("redirect_uri", redirectUri),
-                new("scope", scope),
             ]
         );
 
@@ -157,13 +156,14 @@ public class KrogerService(
         response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadAsStringAsync();
+
         var doc = JsonDocument.Parse(json);
         return doc.RootElement.GetProperty("access_token").GetString();
     }
 
     public async Task<string> CreateCart(string userToken, List<CartItem> items)
     {
-        HttpRequestMessage request = new(HttpMethod.Post, "carts");
+        HttpRequestMessage request = new(HttpMethod.Put, "cart/add");
         request.Headers.Authorization = new("Bearer", userToken);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         request.Content = new StringContent(
@@ -184,16 +184,16 @@ public class KrogerService(
 
         var response = await httpClient.SendAsync(request);
         var json = await response.Content.ReadAsStringAsync();
+        
         if (!response.IsSuccessStatusCode)
         {
             throw new HttpRequestException(
-                $"Kroger CreateCart failed: {(int)response.StatusCode} {response.ReasonPhrase}. Body: {json}",
+                $"Kroger cart/add failed: {(int)response.StatusCode} {response.ReasonPhrase}. Body: {json}",
                 null,
                 response.StatusCode
             );
         }
 
-        var doc = JsonDocument.Parse(json);
-        return doc.RootElement.GetProperty("data").GetProperty("id").GetString();
+        return "success";
     }
 }

@@ -66,9 +66,7 @@ app.MapPost(
             "Kroger:ClientId"
         ];
         var redirectUri = $"{context.Request.Scheme}://{context.Request.Host}/api/oauth/callback";
-        // Kroger Cart API requires CustomerContext (Authorization Code grant).
-        // Including profile.compact is commonly required for customer-context APIs.
-        var scopes = "cart.basic:write profile.compact";
+        var scopes = "cart.basic:write";
         var authUrl =
             $"https://api.kroger.com/v1/connect/oauth2/authorize?scope={Uri.EscapeDataString(scopes)}&response_type=code&client_id={clientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&state={state}";
 
@@ -96,8 +94,7 @@ app.MapGet(
         try
         {
             var redirectUri = $"{context.Request.Scheme}://{context.Request.Host}/api/oauth/callback";
-            var scopes = "cart.basic:write profile.compact";
-            var userToken = await kroger.ExchangeCodeForToken(code, redirectUri, scopes);
+            var userToken = await kroger.ExchangeCodeForToken(code, redirectUri);
             await kroger.CreateCart(userToken, pending.Items);
 
             return Results.Redirect("/?success=true");
