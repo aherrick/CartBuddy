@@ -1,5 +1,7 @@
 # CartBuddy 🛒
 
+<img src="cartbuddy.png" width="400" alt="CartBuddy">
+
 A tiny Blazor app that helps you find products and build a Kroger cart.
 
 **Check it out:** https://cartbuddy.azurewebsites.net/
