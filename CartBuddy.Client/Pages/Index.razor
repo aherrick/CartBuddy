@@ -74,32 +74,31 @@
             @foreach (var termResult in searchResults)
             {
                 var collapseId = $"collapse-{searchResults.IndexOf(termResult)}";
-                var isCollapsed = termCollapsed.GetValueOrDefault(termResult.Term, false);
-                var hasMore = termResult.Results.Count > 0 && termResult.Results.Count % 5 == 0;
-                var isFulfilled = IsTermFulfilled(termResult.Term);
+                var hasMore = termResult.NextStart < termResult.TotalAvailable;
+                var isFulfilled = IsTermFulfilled(termResult);
                 <div class="card mb-3">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <button @onclick="() => ToggleCollapse(termResult.Term)" class="btn btn-link text-decoration-none p-0 text-start flex-grow-1">
-                            <iconify-icon icon="@(isCollapsed ? "mdi:chevron-right" : "mdi:chevron-down")" class="me-1"></iconify-icon>
+                        <button @onclick="() => ToggleCollapse(termResult)" class="btn btn-link text-decoration-none p-0 text-start flex-grow-1">
+                            <iconify-icon icon="@(termResult.IsCollapsed ? "mdi:chevron-right" : "mdi:chevron-down")" class="me-1"></iconify-icon>
                             <strong>@termResult.Term</strong>
                             @if (isFulfilled)
                             {
                                 <iconify-icon icon="mdi:check-circle" class="ms-2 text-success"></iconify-icon>
                             }
                         </button>
-                        @if (!isCollapsed && hasMore)
+                        @if (!termResult.IsCollapsed && hasMore)
                         {
-                            <button @onclick="() => LoadMore(termResult.Term)" class="btn btn-sm btn-outline-primary">
+                            <button @onclick="() => LoadMore(termResult)" class="btn btn-sm btn-outline-primary">
                                 <iconify-icon icon="mdi:chevron-down" class="me-1"></iconify-icon>View More
                             </button>
                         }
                     </div>
-                    @if (!isCollapsed)
+                    @if (!termResult.IsCollapsed)
                     {
                         <div class="list-group list-group-flush">
                             @foreach (var product in termResult.Results)
                             {
-                                <div class="list-group-item list-group-item-action" style="cursor: pointer;" @onclick="() => AddToCart(product, termResult.Term)">
+                                <div class="list-group-item list-group-item-action" style="cursor: pointer;" @onclick="() => AddToCart(product, termResult)">
                                     <div class="d-flex align-items-center">
                                         @if (!string.IsNullOrEmpty(product.ImageUrl))
                                         {

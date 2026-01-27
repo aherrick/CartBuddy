@@ -33,8 +33,6 @@ public partial class Index
     private readonly List<CartItem> cart = [];
     private LocationInfo selectedStore = null;
     private bool showLocationSearch = true;
-    private readonly Dictionary<string, int> termOffsets = [];
-    private readonly Dictionary<string, bool> termCollapsed = [];
     private bool allCollapsed = true;
     private bool hasCheckedSuccess = false;
 
@@ -86,12 +84,8 @@ public partial class Index
     private int TotalQuantity => cart.Sum(c => c.Quantity);
     private decimal TotalPrice => cart.Sum(c => c.Price * c.Quantity);
 
-    private bool IsTermFulfilled(string term)
+    private bool IsTermFulfilled(TermSearchResult termResult)
     {
-        var termResult = searchResults.FirstOrDefault(t => t.Term == term);
-        if (termResult == null)
-            return false;
-
         var productUpcs = termResult.Results.Select(p => p.Upc).ToList();
         return cart.Any(c => productUpcs.Contains(c.Upc));
     }
@@ -134,66 +128,58 @@ public partial class Index
     {
         status = "Searching...";
         searchResults.Clear();
-        termOffsets.Clear();
-        termCollapsed.Clear();
-
+        
         var terms = itemsText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         var isFirst = true;
         foreach (var term in terms)
         {
             var trimmedTerm = term.Trim();
-            var results = await Api.GetAsync<List<ProductSearchResult>>(
+            var response = await Api.GetAsync<ProductSearchResponse>(
                 $"/api/search?locationId={locationId}&term={Uri.EscapeDataString(trimmedTerm)}&start=0&limit=5"
             );
 
-            searchResults.Add(new TermSearchResult { Term = trimmedTerm, Results = results ?? [] });
-            termOffsets[trimmedTerm] = 5;
-            termCollapsed[trimmedTerm] = !isFirst;
+            searchResults.Add(new TermSearchResult 
+            { 
+                Term = trimmedTerm, 
+                Results = response?.Results ?? [],
+                TotalAvailable = response?.Total ?? 0,
+                NextStart = 5,
+                IsCollapsed = !isFirst
+            });
+            
             isFirst = false;
         }
         status = $"Found results for {searchResults.Count} terms";
     }
 
-    private async Task LoadMore(string term)
+    private async Task LoadMore(TermSearchResult termResult)
     {
-        var termResult = searchResults.FirstOrDefault(t => t.Term == term);
-        if (termResult != null)
-        {
-            var currentOffset = termOffsets.GetValueOrDefault(term, 5);
-            var nextItems = await Api.GetAsync<List<ProductSearchResult>>(
-                $"/api/search?locationId={locationId}&term={Uri.EscapeDataString(term)}&start={currentOffset}&limit=5"
-            );
+        var response = await Api.GetAsync<ProductSearchResponse>(
+            $"/api/search?locationId={locationId}&term={Uri.EscapeDataString(termResult.Term)}&start={termResult.NextStart}&limit=5"
+        );
 
-            if (nextItems != null && nextItems.Count != 0)
-            {
-                termResult.Results.AddRange(nextItems);
-                termOffsets[term] = currentOffset + 5;
-            }
+        if (response?.Results != null && response.Results.Count != 0)
+        {
+            termResult.Results.AddRange(response.Results);
+            termResult.NextStart += 5;
         }
     }
 
     private void ToggleAllCollapse()
     {
         allCollapsed = !allCollapsed;
-        foreach (var term in termCollapsed.Keys.ToList())
+        foreach (var result in searchResults)
         {
-            termCollapsed[term] = allCollapsed;
+            result.IsCollapsed = allCollapsed;
         }
     }
 
-    private void ToggleCollapse(string term)
+    private void ToggleCollapse(TermSearchResult termResult)
     {
-        if (termCollapsed.TryGetValue(term, out var isCollapsed))
-        {
-            termCollapsed[term] = !isCollapsed;
-        }
-        else
-        {
-            termCollapsed[term] = true;
-        }
+        termResult.IsCollapsed = !termResult.IsCollapsed;
     }
 
-    private void AddToCart(ProductSearchResult product, string term)
+    private void AddToCart(ProductSearchResult product, TermSearchResult termResult)
     {
         var existing = cart.FirstOrDefault(c => c.Upc == product.Upc);
         if (existing != null)
@@ -215,7 +201,7 @@ public partial class Index
         }
 
         // Auto-collapse the term section
-        termCollapsed[term] = true;
+        termResult.IsCollapsed = true;
     }
 
     private static void IncreaseQuantity(CartItem item) => item.Quantity++;
@@ -247,6 +233,9 @@ public partial class Index
     private class TermSearchResult
     {
         public string Term { get; set; }
-        public List<ProductSearchResult> Results { get; set; }
+        public List<ProductSearchResult> Results { get; set; } = [];
+        public int TotalAvailable { get; set; }
+        public int NextStart { get; set; } = 5;
+        public bool IsCollapsed { get; set; }
     }
 }

@@ -43,7 +43,7 @@ public class KrogerService(
         return locations;
     }
 
-    public async Task<List<ProductSearchResult>> SearchProducts(
+    public async Task<ProductSearchResponse> SearchProducts(
         string locationId,
         string term,
         int start = 0,
@@ -61,16 +61,38 @@ public class KrogerService(
         var json = await response.Content.ReadAsStringAsync();
         var doc = JsonDocument.Parse(json);
         var data = doc.RootElement.GetProperty("data");
+        
+        // Get total count from pagination metadata
+        var total = 0;
+        if (doc.RootElement.TryGetProperty("meta", out var meta) &&
+            meta.TryGetProperty("pagination", out var pagination) &&
+            pagination.TryGetProperty("total", out var totalElement))
+        {
+            total = totalElement.GetInt32();
+        }
 
         var results = new List<ProductSearchResult>();
         foreach (var item in data.EnumerateArray())
         {
             var firstItem = item.GetProperty("items")[0];
-            var priceElement = firstItem.GetProperty("price");
+            
+            // Price is at the item level, but not all items have it
+            if (!firstItem.TryGetProperty("price", out var priceElement))
+            {
+                continue; // Skip items without price info
+            }
+            
+            // Check for promo price
             var hasPromo =
                 priceElement.TryGetProperty("promo", out var promoPrice)
                 && promoPrice.ValueKind != JsonValueKind.Null;
-            var regular = priceElement.GetProperty("regular").GetDecimal();
+            
+            // Get regular price
+            if (!priceElement.TryGetProperty("regular", out var regularElement))
+            {
+                continue; // Skip if no regular price
+            }
+            var regular = regularElement.GetDecimal();
             var price = hasPromo ? promoPrice.GetDecimal() : regular;
 
             var promoEndDate = "";
@@ -131,7 +153,7 @@ public class KrogerService(
             );
         }
 
-        return results;
+        return new ProductSearchResponse { Results = results, Total = total };
     }
 
     /// <summary>
