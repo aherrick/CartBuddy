@@ -86,9 +86,9 @@
                                 <iconify-icon icon="mdi:check-circle" class="ms-2 text-success"></iconify-icon>
                             }
                         </button>
-                        @if (!termResult.IsCollapsed && hasMore)
+                        @if (!termResult.IsCollapsed && termResult.TotalAvailable > 5)
                         {
-                            <button @onclick="() => LoadMore(termResult)" class="btn btn-sm btn-outline-primary">
+                            <button @onclick="() => LoadMore(termResult)" class="btn btn-sm btn-outline-primary" disabled="@(!hasMore)">
                                 <iconify-icon icon="mdi:chevron-down" class="me-1"></iconify-icon>View More
                             </button>
                         }

@@ -1,4 +1,5 @@
 using Blazored.LocalStorage;
+using Blazored.Toast.Services;
 using CartBuddy.Client.Services;
 using CartBuddy.Shared.Models;
 using CurrieTechnologies.Razor.SweetAlert2;
@@ -20,6 +21,9 @@ public partial class Index
 
     [Inject]
     private ILocalStorageService LocalStorage { get; set; }
+
+    [Inject]
+    private IToastService Toast { get; set; }
 
     [Inject]
     private SweetAlertService Swal { get; set; }
@@ -162,6 +166,11 @@ public partial class Index
         {
             termResult.Results.AddRange(response.Results);
             termResult.NextStart += 5;
+            
+            if (termResult.NextStart >= termResult.TotalAvailable)
+            {
+                Toast.ShowInfo("All items loaded");
+            }
         }
     }
 

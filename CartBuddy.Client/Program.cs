@@ -1,4 +1,5 @@
 using Blazored.LocalStorage;
+using Blazored.Toast;
 using CartBuddy.Client;
 using CartBuddy.Client.Services;
 using CurrieTechnologies.Razor.SweetAlert2;
@@ -10,6 +11,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddBlazoredToast();
 builder.Services.AddSweetAlert2(options =>
 {
     options.Theme = SweetAlertTheme.Dark;
