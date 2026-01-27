@@ -165,12 +165,13 @@ public partial class Index
         if (response?.Results != null && response.Results.Count != 0)
         {
             termResult.Results.AddRange(response.Results);
-            termResult.NextStart += 5;
-            
-            if (termResult.NextStart >= termResult.TotalAvailable)
-            {
-                Toast.ShowInfo("All items loaded");
-            }
+        }
+        
+        termResult.NextStart += 5;
+        
+        if (termResult.NextStart >= termResult.TotalAvailable)
+        {
+            Toast.ShowInfo("All items loaded");
         }
     }
 
