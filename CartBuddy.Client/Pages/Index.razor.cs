@@ -26,6 +26,9 @@ public partial class Index
     private CartStorageService CartStorage { get; set; }
 
     [Inject]
+    private DraftStorageService DraftStorage { get; set; }
+
+    [Inject]
     private IToastService Toast { get; set; }
 
     [Inject]
@@ -40,9 +43,15 @@ public partial class Index
     private LocationInfo selectedStore = null;
     private bool showLocationSearch = true;
     private bool allCollapsed = true;
+    private bool isLoadingLocations;
+    private bool isSearching;
+    private bool isCheckingOut;
 
     protected override async Task OnInitializedAsync()
     {
+        zipCode = await DraftStorage.GetZipCodeAsync();
+        itemsText = await DraftStorage.GetItemsTextAsync();
+
         var stored = await LocalStorage.GetItemAsync<LocationInfo>("selectedStore");
         if (stored != null)
         {
@@ -102,20 +111,58 @@ public partial class Index
 
     private async Task SetLocation()
     {
-        var response = await Api.GetAsync<LocationResponse>($"/api/location/{zipCode}");
-        if (response != null)
+        if (isLoadingLocations)
         {
-            locations = response.Locations;
-            Toast.ShowSuccess($"Found {locations.Count} stores");
+            return;
         }
-        else
+
+        isLoadingLocations = true;
+
+        try
         {
-            Toast.ShowError("Error getting locations");
+            var response = await Api.GetAsync<LocationResponse>($"/api/location/{zipCode}");
+            if (response != null)
+            {
+                locations = response.Locations;
+                Toast.ShowSuccess($"Found {locations.Count} stores");
+            }
+            else
+            {
+                Toast.ShowError("Error getting locations");
+            }
+        }
+        finally
+        {
+            isLoadingLocations = false;
         }
     }
 
     private async Task SelectLocation(string locId)
     {
+        if (!string.IsNullOrEmpty(locationId) && locationId != locId && cart.Count > 0)
+        {
+            var result = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Change stores?",
+                Text = "Changing stores will clear your current cart and search results.",
+                Icon = SweetAlertIcon.Warning,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Change store",
+                CancelButtonText = "Keep current store",
+                ConfirmButtonColor = "#0033A0",
+                CancelButtonColor = "#6c757d"
+            });
+
+            if (!result.IsConfirmed)
+            {
+                return;
+            }
+
+            await ClearCart(confirm: false, showToast: false);
+            searchResults.Clear();
+            Toast.ShowInfo("Cart cleared for the new store");
+        }
+
         locationId = locId;
         selectedStore = locations.FirstOrDefault(l => l.LocationId == locId);
         if (selectedStore != null)
@@ -135,29 +182,65 @@ public partial class Index
 
     private async Task SearchItems()
     {
-        searchResults.Clear();
-        
-        var terms = itemsText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        var isFirst = true;
-        foreach (var term in terms)
+        if (isSearching)
         {
-            var trimmedTerm = term.Trim();
-            var response = await Api.GetAsync<ProductSearchResponse>(
-                $"/api/search?locationId={locationId}&term={Uri.EscapeDataString(trimmedTerm)}&start=0&limit=5"
-            );
-
-            searchResults.Add(new TermSearchResult 
-            { 
-                Term = trimmedTerm, 
-                Results = response?.Results ?? [],
-                TotalAvailable = response?.Total ?? 0,
-                NextStart = 5,
-                IsCollapsed = !isFirst
-            });
-            
-            isFirst = false;
+            return;
         }
-        Toast.ShowSuccess($"Found results for {searchResults.Count} terms");
+
+        searchResults.Clear();
+
+        var terms = itemsText
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(term => term.Trim())
+            .Where(term => !string.IsNullOrWhiteSpace(term))
+            .ToList();
+
+        if (terms.Count == 0)
+        {
+            Toast.ShowInfo("Enter at least one item");
+            return;
+        }
+
+        isSearching = true;
+
+        try
+        {
+            var isFirst = true;
+            foreach (var term in terms)
+            {
+                var response = await Api.GetAsync<ProductSearchResponse>(
+                    $"/api/search?locationId={locationId}&term={Uri.EscapeDataString(term)}&start=0&limit=5"
+                );
+
+                searchResults.Add(new TermSearchResult
+                {
+                    Term = term,
+                    Results = response?.Results ?? [],
+                    TotalAvailable = response?.Total ?? 0,
+                    NextStart = 5,
+                    IsCollapsed = !isFirst
+                });
+
+                isFirst = false;
+            }
+        }
+        finally
+        {
+            isSearching = false;
+        }
+
+        var matchedTerms = searchResults.Count(result => result.Results.Count > 0);
+        var missingTerms = searchResults.Count - matchedTerms;
+
+        if (matchedTerms > 0)
+        {
+            Toast.ShowSuccess($"Found matches for {matchedTerms} items");
+        }
+
+        if (missingTerms > 0)
+        {
+            Toast.ShowWarning($"No matches for {missingTerms} items");
+        }
     }
 
     private async Task LoadMore(TermSearchResult termResult)
@@ -237,26 +320,70 @@ public partial class Index
         await SaveCartAsync();
     }
 
-    private async Task ClearCart()
+    private async Task<bool> ClearCart(bool confirm = true, bool showToast = true)
     {
+        if (confirm && cart.Count > 0)
+        {
+            var result = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Clear cart?",
+                Text = "This will remove all items from your cart.",
+                Icon = SweetAlertIcon.Warning,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Clear cart",
+                CancelButtonText = "Cancel",
+                ConfirmButtonColor = "#dc3545",
+                CancelButtonColor = "#6c757d"
+            });
+
+            if (!result.IsConfirmed)
+            {
+                return false;
+            }
+        }
+
         cart.Clear();
         await CartStorage.ClearCartAsync();
-        Toast.ShowInfo("Cart cleared");
+        if (showToast)
+        {
+            Toast.ShowInfo("Cart cleared");
+        }
+
+        return true;
+    }
+
+    private async Task PromptClearCart()
+    {
+        await ClearCart();
     }
 
     private async Task Checkout()
     {
-        var result = await Api.PostAsync<CheckoutRequest, CheckoutResponse>(
-            "/api/checkout",
-            new CheckoutRequest { LocationId = locationId, Items = cart }
-        );
-        if (result != null)
+        if (isCheckingOut)
         {
-            Nav.NavigateTo(result.AuthUrl, true);
+            return;
         }
-        else
+
+        isCheckingOut = true;
+
+        try
         {
-            Toast.ShowError("Error starting checkout");
+            var result = await Api.PostAsync<CheckoutRequest, CheckoutResponse>(
+                "/api/checkout",
+                new CheckoutRequest { LocationId = locationId, Items = cart }
+            );
+            if (result != null)
+            {
+                Nav.NavigateTo(result.AuthUrl, true);
+            }
+            else
+            {
+                Toast.ShowError("Error starting checkout");
+            }
+        }
+        finally
+        {
+            isCheckingOut = false;
         }
     }
 
@@ -276,6 +403,16 @@ public partial class Index
     private async Task SaveCartAsync()
     {
         await CartStorage.SaveCartAsync(cart);
+    }
+
+    private async Task PersistItemsTextAsync()
+    {
+        await DraftStorage.SaveItemsTextAsync(itemsText);
+    }
+
+    private async Task PersistZipCodeAsync()
+    {
+        await DraftStorage.SaveZipCodeAsync(zipCode);
     }
 
     private class TermSearchResult

@@ -28,9 +28,9 @@
                     <div class="card-body">
                         <label class="form-label"><iconify-icon icon="mdi:map-marker" class="me-1"></iconify-icon>ZIP Code</label>
                         <div class="input-group mb-2">
-                            <input @bind="zipCode" class="form-control" />
-                            <button @onclick="SetLocation" class="btn btn-primary">
-                                <iconify-icon icon="mdi:magnify" class="me-1"></iconify-icon>Find Stores
+                            <input @bind="zipCode" @bind:after="PersistZipCodeAsync" class="form-control" disabled="@isLoadingLocations" />
+                            <button @onclick="SetLocation" class="btn btn-primary" disabled="@isLoadingLocations">
+                                <iconify-icon icon="mdi:magnify" class="me-1"></iconify-icon>@(isLoadingLocations ? "Finding..." : "Find Stores")
                             </button>
                         </div>
 
@@ -53,9 +53,9 @@
             <div class="card mb-3">
                 <div class="card-body">
                     <label class="form-label"><iconify-icon icon="mdi:format-list-bulleted" class="me-1"></iconify-icon>Items (one per line)</label>
-                    <textarea @bind="itemsText" rows="4" class="form-control mb-2" disabled="@(string.IsNullOrEmpty(locationId))"></textarea>
-                    <button @onclick="SearchItems" class="btn btn-success" disabled="@(string.IsNullOrEmpty(locationId))">
-                        <iconify-icon icon="mdi:magnify" class="me-1"></iconify-icon>Search
+                    <textarea @bind="itemsText" @bind:after="PersistItemsTextAsync" rows="4" class="form-control mb-2" disabled="@(string.IsNullOrEmpty(locationId) || isSearching)"></textarea>
+                    <button @onclick="SearchItems" class="btn btn-success" disabled="@(string.IsNullOrEmpty(locationId) || isSearching)">
+                        <iconify-icon icon="mdi:magnify" class="me-1"></iconify-icon>@(isSearching ? "Searching..." : "Search")
                     </button>
                 </div>
             </div>
@@ -149,13 +149,13 @@
                     <span class="badge bg-primary rounded-pill">@TotalQuantity items - $@TotalPrice.ToString("F2")</span>
                 </div>
                 <div class="card-body">
-                    <button @onclick="Checkout" disabled="@(cart.Count == 0)" class="btn btn-success w-100 mb-3">
-                        <iconify-icon icon="mdi:credit-card-check" class="me-1"></iconify-icon>Checkout
+                    <button @onclick="Checkout" disabled="@(cart.Count == 0 || isCheckingOut)" class="btn btn-success w-100 mb-3">
+                        <iconify-icon icon="mdi:credit-card-check" class="me-1"></iconify-icon>@(isCheckingOut ? "Starting checkout..." : "Checkout")
                     </button>
 
                     @if (cart.Count > 0)
                     {
-                        <button @onclick="ClearCart" class="btn btn-outline-secondary w-100 mb-3">
+                        <button @onclick="PromptClearCart" class="btn btn-outline-secondary w-100 mb-3" disabled="@isCheckingOut">
                             <iconify-icon icon="mdi:cart-remove" class="me-1"></iconify-icon>Clear Cart
                         </button>
                     }

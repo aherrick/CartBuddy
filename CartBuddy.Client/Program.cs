@@ -23,5 +23,6 @@ builder.Services.AddScoped(sp => new HttpClient
 });
 builder.Services.AddScoped<ApiService>();
 builder.Services.AddScoped<CartStorageService>();
+builder.Services.AddScoped<DraftStorageService>();
 
 await builder.Build().RunAsync();
