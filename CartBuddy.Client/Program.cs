@@ -22,5 +22,6 @@ builder.Services.AddScoped(sp => new HttpClient
     Timeout = TimeSpan.FromMinutes(5),
 });
 builder.Services.AddScoped<ApiService>();
+builder.Services.AddScoped<CartStorageService>();
 
 await builder.Build().RunAsync();

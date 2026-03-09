@@ -140,10 +140,6 @@
                 </div>
             }
 
-            @if (!string.IsNullOrEmpty(status))
-            {
-                <div class="alert alert-info">@status</div>
-            }
         </div>
 
         <div class="col-md-5">
@@ -156,6 +152,13 @@
                     <button @onclick="Checkout" disabled="@(cart.Count == 0)" class="btn btn-success w-100 mb-3">
                         <iconify-icon icon="mdi:credit-card-check" class="me-1"></iconify-icon>Checkout
                     </button>
+
+                    @if (cart.Count > 0)
+                    {
+                        <button @onclick="ClearCart" class="btn btn-outline-secondary w-100 mb-3">
+                            <iconify-icon icon="mdi:cart-remove" class="me-1"></iconify-icon>Clear Cart
+                        </button>
+                    }
 
                     @if (cart.Count == 0)
                     {
