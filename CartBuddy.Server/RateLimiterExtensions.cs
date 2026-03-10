@@ -15,8 +15,10 @@ public static class RateLimiterExtensions
             {
                 if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
                 {
-                    context.HttpContext.Response.Headers.RetryAfter =
-                        Math.Ceiling(retryAfter.TotalSeconds).ToString(CultureInfo.InvariantCulture);
+                    context.HttpContext.Response.Headers.RetryAfter = Math.Ceiling(
+                            retryAfter.TotalSeconds
+                        )
+                        .ToString(CultureInfo.InvariantCulture);
                 }
 
                 return ValueTask.CompletedTask;
@@ -29,35 +31,38 @@ public static class RateLimiterExtensions
                     return RateLimitPartition.GetNoLimiter("non-api");
                 }
 
-                var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-                return RateLimitPartition.GetFixedWindowLimiter(
-                    $"api:{ipAddress}",
-                    static _ => new FixedWindowRateLimiterOptions
-                    {
-                        PermitLimit = 100,
-                        Window = TimeSpan.FromMinutes(1),
-                        QueueLimit = 0,
-                        AutoReplenishment = true,
-                    }
-                );
+                return GetIpLimiter(context, "api", 100, TimeSpan.FromMinutes(1));
             });
 
-            options.AddPolicy("checkout", context =>
-            {
-                var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-                return RateLimitPartition.GetFixedWindowLimiter(
-                    $"checkout:{ipAddress}",
-                    static _ => new FixedWindowRateLimiterOptions
-                    {
-                        PermitLimit = 10,
-                        Window = TimeSpan.FromMinutes(5),
-                        QueueLimit = 0,
-                        AutoReplenishment = true,
-                    }
-                );
-            });
+            options.AddPolicy(
+                "checkout",
+                context =>
+                {
+                    return GetIpLimiter(context, "checkout", 10, TimeSpan.FromMinutes(5));
+                }
+            );
         });
 
         return services;
+    }
+
+    private static RateLimitPartition<string> GetIpLimiter(
+        HttpContext context,
+        string prefix,
+        int permitLimit,
+        TimeSpan window
+    )
+    {
+        var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            $"{prefix}:{ipAddress}",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = permitLimit,
+                Window = window,
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            }
+        );
     }
 }

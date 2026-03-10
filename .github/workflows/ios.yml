@@ -4,6 +4,15 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      configuration:
+        description: 'Build Configuration'
+        required: true
+        default: 'Release'
+        type: choice
+        options:
+          - Debug
+          - Release
 
 jobs:
   deploy:
@@ -30,7 +39,7 @@ jobs:
         run: |
           dotnet build CartBuddy/CartBuddy.csproj \
             -f net10.0-ios \
-            -c Release \
+            -c ${{ inputs.configuration }} \
             -p:RuntimeIdentifier=ios-arm64 \
             -p:CodesignKey="Apple Development: Andrew Herrick (J342D9426H)" \
             -p:CodesignProvision="AJH Wildcard"
@@ -38,7 +47,7 @@ jobs:
       - name: Install and launch on device
         if: github.event_name == 'workflow_dispatch'
         run: |
-          APP_PATH="CartBuddy/bin/Release/net10.0-ios/ios-arm64/CartBuddy.app"
+          APP_PATH="CartBuddy/bin/${{ inputs.configuration }}/net10.0-ios/ios-arm64/CartBuddy.app"
 
           xcrun devicectl device install app \
             --device "${{ secrets.IOS_DEVICE_UDID }}" \
@@ -46,6 +55,5 @@ jobs:
 
           xcrun devicectl device process launch \
             --terminate-existing \
-            --console \
             --device "${{ secrets.IOS_DEVICE_UDID }}" \
             com.ajh.cartbuddy
