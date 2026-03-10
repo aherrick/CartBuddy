@@ -36,47 +36,43 @@
                         BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
                     <VerticalStackLayout Spacing="10">
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                            <VerticalStackLayout Spacing="2">
+                            <VerticalStackLayout Spacing="2" VerticalOptions="Center">
                                 <Label Text="Items" FontSize="16" FontAttributes="Bold" />
                                 <Label Text="{Binding ItemsSummary}"
                                        FontSize="12"
+                                       LineBreakMode="WordWrap"
                                        TextColor="{StaticResource Gray400}" />
                             </VerticalStackLayout>
                             <Button Grid.Column="1"
                                     Text="{Binding ItemsEditorToggleText}"
                                     Command="{Binding ToggleItemsEditorCommand}"
+                                    IsEnabled="{Binding HasItemsText}"
                                     Padding="12,8"
                                     FontSize="12"
-                                    BackgroundColor="{StaticResource Gray600}" />
+                                    VerticalOptions="Center"
+                                    TextColor="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray900}}" />
                         </Grid>
 
-                        <Border IsVisible="{Binding IsItemsEditorVisible}"
-                                Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                                StrokeThickness="1"
-                                StrokeShape="RoundRectangle 8"
-                                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}"
-                                Padding="8">
-                            <Editor Text="{Binding RawItemsText}"
-                                    Placeholder="milk&#10;cheese&#10;water&#10;coke"
-                                    HeightRequest="120"
-                                    AutoSize="TextChanges" />
-                        </Border>
+                        <VerticalStackLayout IsVisible="{Binding IsItemsEditorVisible}" Spacing="10">
+                            <Border Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 8"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}"
+                                    Padding="8">
+                                <Editor Text="{Binding RawItemsText}"
+                                        Placeholder="milk&#10;cheese&#10;water&#10;coke"
+                                        HeightRequest="120"
+                                        AutoSize="TextChanges" />
+                            </Border>
 
-                        <Border IsVisible="{Binding IsItemsPreviewVisible}"
-                                Padding="12"
-                                StrokeShape="RoundRectangle 14"
-                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}">
-                            <Label Text="{Binding RawItemsText}"
-                                   MaxLines="3"
-                                   LineBreakMode="TailTruncation"
-                                   TextColor="{StaticResource Gray400}" />
-                        </Border>
-
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                            <Button Text="Search" Command="{Binding SearchCommand}" />
-                            <Button Grid.Column="1" Text="Clear" Command="{Binding ClearSearchCommand}"
-                                    BackgroundColor="{StaticResource Gray600}" />
-                        </Grid>
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                <Button Text="Search" Command="{Binding SearchCommand}" />
+                                <Button Grid.Column="1" Text="Clear" Command="{Binding ClearSearchCommand}"
+                                        TextColor="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray900}}" />
+                            </Grid>
+                        </VerticalStackLayout>
                     </VerticalStackLayout>
                 </Border>
 

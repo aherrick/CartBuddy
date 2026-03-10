@@ -58,8 +58,6 @@ public partial class MainViewModel : ObservableObject
 
     public bool HasItemsText => !string.IsNullOrWhiteSpace(RawItemsText);
 
-    public bool IsItemsPreviewVisible => !IsItemsEditorVisible && HasItemsText;
-
     public bool HasCartItems => CartItems.Count > 0;
 
     public int CartItemCount => CartItems.Sum(item => item.Quantity);
@@ -78,7 +76,7 @@ public partial class MainViewModel : ObservableObject
         get
         {
             var itemCount = ParseTerms(RawItemsText).Count;
-            return itemCount == 0 ? "No items yet" : $"{itemCount} items ready";
+            return itemCount == 0 ? "Enter a list of items return delimited, then search" : $"{itemCount} items ready";
         }
     }
 
@@ -108,14 +106,12 @@ public partial class MainViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(ItemsEditorToggleText));
         OnPropertyChanged(nameof(ItemsSummary));
-        OnPropertyChanged(nameof(IsItemsPreviewVisible));
     }
 
     partial void OnRawItemsTextChanged(string value)
     {
         OnPropertyChanged(nameof(HasItemsText));
         OnPropertyChanged(nameof(ItemsSummary));
-        OnPropertyChanged(nameof(IsItemsPreviewVisible));
     }
 
     [RelayCommand]
@@ -158,11 +154,11 @@ public partial class MainViewModel : ObservableObject
                 IsItemsEditorVisible = false;
             }
 
-            await ShowSnackbar($"Loaded {SearchGroups.Count} groups");
+            _ = ShowSnackbar($"Loaded {SearchGroups.Count} groups");
         }
         catch (Exception ex)
         {
-            await ShowSnackbar($"Search failed: {ex.Message}");
+            _ = ShowSnackbar($"Search failed: {ex.Message}");
         }
         finally
         {
@@ -499,8 +495,8 @@ public partial class MainViewModel : ObservableObject
             ProductId = product.ProductId,
             Upc = product.Upc,
             Description = product.Description,
-            Brand = string.IsNullOrWhiteSpace(product.Brand) ? "Unknown" : product.Brand,
-            Size = string.IsNullOrWhiteSpace(product.Size) ? "N/A" : product.Size,
+            Brand = string.IsNullOrWhiteSpace(product.Brand) ? string.Empty : product.Brand,
+            Size = string.IsNullOrWhiteSpace(product.Size) ? string.Empty : product.Size,
             ImageUrl = product.ImageUrl,
             Price = product.Price,
             RegularPrice = product.RegularPrice ?? product.Price,
