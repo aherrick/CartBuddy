@@ -21,7 +21,7 @@ public partial class MainViewModel : ObservableObject
     }
 
     [ObservableProperty]
-    private string _rawItemsText;
+    private string _rawItemsText = string.Empty;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -43,6 +43,9 @@ public partial class MainViewModel : ObservableObject
 
     private int _snackbarVersion;
 
+
+    [ObservableProperty]
+    private bool _isAiCleanupEnabled;
 
     public ObservableCollection<SearchGroup> SearchGroups { get; } = [];
 
@@ -85,13 +88,17 @@ public partial class MainViewModel : ObservableObject
 
     public string ThemeActionText => IsDarkMode ? "Use Light Mode" : "Use Dark Mode";
 
+    public string AiActionText => IsAiCleanupEnabled ? "Disable AI Cleanup" : "Enable AI Cleanup";
+
     public void LoadSettings()
     {
         IsDarkMode = PreferencesService.Theme == AppTheme.Dark;
+        IsAiCleanupEnabled = PreferencesService.UseAiCleanup;
         OnPropertyChanged(nameof(HasStore));
         OnPropertyChanged(nameof(StoreDisplay));
         OnPropertyChanged(nameof(StoreActionText));
         OnPropertyChanged(nameof(ThemeActionText));
+        OnPropertyChanged(nameof(AiActionText));
         UpdateSearchState();
         UpdateCartState();
     }
@@ -100,6 +107,12 @@ public partial class MainViewModel : ObservableObject
     {
         PreferencesService.Theme = value ? AppTheme.Dark : AppTheme.Light;
         OnPropertyChanged(nameof(ThemeActionText));
+    }
+
+    partial void OnIsAiCleanupEnabledChanged(bool value)
+    {
+        PreferencesService.UseAiCleanup = value;
+        OnPropertyChanged(nameof(AiActionText));
     }
 
     partial void OnIsItemsEditorVisibleChanged(bool value)
@@ -133,7 +146,18 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            var searchTerms = ParseTerms(RawItemsText);
+            var rawTerms = ParseTerms(RawItemsText);
+            var searchTerms = rawTerms;
+            
+            if (IsAiCleanupEnabled)
+            {
+                // Clean up list with AI so you don't have to worry about strange pasted text
+                var cleanupResponse = await _api.CleanupList(new CleanupRequest { Items = rawTerms });
+                if (cleanupResponse.CleanedItems is { Count: > 0 })
+                {
+                    searchTerms = cleanupResponse.CleanedItems;
+                }
+            }
 
             SearchGroups.Clear();
             var index = 0;
@@ -407,6 +431,12 @@ public partial class MainViewModel : ObservableObject
     private void ToggleTheme()
     {
         IsDarkMode = !IsDarkMode;
+    }
+
+    [RelayCommand]
+    private void ToggleAiCleanup()
+    {
+        IsAiCleanupEnabled = !IsAiCleanupEnabled;
     }
 
     private static List<string> ParseTerms(string input)

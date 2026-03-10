@@ -62,7 +62,7 @@
                                     Padding="8">
                                 <Editor Text="{Binding RawItemsText}"
                                         Placeholder="milk&#10;cheese&#10;water&#10;coke"
-                                        HeightRequest="120"
+                                        MinimumHeightRequest="120"
                                         AutoSize="TextChanges" />
                             </Border>
 

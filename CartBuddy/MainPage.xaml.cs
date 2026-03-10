@@ -25,7 +25,7 @@ public partial class MainPage : ContentPage
 
     private async void OnMenuClicked(object sender, EventArgs e)
     {
-        List<string> actions = [_viewModel.StoreActionText, _viewModel.ThemeActionText];
+        List<string> actions = [_viewModel.StoreActionText, _viewModel.ThemeActionText, _viewModel.AiActionText];
         var title = _viewModel.HasStore ? _viewModel.StoreDisplay : "Cart Buddy";
 
         if (_viewModel.HasStore)
@@ -53,6 +53,11 @@ public partial class MainPage : ContentPage
             case "Use Light Mode":
             case "Use Dark Mode":
                 _viewModel.ToggleThemeCommand.Execute(null);
+                break;
+
+            case "Enable AI Cleanup":
+            case "Disable AI Cleanup":
+                _viewModel.ToggleAiCleanupCommand.Execute(null);
                 break;
         }
     }
