@@ -6,34 +6,36 @@
              BackgroundColor="{AppThemeBinding Light=White, Dark=Black}">
     <ScrollView>
         <VerticalStackLayout Padding="16" Spacing="14">
-            <Label Text="MainPage standalone"
+                     <Label Text="MainPage bound"
                    FontSize="24"
                    FontAttributes="Bold"
                    TextColor="{AppThemeBinding Light=Black, Dark=White}" />
 
-            <Label Text="No view model attached"
+                     <Label Text="{Binding StoreDisplay}"
                    FontSize="14"
                    TextColor="{AppThemeBinding Light=Black, Dark=White}" />
 
-            <Label Text="If this still crashes, the problem is outside MainPage binding logic."
+                     <Label Text="{Binding ItemsSummary}"
                    FontSize="14"
-                   LineBreakMode="WordWrap"
                    TextColor="{AppThemeBinding Light=Black, Dark=White}" />
 
-            <Editor Placeholder="milk&#10;cheese&#10;water"
+                     <Editor Text="{Binding RawItemsText}"
+                                   Placeholder="milk&#10;cheese&#10;water"
                     HeightRequest="140"
                     AutoSize="TextChanges"
                     BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}"
                     TextColor="{AppThemeBinding Light=Black, Dark=White}" />
 
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                <Button Text="Search" />
+                            <Button Text="Search"
+                                          Command="{Binding SearchCommand}" />
                 <Button Grid.Column="1"
-                        Text="Clear" />
+                                          Text="Clear"
+                                          Command="{Binding ClearSearchCommand}" />
             </Grid>
 
-            <ActivityIndicator IsRunning="False"
-                               IsVisible="False" />
+                     <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                                    IsVisible="{Binding IsBusy}" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
