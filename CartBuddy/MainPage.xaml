@@ -60,10 +60,12 @@
                                     StrokeShape="RoundRectangle 8"
                                     BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}"
                                     Padding="8">
-                                <Editor Text="{Binding RawItemsText}"
+                                <Editor x:Name="RawItemsEditor"
+                                        Text="{Binding RawItemsText}"
                                         Placeholder="milk&#10;cheese&#10;water&#10;coke"
+                                        HeightRequest="140"
                                         MinimumHeightRequest="120"
-                                        AutoSize="TextChanges" />
+                                        AutoSize="Disabled" />
                             </Border>
 
                             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
@@ -174,6 +176,7 @@
         </Border>
 
         <bottomsheet:BottomSheet IsOpen="{Binding IsCartOpen}"
+                                 IsVisible="{Binding IsCartOpen}"
                                  IsModal="True"
                                  IsCancelable="True"
                                  IsDraggable="True"
