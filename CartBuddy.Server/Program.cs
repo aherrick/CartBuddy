@@ -1,4 +1,5 @@
 using AspNetCoreRateLimit;
+using CartBuddy.Data.Services;
 using CartBuddy.Server;
 using CartBuddy.Shared.Models;
 
@@ -11,8 +12,6 @@ if (builder.Environment.IsDevelopment())
 
 builder.Services.AddMemoryCache();
 
-// Rate limiting configuration
-
 builder.Services.Configure<IpRateLimitOptions>(options =>
 {
     options.EnableEndpointRateLimiting = true;
@@ -24,12 +23,6 @@ builder.Services.Configure<IpRateLimitOptions>(options =>
             Period = "1m",
             Limit = 100,
         },
-        //new()
-        //{
-        //    Endpoint = "*:/api/search",
-        //    Period = "1m",
-        //    Limit = 60,
-        //},
         new()
         {
             Endpoint = "POST:/api/checkout",
@@ -42,11 +35,9 @@ builder.Services.AddInMemoryRateLimiting();
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
 builder.Services.AddScoped<SessionService>();
-builder.Services.AddSingleton<KrogerTokenCache>();
-builder.Services.AddHttpClient<KrogerService>(client =>
-{
-    client.BaseAddress = new Uri("https://api.kroger.com/v1/");
-});
+builder.Services.AddSingleton<HttpClient>();
+builder.Services.AddSingleton<KrogerClient>();
+builder.Services.AddSingleton<KrogerService>();
 
 var app = builder.Build();
 
@@ -85,33 +76,18 @@ app.MapGet(
     }
 );
 
-// POST /api/checkout
-// Initiates the OAuth checkout flow by saving the cart to session and returning the Kroger authorization URL.
-// The client will navigate to this URL, prompting the user to log in to Kroger.
 app.MapPost(
     "/api/checkout",
-    async (HttpContext context, CheckoutRequest req, SessionService session) =>
+    async (HttpContext context, CheckoutRequest req, SessionService session, KrogerService kroger) =>
     {
-        // Save the cart items and location to server session, keyed by a unique state token
         var state = session.SavePendingCheckout(req);
-
-        var clientId = context.RequestServices.GetRequiredService<IConfiguration>()[
-            "Kroger:ClientId"
-        ];
         var redirectUri = $"{context.Request.Scheme}://{context.Request.Host}/api/oauth/callback";
-        var scopes = "cart.basic:write";
-
-        // Build the Kroger OAuth authorization URL
-        var authUrl =
-            $"https://api.kroger.com/v1/connect/oauth2/authorize?scope={Uri.EscapeDataString(scopes)}&response_type=code&client_id={clientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&state={state}";
+        var authUrl = kroger.CreateAuthorizationUrl(redirectUri, "cart.basic:write", state);
 
         return Results.Ok(new CheckoutResponse { AuthUrl = authUrl });
     }
 );
 
-// GET /api/oauth/callback
-// Kroger redirects here after the user authorizes. We exchange the code for a token,
-// use it to add items to the user's Kroger cart, then redirect back to the app with success flag.
 app.MapGet(
     "/api/oauth/callback",
     async (
@@ -123,26 +99,21 @@ app.MapGet(
         ILogger<Program> logger
     ) =>
     {
-        // Retrieve the pending cart from session using the state token
         var pending = session.GetPendingCheckout(state);
         if (pending == null)
+        {
             return Results.BadRequest("Invalid state");
+        }
 
-        // Clear the session to prevent replay attacks
         session.ClearPendingCheckout(state);
 
         try
         {
             var redirectUri =
                 $"{context.Request.Scheme}://{context.Request.Host}/api/oauth/callback";
-
-            // Exchange the authorization code for a user access token
             var userToken = await kroger.ExchangeCodeForToken(code, redirectUri);
-
-            // Use the token to add items to the user's Kroger cart via the Cart API
             await kroger.CreateCart(userToken, pending.Items);
 
-            // Redirect back to the app with success flag
             return Results.Redirect("/?success=true");
         }
         catch (HttpRequestException ex)

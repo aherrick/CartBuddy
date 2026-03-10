@@ -1,5 +1,6 @@
 ﻿using CartBuddy.Services;
 using CartBuddy.ViewModels;
+using CartBuddy.Data.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Plugin.Maui.BottomSheet.Hosting;
@@ -31,6 +32,7 @@ public static class MauiProgram
 
         // Services
         builder.Services.AddSingleton<HttpClient>();
+        builder.Services.AddSingleton<KrogerClient>();
         builder.Services.AddSingleton<PreferencesService>();
         builder.Services.AddSingleton<KrogerApiService>();
         builder.Services.AddSingleton<AiCleanupService>();

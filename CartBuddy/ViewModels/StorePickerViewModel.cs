@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using CartBuddy.Data.Models;
 using CartBuddy.Models;
 using CartBuddy.Services;
 using CommunityToolkit.Mvvm.ComponentModel;

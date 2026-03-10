@@ -78,33 +78,25 @@ public partial class CartLine : ObservableObject
 
     public decimal LineTotal => Price * Quantity;
 
-    private partial void OnQuantityChanged(int value)
+    partial void OnQuantityChanged(int value)
     {
         OnPropertyChanged(nameof(LineTotal));
     }
 }
 
-public partial class SearchGroup : ObservableObject
+public partial class SearchGroup(string query, int totalCount, int pageSize) : ObservableObject
 {
-    public SearchGroup(string query, int totalCount, int pageSize)
-    {
-        Query = query;
-        TotalCount = totalCount;
-        PageSize = pageSize;
-        Matches = [];
-    }
+    public string Query { get; } = query;
 
-    public string Query { get; }
+    public int PageSize { get; } = pageSize;
 
-    public int PageSize { get; }
-
-    public ObservableCollection<ProductMatch> Matches { get; }
+    public ObservableCollection<ProductMatch> Matches { get; } = [];
 
     [ObservableProperty]
     private bool _isExpanded;
 
     [ObservableProperty]
-    private int _totalCount;
+    private int _totalCount = totalCount;
 
     [ObservableProperty]
     private int _loadedCount;
@@ -138,39 +130,33 @@ public partial class SearchGroup : ObservableObject
         OnPropertyChanged(nameof(PageSummary));
     }
 
-    private partial void OnIsExpandedChanged(bool value)
+    partial void OnIsExpandedChanged(bool value)
     {
         OnPropertyChanged(nameof(ToggleText));
         OnPropertyChanged(nameof(ToggleIconGlyph));
     }
 
-    private partial void OnTotalCountChanged(int value)
+    partial void OnTotalCountChanged(int value)
     {
         OnPropertyChanged(nameof(HasMore));
         OnPropertyChanged(nameof(PageSummary));
     }
 
-    private partial void OnLoadedCountChanged(int value)
+    partial void OnLoadedCountChanged(int value)
     {
         OnPropertyChanged(nameof(HasMore));
         OnPropertyChanged(nameof(PageSummary));
     }
 
-    private partial void OnIsCompletedChanged(bool value)
+    partial void OnIsCompletedChanged(bool value)
     {
         OnPropertyChanged(nameof(PageSummary));
     }
 }
 
-public class ProductSearchPage
+public class ProductSearchPage(List<ProductMatch> results, int totalCount)
 {
-    public ProductSearchPage(List<ProductMatch> results, int totalCount)
-    {
-        Results = results;
-        TotalCount = totalCount;
-    }
+    public List<ProductMatch> Results { get; } = results;
 
-    public List<ProductMatch> Results { get; }
-
-    public int TotalCount { get; }
+    public int TotalCount { get; } = totalCount;
 }

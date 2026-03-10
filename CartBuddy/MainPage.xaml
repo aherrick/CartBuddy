@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:CartBuddy.Models"
+             xmlns:vm="clr-namespace:CartBuddy.ViewModels"
              xmlns:controls="clr-namespace:CartBuddy.Controls"
              xmlns:bottomsheet="http://pluginmauibottomsheet.com"
              x:Class="CartBuddy.MainPage"
@@ -90,13 +91,13 @@
                                             </VerticalStackLayout>
                                             <Button Grid.Column="1" Text="View More"
                                                     IsVisible="{Binding HasMore}"
-                                                    Command="{Binding Path=BindingContext.ViewMoreCommand, Source={x:Reference ThisPage}}"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=ViewMoreCommand}"
                                                     CommandParameter="{Binding}"
                                                     Padding="12,8" FontSize="12" />
                                             <Button Grid.Column="2"
                                                     Text="{Binding ToggleIconGlyph}"
                                                     FontFamily="FaSolid"
-                                                    Command="{Binding Path=BindingContext.ToggleGroupCommand, Source={x:Reference ThisPage}}"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=ToggleGroupCommand}"
                                                     CommandParameter="{Binding}"
                                                     Padding="12,8" FontSize="14"
                                                     WidthRequest="44"
@@ -121,7 +122,7 @@
                                                             SecondaryPriceText="{Binding RegularPrice, StringFormat='Reg ${0:F2}'}"
                                                             AccentText="{Binding PromoEndDisplay}"
                                                             AccentColor="{StaticResource SaleRed}"
-                                                            ItemCommand="{Binding Path=BindingContext.AddToCartCommand, Source={x:Reference ThisPage}}"
+                                                            ItemCommand="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=AddToCartCommand}"
                                                             ItemCommandParameter="{Binding}"
                                                             PriceColor="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}">
                                                             <controls:ProductListItemView.Triggers>
@@ -203,8 +204,8 @@
                                             PriceColor="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}"
                                             ShowQuantityControls="True"
                                             Quantity="{Binding Quantity}"
-                                            IncreaseCommand="{Binding Path=BindingContext.IncreaseQuantityCommand, Source={x:Reference ThisPage}}"
-                                            DecreaseCommand="{Binding Path=BindingContext.DecreaseQuantityCommand, Source={x:Reference ThisPage}}"
+                                            IncreaseCommand="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=IncreaseQuantityCommand}"
+                                            DecreaseCommand="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=DecreaseQuantityCommand}"
                                             QuantityCommandParameter="{Binding}" />
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>

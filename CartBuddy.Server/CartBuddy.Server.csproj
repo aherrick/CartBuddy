@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CartBuddy.Client\CartBuddy.Client.csproj" />
+    <ProjectReference Include="..\CartBuddy.Data\CartBuddy.Data.csproj" />
     <ProjectReference Include="..\CartBuddy.Shared\CartBuddy.Shared.csproj" />
   </ItemGroup>
 

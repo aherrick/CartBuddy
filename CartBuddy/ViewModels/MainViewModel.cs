@@ -92,7 +92,7 @@ public partial class MainViewModel : ObservableObject
         UpdateCartState();
     }
 
-    private partial void OnIsDarkModeChanged(bool value)
+    partial void OnIsDarkModeChanged(bool value)
     {
         _preferences.Theme = value ? AppTheme.Dark : AppTheme.Light;
         OnPropertyChanged(nameof(ThemeActionText));

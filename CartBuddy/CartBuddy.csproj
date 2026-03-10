@@ -76,4 +76,8 @@
 		<PackageReference Include="Plugin.Maui.BottomSheet" Version="10.0.6" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<ProjectReference Include="..\CartBuddy.Data\CartBuddy.Data.csproj" />
+	</ItemGroup>
+
 </Project>

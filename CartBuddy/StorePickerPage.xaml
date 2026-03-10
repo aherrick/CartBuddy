@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:CartBuddy.ViewModels"
-             xmlns:models="clr-namespace:CartBuddy.Models"
+             xmlns:data="clr-namespace:CartBuddy.Data.Models;assembly=CartBuddy.Data"
              x:Class="CartBuddy.StorePickerPage"
              x:Name="ThisPage"
              Title="Select Store">
@@ -28,7 +28,7 @@
                        TextColor="{StaticResource Gray400}" />
             </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:KrogerLocation">
+                <DataTemplate x:DataType="data:KrogerLocation">
                     <Border Margin="0,4" Padding="12" StrokeShape="RoundRectangle 8">
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                             <VerticalStackLayout VerticalOptions="Center">
@@ -38,7 +38,7 @@
                                        TextColor="{StaticResource Gray400}" />
                             </VerticalStackLayout>
                             <Button Grid.Column="1" Text="Select" VerticalOptions="Center"
-                                    Command="{Binding Path=BindingContext.SelectStoreCommand, Source={x:Reference ThisPage}}"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:StorePickerViewModel}}, Path=SelectStoreCommand}"
                                     CommandParameter="{Binding}" />
                         </Grid>
                     </Border>

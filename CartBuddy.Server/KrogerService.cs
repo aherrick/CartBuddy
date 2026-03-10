@@ -1,46 +1,15 @@
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
+using CartBuddy.Data.Models;
+using CartBuddy.Data.Services;
 using CartBuddy.Shared.Models;
 
 namespace CartBuddy.Server;
 
-public class KrogerService(
-    HttpClient httpClient,
-    IConfiguration configuration,
-    KrogerTokenCache tokenCache
-)
+public class KrogerService(KrogerClient krogerClient)
 {
     public async Task<List<LocationInfo>> GetLocationsByZip(string zipCode)
     {
-        var token = await tokenCache.GetClientTokenAsync();
-        httpClient.DefaultRequestHeaders.Authorization = new("Bearer", token);
-
-        var response = await httpClient.GetAsync(
-            $"locations?filter.zipCode.near={zipCode}&filter.limit=5"
-        );
-        response.EnsureSuccessStatusCode();
-
-        var json = await response.Content.ReadAsStringAsync();
-        var doc = JsonDocument.Parse(json);
-        var data = doc.RootElement.GetProperty("data");
-
-        var locations = new List<LocationInfo>();
-        foreach (var loc in data.EnumerateArray())
-        {
-            var address = loc.GetProperty("address");
-            locations.Add(
-                new LocationInfo
-                {
-                    LocationId = loc.GetProperty("locationId").GetString(),
-                    Name = loc.GetProperty("name").GetString(),
-                    Address =
-                        $"{address.GetProperty("addressLine1").GetString()}, {address.GetProperty("city").GetString()}, {address.GetProperty("state").GetString()}",
-                }
-            );
-        }
-
-        return locations;
+        var locations = await krogerClient.SearchLocations(zipCode, 5);
+        return [.. locations.Select(MapLocationInfo)];
     }
 
     public async Task<ProductSearchResponse> SearchProducts(
@@ -50,112 +19,12 @@ public class KrogerService(
         int limit = 5
     )
     {
-        var token = await tokenCache.GetClientTokenAsync();
-        httpClient.DefaultRequestHeaders.Authorization = new("Bearer", token);
-
-        var response = await httpClient.GetAsync(
-            $"products?filter.term={Uri.EscapeDataString(term)}&filter.locationId={locationId}&filter.limit={limit}&filter.start={start + 1}"
-        );
-        response.EnsureSuccessStatusCode();
-
-        var json = await response.Content.ReadAsStringAsync();
-        var doc = JsonDocument.Parse(json);
-        var data = doc.RootElement.GetProperty("data");
-
-        // Get total count from pagination metadata
-        var total = 0;
-        if (
-            doc.RootElement.TryGetProperty("meta", out var meta)
-            && meta.TryGetProperty("pagination", out var pagination)
-            && pagination.TryGetProperty("total", out var totalElement)
-        )
+        var page = await krogerClient.SearchProducts(term, locationId, start, limit);
+        return new ProductSearchResponse
         {
-            total = totalElement.GetInt32();
-        }
-
-        var results = new List<ProductSearchResult>();
-        foreach (var item in data.EnumerateArray())
-        {
-            var firstItem = item.GetProperty("items")[0];
-
-            // Price is at the item level, but not all items have it
-            if (!firstItem.TryGetProperty("price", out var priceElement))
-            {
-                continue; // Skip items without price info
-            }
-
-            // Check for promo price
-            var hasPromo =
-                priceElement.TryGetProperty("promo", out var promoPrice)
-                && promoPrice.ValueKind != JsonValueKind.Null;
-
-            // Get regular price
-            if (!priceElement.TryGetProperty("regular", out var regularElement))
-            {
-                continue; // Skip if no regular price
-            }
-            var regular = regularElement.GetDecimal();
-            var price = hasPromo ? promoPrice.GetDecimal() : regular;
-
-            var promoEndDate = "";
-            if (hasPromo && priceElement.TryGetProperty("expirationDate", out var expDate))
-            {
-                promoEndDate = expDate.TryGetProperty("value", out var val) ? val.GetString() : "";
-            }
-
-            var imageUrl = "";
-            if (item.TryGetProperty("images", out var images) && images.GetArrayLength() > 0)
-            {
-                var frontImage = images
-                    .EnumerateArray()
-                    .FirstOrDefault(i =>
-                        i.TryGetProperty("perspective", out var p) && p.GetString() == "front"
-                    );
-                if (frontImage.ValueKind != JsonValueKind.Undefined)
-                {
-                    imageUrl =
-                        frontImage
-                            .GetProperty("sizes")
-                            .EnumerateArray()
-                            .FirstOrDefault(s =>
-                                s.TryGetProperty("size", out var sz) && sz.GetString() == "medium"
-                            )
-                            .GetProperty("url")
-                            .GetString() ?? "";
-                }
-                if (string.IsNullOrEmpty(imageUrl))
-                {
-                    imageUrl = images[0]
-                        .GetProperty("sizes")
-                        .EnumerateArray()
-                        .FirstOrDefault()
-                        .GetProperty("url")
-                        .GetString();
-                }
-            }
-
-            results.Add(
-                new ProductSearchResult
-                {
-                    ProductId = item.GetProperty("productId").GetString(),
-                    Upc = item.GetProperty("upc").GetString(),
-                    Description = item.GetProperty("description").GetString(),
-                    Brand = item.TryGetProperty("brand", out var brand)
-                        ? brand.GetString()
-                        : "Unknown",
-                    Size = firstItem.TryGetProperty("size", out var size)
-                        ? size.GetString()
-                        : "N/A",
-                    Price = price,
-                    RegularPrice = hasPromo ? regular : null,
-                    HasPromo = hasPromo,
-                    PromoEndDate = promoEndDate,
-                    ImageUrl = imageUrl,
-                }
-            );
-        }
-
-        return new ProductSearchResponse { Results = results, Total = total };
+            Results = [.. page.Results.Select(MapProductSearchResult)],
+            Total = page.TotalCount,
+        };
     }
 
     /// <summary>
@@ -163,31 +32,10 @@ public class KrogerService(
     /// This token represents the authenticated user and has the scopes they approved.
     /// </summary>
     public async Task<string> ExchangeCodeForToken(string code, string redirectUri)
-    {
-        var clientId = configuration["Kroger:ClientId"];
-        var clientSecret = configuration["Kroger:ClientSecret"];
-        var credentials = Convert.ToBase64String(
-            Encoding.ASCII.GetBytes($"{clientId}:{clientSecret}")
-        );
+        => await krogerClient.ExchangeCodeForToken(code, redirectUri);
 
-        HttpRequestMessage request = new(HttpMethod.Post, "connect/oauth2/token");
-        request.Headers.Authorization = new("Basic", credentials);
-        request.Content = new FormUrlEncodedContent(
-            [
-                new("grant_type", "authorization_code"),
-                new("code", code),
-                new("redirect_uri", redirectUri),
-            ]
-        );
-
-        var response = await httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-
-        var json = await response.Content.ReadAsStringAsync();
-
-        var doc = JsonDocument.Parse(json);
-        return doc.RootElement.GetProperty("access_token").GetString();
-    }
+    public string CreateAuthorizationUrl(string redirectUri, string scopes, string state)
+        => krogerClient.CreateAuthorizationUrl(redirectUri, scopes, state);
 
     /// <summary>
     /// Adds items to the authenticated user's Kroger cart using the Cart API.
@@ -196,29 +44,43 @@ public class KrogerService(
     /// </summary>
     public async Task<string> CreateCart(string userToken, List<CartItem> items)
     {
-        HttpRequestMessage request = new(HttpMethod.Put, "cart/add");
-        request.Headers.Authorization = new("Bearer", userToken);
-        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        request.Content = new StringContent(
-            JsonSerializer.Serialize(
-                new { items = items.Select(i => new { upc = i.Upc, quantity = i.Quantity }) }
-            ),
-            Encoding.UTF8,
-            "application/json"
+        await krogerClient.AddToCart(
+            userToken,
+            items.Select(item => new KrogerCartItem { Upc = item.Upc, Quantity = item.Quantity })
         );
 
-        var response = await httpClient.SendAsync(request);
-        var json = await response.Content.ReadAsStringAsync();
-
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new HttpRequestException(
-                $"Kroger cart/add failed: {(int)response.StatusCode} {response.ReasonPhrase}. Body: {json}",
-                null,
-                response.StatusCode
-            );
-        }
-
         return "success";
+    }
+
+    private static LocationInfo MapLocationInfo(KrogerLocation location)
+    {
+        var address = location.Address;
+        var addressText = address is null
+            ? string.Empty
+            : $"{address.AddressLine1}, {address.City}, {address.State}";
+
+        return new LocationInfo
+        {
+            LocationId = location.LocationId,
+            Name = location.Name,
+            Address = addressText,
+        };
+    }
+
+    private static ProductSearchResult MapProductSearchResult(KrogerProduct product)
+    {
+        return new ProductSearchResult
+        {
+            ProductId = product.ProductId,
+            Upc = product.Upc,
+            Description = product.Description,
+            Brand = string.IsNullOrWhiteSpace(product.Brand) ? "Unknown" : product.Brand,
+            Size = string.IsNullOrWhiteSpace(product.Size) ? "N/A" : product.Size,
+            Price = product.Price,
+            RegularPrice = product.HasPromo ? product.RegularPrice : null,
+            HasPromo = product.HasPromo,
+            PromoEndDate = product.PromoEndDate,
+            ImageUrl = product.ImageUrl,
+        };
     }
 }
