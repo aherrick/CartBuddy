@@ -72,7 +72,10 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
         var payload = await response.Content.ReadAsStringAsync();
         using var document = JsonDocument.Parse(payload);
 
-        var page = new KrogerProductSearchPage();
+        var page = new KrogerProductSearchPage
+        {
+            Results = []
+        };
         if (
             document.RootElement.TryGetProperty("meta", out var meta)
             && meta.TryGetProperty("pagination", out var pagination)
