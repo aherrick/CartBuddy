@@ -4,29 +4,14 @@
              xmlns:models="clr-namespace:CartBuddy.Models"
              xmlns:vm="clr-namespace:CartBuddy.ViewModels"
              xmlns:controls="clr-namespace:CartBuddy.Controls"
-             xmlns:bottomsheet="http://pluginmauibottomsheet.com"
              x:Class="CartBuddy.MainPage"
              x:Name="ThisPage"
              Title="Cart Buddy"
              BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
 
     <ContentPage.ToolbarItems>
-        <ToolbarItem Clicked="OnCartClicked" Order="Primary" Priority="0">
-            <ToolbarItem.IconImageSource>
-                <FontImageSource FontFamily="FaSolid"
-                                 Glyph="&#xF07A;"
-                                 Size="18"
-                                 Color="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}" />
-            </ToolbarItem.IconImageSource>
-        </ToolbarItem>
-        <ToolbarItem Clicked="OnMenuClicked" Order="Primary" Priority="1">
-            <ToolbarItem.IconImageSource>
-                <FontImageSource FontFamily="FaSolid"
-                                 Glyph="&#xF0C9;"
-                                 Size="18"
-                                 Color="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}" />
-            </ToolbarItem.IconImageSource>
-        </ToolbarItem>
+        <ToolbarItem Clicked="OnCartClicked" Order="Primary" Priority="0" Text="Cart" />
+        <ToolbarItem Clicked="OnMenuClicked" Order="Primary" Priority="1" Text="Menu" />
     </ContentPage.ToolbarItems>
 
     <Grid>
@@ -91,8 +76,7 @@
                                             <VerticalStackLayout Spacing="2">
                                                 <HorizontalStackLayout Spacing="6">
                                                     <Label Text="{Binding Query}" FontSize="17" FontAttributes="Bold" />
-                                                    <Label Text="&#xF058;"
-                                                           FontFamily="FaSolid"
+                                                    <Label Text="Done"
                                                            FontSize="14"
                                                            TextColor="{StaticResource SaleGreen}"
                                                            IsVisible="{Binding IsCompleted}"
@@ -107,8 +91,7 @@
                                                     CommandParameter="{Binding}"
                                                     Padding="12,8" FontSize="12" />
                                             <Button Grid.Column="2"
-                                                    Text="{Binding ToggleIconGlyph}"
-                                                    FontFamily="FaSolid"
+                                                    Text="Toggle"
                                                     Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=ToggleGroupCommand}"
                                                     CommandParameter="{Binding}"
                                                     Padding="12,8" FontSize="14"
@@ -170,62 +153,5 @@
                    FontSize="13"
                    LineBreakMode="TailTruncation" />
         </Border>
-
-        <bottomsheet:BottomSheet IsOpen="{Binding IsCartOpen}"
-                                 IsModal="True"
-                                 IsCancelable="True"
-                                 IsDraggable="True"
-                                 HasHandle="True"
-                                 ShowHeader="False"
-                                 States="Medium,Large"
-                                 CurrentState="Medium">
-            <bottomsheet:BottomSheetContent>
-                <bottomsheet:BottomSheetContent.ContentTemplate>
-                    <DataTemplate>
-                        <VerticalStackLayout Padding="16,10,16,16" Spacing="12">
-                            <VerticalStackLayout Spacing="2">
-                                <Label Text="Cart" FontSize="22" FontAttributes="Bold" />
-                                <Label Text="{Binding CartSummary}" FontSize="13" TextColor="{StaticResource Gray400}" />
-                            </VerticalStackLayout>
-
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" IsVisible="{Binding HasCartItems}">
-                                <Button Text="Checkout" Command="{Binding CheckoutCommand}" />
-                                <Button Grid.Column="1"
-                                        Clicked="OnClearCartClicked"
-                                        Padding="12,8"
-                                        WidthRequest="48"
-                                        BackgroundColor="{StaticResource SaleRed}"
-                                        Text="&#xF1F8;"
-                                        FontFamily="FaSolid"
-                                        FontSize="14"
-                                        TextColor="{StaticResource White}" />
-                            </Grid>
-
-                            <CollectionView ItemsSource="{Binding CartItems}" SelectionMode="None" HeightRequest="420">
-                                <CollectionView.EmptyView>
-                                    <Label Text="Your cart is empty" FontSize="14" HorizontalOptions="Center"
-                                           TextColor="{StaticResource Gray400}" />
-                                </CollectionView.EmptyView>
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate x:DataType="models:CartLine">
-                                        <controls:ProductListItemView
-                                            Title="{Binding Description}"
-                                            Subtitle="{Binding Price, StringFormat='${0:F2} each'}"
-                                            ImageUrl="{Binding ImageUrl}"
-                                            PriceText="{Binding LineTotal, StringFormat='${0:F2}'}"
-                                            PriceColor="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}"
-                                            ShowQuantityControls="True"
-                                            Quantity="{Binding Quantity}"
-                                            IncreaseCommand="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=IncreaseQuantityCommand}"
-                                            DecreaseCommand="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=DecreaseQuantityCommand}"
-                                            QuantityCommandParameter="{Binding}" />
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
-                        </VerticalStackLayout>
-                    </DataTemplate>
-                </bottomsheet:BottomSheetContent.ContentTemplate>
-            </bottomsheet:BottomSheetContent>
-        </bottomsheet:BottomSheet>
     </Grid>
 </ContentPage>
