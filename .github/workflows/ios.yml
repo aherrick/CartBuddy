@@ -10,25 +10,37 @@ jobs:
     runs-on: [self-hosted, ajmacmini]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-dotnet@v5
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
 
       - name: Install MAUI workload
         run: dotnet workload install maui
 
-      - name: Deploy to device
+      - name: Build iOS on push
+        if: github.event_name == 'push'
         env:
           Kroger__ClientId: ${{ secrets.KROGER_CLIENT_ID }}
           Kroger__ClientSecret: ${{ secrets.KROGER_CLIENT_SECRET }}
-          # AzureOpenAI__Endpoint: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
-          # AzureOpenAI__Key: ${{ secrets.AZURE_OPENAI_KEY }}
+        run: |
+          dotnet build CartBuddy/CartBuddy.csproj \
+            -f net10.0-ios \
+            -c Release \
+            -p:RuntimeIdentifier=ios-arm64
+
+      - name: Deploy to connected device on manual run
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          Kroger__ClientId: ${{ secrets.KROGER_CLIENT_ID }}
+          Kroger__ClientSecret: ${{ secrets.KROGER_CLIENT_SECRET }}
         run: |
           dotnet build CartBuddy/CartBuddy.csproj \
             -t:Run \
             -f net10.0-ios \
-            -c Release \
+            -c Debug \
             -p:RuntimeIdentifier=ios-arm64 \
             -p:_DeviceName=${{ secrets.IOS_DEVICE_UDID }}

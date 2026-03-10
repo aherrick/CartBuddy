@@ -1,6 +1,6 @@
-﻿using CartBuddy.Services;
+﻿using CartBuddy.Data.Services;
+using CartBuddy.Services;
 using CartBuddy.ViewModels;
-using CartBuddy.Data.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Plugin.Maui.BottomSheet.Hosting;
@@ -16,6 +16,8 @@ public static class MauiProgram
 #if DEBUG
         builder.Configuration.AddUserSecrets<App>();
 #endif
+
+        // Always allow CI / shell / host-level overrides
         builder.Configuration.AddEnvironmentVariables();
 
         builder
