@@ -8,5 +8,11 @@ public partial class App : Application
     }
 
     protected override Window CreateWindow(IActivationState activationState) =>
-        new(new AppShell());
+        new(
+            new ContentPage
+            {
+                Title = "CartBuddy",
+                Content = new Grid(),
+            }
+        );
 }
