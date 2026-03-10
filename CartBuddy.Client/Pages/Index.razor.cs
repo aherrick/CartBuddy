@@ -73,17 +73,19 @@ public partial class Index
             {
                 await ClearCart();
 
-                var result = await Swal.FireAsync(new SweetAlertOptions
-                {
-                    Title = "Cart created!",
-                    Icon = SweetAlertIcon.Success,
-                    Text = "Your items were added to your Kroger cart.",
-                    ShowCancelButton = true,
-                    ConfirmButtonText = "🛒 View on Kroger.com",
-                    CancelButtonText = "Continue shopping",
-                    ConfirmButtonColor = "#0033A0",
-                    CancelButtonColor = "#6c757d"
-                });
+                var result = await Swal.FireAsync(
+                    new SweetAlertOptions
+                    {
+                        Title = "Cart created!",
+                        Icon = SweetAlertIcon.Success,
+                        Text = "Your items were added to your Kroger cart.",
+                        ShowCancelButton = true,
+                        ConfirmButtonText = "🛒 View on Kroger.com",
+                        CancelButtonText = "Continue shopping",
+                        ConfirmButtonColor = "#0033A0",
+                        CancelButtonColor = "#6c757d",
+                    }
+                );
 
                 if (result.IsConfirmed)
                 {
@@ -141,17 +143,19 @@ public partial class Index
     {
         if (!string.IsNullOrEmpty(locationId) && locationId != locId && cart.Count > 0)
         {
-            var result = await Swal.FireAsync(new SweetAlertOptions
-            {
-                Title = "Change stores?",
-                Text = "Changing stores will clear your current cart and search results.",
-                Icon = SweetAlertIcon.Warning,
-                ShowCancelButton = true,
-                ConfirmButtonText = "Change store",
-                CancelButtonText = "Keep current store",
-                ConfirmButtonColor = "#0033A0",
-                CancelButtonColor = "#6c757d"
-            });
+            var result = await Swal.FireAsync(
+                new SweetAlertOptions
+                {
+                    Title = "Change stores?",
+                    Text = "Changing stores will clear your current cart and search results.",
+                    Icon = SweetAlertIcon.Warning,
+                    ShowCancelButton = true,
+                    ConfirmButtonText = "Change store",
+                    CancelButtonText = "Keep current store",
+                    ConfirmButtonColor = "#0033A0",
+                    CancelButtonColor = "#6c757d",
+                }
+            );
 
             if (!result.IsConfirmed)
             {
@@ -212,14 +216,16 @@ public partial class Index
                     $"/api/search?locationId={locationId}&term={Uri.EscapeDataString(term)}&start=0&limit=5"
                 );
 
-                searchResults.Add(new TermSearchResult
-                {
-                    Term = term,
-                    Results = response?.Results ?? [],
-                    TotalAvailable = response?.Total ?? 0,
-                    NextStart = 5,
-                    IsCollapsed = !isFirst
-                });
+                searchResults.Add(
+                    new TermSearchResult
+                    {
+                        Term = term,
+                        Results = response?.Results ?? [],
+                        TotalAvailable = response?.Total ?? 0,
+                        NextStart = 5,
+                        IsCollapsed = !isFirst,
+                    }
+                );
 
                 isFirst = false;
             }
@@ -253,9 +259,9 @@ public partial class Index
         {
             termResult.Results.AddRange(response.Results);
         }
-        
+
         termResult.NextStart += 5;
-        
+
         if (termResult.NextStart >= termResult.TotalAvailable)
         {
             Toast.ShowInfo("All items loaded");
@@ -324,17 +330,19 @@ public partial class Index
     {
         if (confirm && cart.Count > 0)
         {
-            var result = await Swal.FireAsync(new SweetAlertOptions
-            {
-                Title = "Clear cart?",
-                Text = "This will remove all items from your cart.",
-                Icon = SweetAlertIcon.Warning,
-                ShowCancelButton = true,
-                ConfirmButtonText = "Clear cart",
-                CancelButtonText = "Cancel",
-                ConfirmButtonColor = "#dc3545",
-                CancelButtonColor = "#6c757d"
-            });
+            var result = await Swal.FireAsync(
+                new SweetAlertOptions
+                {
+                    Title = "Clear cart?",
+                    Text = "This will remove all items from your cart.",
+                    Icon = SweetAlertIcon.Warning,
+                    ShowCancelButton = true,
+                    ConfirmButtonText = "Clear cart",
+                    CancelButtonText = "Cancel",
+                    ConfirmButtonColor = "#dc3545",
+                    CancelButtonColor = "#6c757d",
+                }
+            );
 
             if (!result.IsConfirmed)
             {

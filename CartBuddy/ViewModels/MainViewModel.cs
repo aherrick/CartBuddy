@@ -1,0 +1,443 @@
+using System.Collections.ObjectModel;
+using CartBuddy.Models;
+using CartBuddy.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+
+namespace CartBuddy.ViewModels;
+
+public partial class MainViewModel : ObservableObject
+{
+    private const int PageSize = 4;
+
+    private readonly KrogerApiService _krogerApi;
+    private readonly AiCleanupService _aiCleanup;
+    private readonly PreferencesService _preferences;
+
+    public MainViewModel(
+        KrogerApiService krogerApi,
+        AiCleanupService aiCleanup,
+        PreferencesService preferences
+    )
+    {
+        _krogerApi = krogerApi;
+        _aiCleanup = aiCleanup;
+        _preferences = preferences;
+        SearchGroups.CollectionChanged += (_, _) => UpdateSearchState();
+        CartItems.CollectionChanged += (_, _) => UpdateCartState();
+    }
+
+    [ObservableProperty]
+    private string _rawItemsText;
+
+    [ObservableProperty]
+    private bool _isBusy;
+
+    [ObservableProperty]
+    private string _snackbarMessage;
+
+    [ObservableProperty]
+    private bool _isDarkMode;
+
+    [ObservableProperty]
+    private bool _isCartOpen;
+
+    [ObservableProperty]
+    private string _searchModeLabel;
+
+    [ObservableProperty]
+    private bool _isSnackbarVisible;
+
+    private int _snackbarVersion;
+
+    public bool IsAiAvailable => _preferences.IsAiConfigured;
+
+    public ObservableCollection<SearchGroup> SearchGroups { get; } = [];
+
+    public ObservableCollection<CartLine> CartItems { get; } = [];
+
+    public bool HasStore => _preferences.HasStore;
+
+    public string StoreDisplay => HasStore ? $"🏪 {_preferences.StoreName}" : "No store selected";
+
+    public string StoreActionText => HasStore ? "Change Store" : "Select Store";
+
+    public bool HasResults => SearchGroups.Count > 0;
+
+    public bool HasCartItems => CartItems.Count > 0;
+
+    public int CartItemCount => CartItems.Sum(item => item.Quantity);
+
+    public decimal CartTotal => CartItems.Sum(item => item.LineTotal);
+
+    public string CartSummary =>
+        HasCartItems ? $"{CartItemCount} items • ${CartTotal:F2}" : "Cart is empty";
+
+    public string CartButtonText => HasCartItems ? $"Cart ({CartItemCount})" : "Cart";
+
+    public string ToggleAllText =>
+        SearchGroups.Any(group => !group.IsExpanded) ? "Expand All" : "Collapse All";
+
+    public string ThemeActionText => IsDarkMode ? "Use Light Mode" : "Use Dark Mode";
+
+    public void LoadSettings()
+    {
+        IsDarkMode = _preferences.Theme == AppTheme.Dark;
+        SearchModeLabel = IsAiAvailable ? "AI cleanup is automatic" : "Direct Kroger search";
+        OnPropertyChanged(nameof(HasStore));
+        OnPropertyChanged(nameof(StoreDisplay));
+        OnPropertyChanged(nameof(StoreActionText));
+        OnPropertyChanged(nameof(ThemeActionText));
+        UpdateSearchState();
+        UpdateCartState();
+    }
+
+    private partial void OnIsDarkModeChanged(bool value)
+    {
+        _preferences.Theme = value ? AppTheme.Dark : AppTheme.Light;
+        OnPropertyChanged(nameof(ThemeActionText));
+    }
+
+    [RelayCommand]
+    private async Task Search()
+    {
+        if (string.IsNullOrWhiteSpace(RawItemsText))
+        {
+            await ShowSnackbar("Paste a list first");
+            return;
+        }
+
+        if (!HasStore)
+        {
+            await ShowSnackbar("Select a store first");
+            return;
+        }
+
+        IsBusy = true;
+
+        try
+        {
+            var rawTerms = ParseTerms(RawItemsText);
+            var searchTerms = rawTerms;
+
+            if (IsAiAvailable)
+            {
+                try
+                {
+                    searchTerms = await _aiCleanup.CleanupList(rawTerms);
+                    RawItemsText = string.Join(Environment.NewLine, searchTerms);
+                }
+                catch
+                {
+                    searchTerms = rawTerms;
+                }
+            }
+
+            SearchGroups.Clear();
+            var index = 0;
+            foreach (var term in searchTerms)
+            {
+                var page = await _krogerApi.SearchProducts(term, _preferences.StoreId, 0, PageSize);
+                var group = new SearchGroup(term, page.TotalCount, PageSize)
+                {
+                    IsExpanded = index == 0,
+                };
+                group.AddMatches(page.Results);
+                SearchGroups.Add(group);
+                index++;
+            }
+
+            await ShowSnackbar($"Loaded {SearchGroups.Count} groups");
+        }
+        catch (Exception ex)
+        {
+            await ShowSnackbar($"Search failed: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ViewMore(SearchGroup group)
+    {
+        if (group is null || !group.HasMore || string.IsNullOrWhiteSpace(_preferences.StoreId))
+        {
+            return;
+        }
+
+        IsBusy = true;
+
+        try
+        {
+            var page = await _krogerApi.SearchProducts(
+                group.Query,
+                _preferences.StoreId,
+                group.LoadedCount,
+                group.PageSize
+            );
+            group.AddMatches(page.Results);
+            group.IsExpanded = true;
+        }
+        catch (Exception ex)
+        {
+            await ShowSnackbar($"Couldn't load more: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task Checkout()
+    {
+        var cartItems = CartItems.Where(item => item.Quantity > 0).ToList();
+        if (cartItems.Count == 0)
+        {
+            await ShowSnackbar("Add items to the cart first");
+            return;
+        }
+
+        IsBusy = true;
+
+        try
+        {
+            var userToken = await _krogerApi.AuthenticateUser();
+            await _krogerApi.AddToCart(userToken, cartItems);
+
+            ClearCart();
+            IsCartOpen = false;
+            await ShowSnackbar($"Added {cartItems.Count} lines to your Kroger cart");
+        }
+        catch (TaskCanceledException)
+        {
+            await ShowSnackbar("Sign-in cancelled");
+        }
+        catch (Exception ex)
+        {
+            await ShowSnackbar($"Checkout failed: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private void ToggleGroup(SearchGroup group)
+    {
+        if (group is null)
+        {
+            return;
+        }
+
+        group.IsExpanded = !group.IsExpanded;
+        OnPropertyChanged(nameof(ToggleAllText));
+    }
+
+    [RelayCommand]
+    private void ToggleAllGroups()
+    {
+        var expandAll = SearchGroups.Any(group => !group.IsExpanded);
+        foreach (var group in SearchGroups)
+        {
+            group.IsExpanded = expandAll;
+        }
+
+        OnPropertyChanged(nameof(ToggleAllText));
+    }
+
+    [RelayCommand]
+    private async Task AddToCart(ProductMatch match)
+    {
+        if (match is null || string.IsNullOrWhiteSpace(match.Upc))
+        {
+            return;
+        }
+
+        var existingLine = CartItems.FirstOrDefault(item => item.Upc == match.Upc);
+        if (existingLine is not null)
+        {
+            existingLine.Quantity++;
+        }
+        else
+        {
+            CartItems.Add(
+                new CartLine
+                {
+                    ProductId = match.ProductId,
+                    Upc = match.Upc,
+                    Description = match.Description,
+                    ImageUrl = match.ImageUrl,
+                    Price = match.Price,
+                    Quantity = 1,
+                }
+            );
+        }
+
+        CompleteGroupAndAdvance(match);
+        UpdateCartState();
+        await ShowSnackbar("Added to cart");
+    }
+
+    [RelayCommand]
+    private void IncreaseQuantity(CartLine item)
+    {
+        if (item is null)
+        {
+            return;
+        }
+
+        item.Quantity++;
+        UpdateCartState();
+    }
+
+    [RelayCommand]
+    private void DecreaseQuantity(CartLine item)
+    {
+        if (item is null)
+        {
+            return;
+        }
+
+        item.Quantity--;
+        if (item.Quantity <= 0)
+        {
+            CartItems.Remove(item);
+        }
+
+        UpdateCartState();
+    }
+
+    [RelayCommand]
+    private void ClearCart()
+    {
+        CartItems.Clear();
+        ResetGroupSelections();
+        UpdateCartState();
+    }
+
+    [RelayCommand]
+    private void ToggleCart()
+    {
+        IsCartOpen = !IsCartOpen;
+    }
+
+    [RelayCommand]
+    private void OpenCart()
+    {
+        IsCartOpen = true;
+    }
+
+    [RelayCommand]
+    private void CloseCart()
+    {
+        IsCartOpen = false;
+    }
+
+    [RelayCommand]
+    private void ClearSearch()
+    {
+        SearchGroups.Clear();
+        RawItemsText = string.Empty;
+        SnackbarMessage = string.Empty;
+        IsSnackbarVisible = false;
+        UpdateSearchState();
+    }
+
+    [RelayCommand]
+    private async Task GoToStorePicker()
+    {
+        await Shell.Current.GoToAsync("StorePickerPage");
+    }
+
+    [RelayCommand]
+    private void ClearStore()
+    {
+        _preferences.StoreId = string.Empty;
+        _preferences.StoreName = string.Empty;
+        OnPropertyChanged(nameof(HasStore));
+        OnPropertyChanged(nameof(StoreDisplay));
+        OnPropertyChanged(nameof(StoreActionText));
+    }
+
+    [RelayCommand]
+    private void ToggleTheme()
+    {
+        IsDarkMode = !IsDarkMode;
+    }
+
+    private static List<string> ParseTerms(string input)
+    {
+        return
+        [
+            .. input
+                .Split(
+                    ['\r', '\n'],
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+                )
+                .Distinct(StringComparer.OrdinalIgnoreCase),
+        ];
+    }
+
+    private void UpdateSearchState()
+    {
+        OnPropertyChanged(nameof(HasResults));
+        OnPropertyChanged(nameof(ToggleAllText));
+    }
+
+    private void CompleteGroupAndAdvance(ProductMatch match)
+    {
+        var currentGroup = SearchGroups.FirstOrDefault(group => group.Query == match.Query);
+        if (currentGroup is null)
+        {
+            return;
+        }
+
+        currentGroup.IsCompleted = true;
+        currentGroup.IsExpanded = false;
+
+        var currentIndex = SearchGroups.IndexOf(currentGroup);
+        for (var i = currentIndex + 1; i < SearchGroups.Count; i++)
+        {
+            if (!SearchGroups[i].IsCompleted)
+            {
+                SearchGroups[i].IsExpanded = true;
+                return;
+            }
+        }
+    }
+
+    private void ResetGroupSelections()
+    {
+        for (var i = 0; i < SearchGroups.Count; i++)
+        {
+            SearchGroups[i].IsCompleted = false;
+            SearchGroups[i].IsExpanded = i == 0;
+        }
+    }
+
+    private void UpdateCartState()
+    {
+        OnPropertyChanged(nameof(HasCartItems));
+        OnPropertyChanged(nameof(CartItemCount));
+        OnPropertyChanged(nameof(CartTotal));
+        OnPropertyChanged(nameof(CartSummary));
+        OnPropertyChanged(nameof(CartButtonText));
+    }
+
+    private async Task ShowSnackbar(string message)
+    {
+        var version = Interlocked.Increment(ref _snackbarVersion);
+        SnackbarMessage = message;
+        IsSnackbarVisible = true;
+
+        await Task.Delay(2200);
+        if (version == _snackbarVersion)
+        {
+            IsSnackbarVisible = false;
+        }
+    }
+}

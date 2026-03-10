@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="CartBuddy/CartBuddy.csproj" />
   <Project Path="CartBuddy.Client/CartBuddy.Client.csproj" />
   <Project Path="CartBuddy.Console/CartBuddy.Console.csproj" />
   <Project Path="CartBuddy.Server/CartBuddy.Server.csproj" />
