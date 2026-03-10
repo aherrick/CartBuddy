@@ -50,11 +50,17 @@
                                     BackgroundColor="{StaticResource Gray600}" />
                         </Grid>
 
-                        <Editor Text="{Binding RawItemsText}"
-                                Placeholder="milk&#10;cheese&#10;water&#10;coke"
-                                HeightRequest="120"
-                                AutoSize="TextChanges"
-                                IsVisible="{Binding IsItemsEditorVisible}" />
+                        <Border IsVisible="{Binding IsItemsEditorVisible}"
+                                Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 8"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}"
+                                Padding="8">
+                            <Editor Text="{Binding RawItemsText}"
+                                    Placeholder="milk&#10;cheese&#10;water&#10;coke"
+                                    HeightRequest="120"
+                                    AutoSize="TextChanges" />
+                        </Border>
 
                         <Border IsVisible="{Binding IsItemsPreviewVisible}"
                                 Padding="12"
