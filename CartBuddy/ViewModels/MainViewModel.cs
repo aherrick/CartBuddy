@@ -179,7 +179,6 @@ public partial class MainViewModel : ObservableObject
                 IsItemsEditorVisible = false;
             }
 
-            _ = ShowSnackbar($"Loaded {SearchGroups.Count} groups");
         }
         catch (Exception ex)
         {

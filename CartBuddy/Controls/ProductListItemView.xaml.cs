@@ -31,6 +31,18 @@ public partial class ProductListItemView : ContentView
     public static readonly BindableProperty AccentColorProperty =
         BindableProperty.Create(nameof(AccentColor), typeof(Color), typeof(ProductListItemView), Colors.Black);
 
+    public static readonly BindableProperty ShowPriceBadgeProperty =
+        BindableProperty.Create(
+            nameof(ShowPriceBadge),
+            typeof(bool),
+            typeof(ProductListItemView),
+            false,
+            propertyChanged: OnPriceBadgeChanged
+        );
+
+    public static readonly BindableProperty PriceBadgeColorProperty =
+        BindableProperty.Create(nameof(PriceBadgeColor), typeof(Color), typeof(ProductListItemView), Colors.Transparent);
+
     public static readonly BindableProperty ItemCommandProperty =
         BindableProperty.Create(nameof(ItemCommand), typeof(ICommand), typeof(ProductListItemView));
 
@@ -113,6 +125,18 @@ public partial class ProductListItemView : ContentView
         set => SetValue(AccentColorProperty, value);
     }
 
+    public bool ShowPriceBadge
+    {
+        get => (bool)GetValue(ShowPriceBadgeProperty);
+        set => SetValue(ShowPriceBadgeProperty, value);
+    }
+
+    public Color PriceBadgeColor
+    {
+        get => (Color)GetValue(PriceBadgeColorProperty);
+        set => SetValue(PriceBadgeColorProperty, value);
+    }
+
     public ICommand ItemCommand
     {
         get => (ICommand)GetValue(ItemCommandProperty);
@@ -163,6 +187,8 @@ public partial class ProductListItemView : ContentView
 
     public bool HasAccentText => !string.IsNullOrWhiteSpace(AccentText);
 
+    public bool ShowPlainPrice => !ShowPriceBadge;
+
     public string QuantityText { get; private set; }
 
     private static void OnTextChanged(BindableObject bindable, object oldValue, object newValue)
@@ -173,6 +199,11 @@ public partial class ProductListItemView : ContentView
     private static void OnQuantityChanged(BindableObject bindable, object oldValue, object newValue)
     {
         ((ProductListItemView)bindable).UpdateQuantityText();
+    }
+
+    private static void OnPriceBadgeChanged(BindableObject bindable, object oldValue, object newValue)
+    {
+        ((ProductListItemView)bindable).OnPropertyChanged(nameof(ShowPlainPrice));
     }
 
     private void UpdateTextFlags()

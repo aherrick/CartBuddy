@@ -38,11 +38,24 @@
             </VerticalStackLayout>
 
             <VerticalStackLayout Grid.Column="2" Spacing="4" HorizontalOptions="End" VerticalOptions="Center">
+                <Border Padding="10,4"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 8"
+                        HorizontalOptions="End"
+                        BackgroundColor="{Binding PriceBadgeColor, Source={x:Reference ThisView}}"
+                        IsVisible="{Binding ShowPriceBadge, Source={x:Reference ThisView}}">
+                    <Label Text="{Binding PriceText, Source={x:Reference ThisView}}"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           HorizontalTextAlignment="End"
+                           TextColor="{StaticResource White}" />
+                </Border>
                 <Label Text="{Binding PriceText, Source={x:Reference ThisView}}"
                        FontSize="18"
                        FontAttributes="Bold"
                        HorizontalTextAlignment="End"
-                       TextColor="{Binding PriceColor, Source={x:Reference ThisView}}" />
+                       TextColor="{Binding PriceColor, Source={x:Reference ThisView}}"
+                       IsVisible="{Binding ShowPlainPrice, Source={x:Reference ThisView}}" />
                 <Label Text="{Binding SecondaryPriceText, Source={x:Reference ThisView}}"
                        FontSize="11"
                        HorizontalTextAlignment="End"

@@ -40,11 +40,13 @@ public partial class ProductMatch : ObservableObject
 
     public bool HasSale => HasPromo && RegularPrice > Price;
 
+    public string RegularPriceDisplay => HasSale ? $"(Reg ${RegularPrice:F2})" : string.Empty;
+
     public string PromoEndDisplay
     {
         get
         {
-            if (string.IsNullOrWhiteSpace(PromoEndDate))
+            if (!HasSale || string.IsNullOrWhiteSpace(PromoEndDate))
             {
                 return string.Empty;
             }
@@ -53,6 +55,33 @@ public partial class ProductMatch : ObservableObject
                 ? $"Until {date:M/d}"
                 : PromoEndDate;
         }
+    }
+
+    partial void OnPriceChanged(decimal value)
+    {
+        OnPricingChanged();
+    }
+
+    partial void OnRegularPriceChanged(decimal value)
+    {
+        OnPricingChanged();
+    }
+
+    partial void OnHasPromoChanged(bool value)
+    {
+        OnPricingChanged();
+    }
+
+    partial void OnPromoEndDateChanged(string value)
+    {
+        OnPropertyChanged(nameof(PromoEndDisplay));
+    }
+
+    private void OnPricingChanged()
+    {
+        OnPropertyChanged(nameof(HasSale));
+        OnPropertyChanged(nameof(RegularPriceDisplay));
+        OnPropertyChanged(nameof(PromoEndDisplay));
     }
 }
 
