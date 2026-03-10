@@ -21,21 +21,38 @@ jobs:
       - name: Install MAUI workload
         run: dotnet workload install maui
 
-      - name: Build iOS
+      - name: Build iOS on push
         if: github.event_name == 'push'
-        run: dotnet build CartBuddy/CartBuddy.csproj -f net10.0-ios
+        env:
+          Kroger__ClientId: ${{ secrets.KROGER_CLIENT_ID }}
+          Kroger__ClientSecret: ${{ secrets.KROGER_CLIENT_SECRET }}
+        run: |
+          dotnet build CartBuddy/CartBuddy.csproj -f net10.0-ios
 
-      - name: Deploy to device
+      - name: Build app for device
         if: github.event_name == 'workflow_dispatch'
         env:
           Kroger__ClientId: ${{ secrets.KROGER_CLIENT_ID }}
           Kroger__ClientSecret: ${{ secrets.KROGER_CLIENT_SECRET }}
         run: |
           dotnet build CartBuddy/CartBuddy.csproj \
-            -t:Run \
             -f net10.0-ios \
             -c Release \
             -p:RuntimeIdentifier=ios-arm64 \
-            -p:_DeviceName=${{ secrets.IOS_DEVICE_UDID }} \
             -p:CodesignKey="Apple Development: Andrew Herrick (J342D9426H)" \
             -p:CodesignProvision="AJH Wildcard"
+
+      - name: Install and launch on device
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          APP_PATH="CartBuddy/bin/Release/net10.0-ios/ios-arm64/CartBuddy.app"
+
+          xcrun devicectl device install app \
+            --device "${{ secrets.IOS_DEVICE_UDID }}" \
+            "$APP_PATH"
+
+          xcrun devicectl device process launch \
+            --terminate-existing \
+            --console \
+            --device "${{ secrets.IOS_DEVICE_UDID }}" \
+            com.domicilecloud.CartBuddy
