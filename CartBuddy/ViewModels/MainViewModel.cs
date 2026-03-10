@@ -148,7 +148,7 @@ public partial class MainViewModel : ObservableObject
         {
             var rawTerms = ParseTerms(RawItemsText);
             var searchTerms = rawTerms;
-            
+
             if (IsAiCleanupEnabled)
             {
                 // Clean up list with AI so you don't have to worry about strange pasted text
@@ -156,6 +156,7 @@ public partial class MainViewModel : ObservableObject
                 if (cleanupResponse.CleanedItems is { Count: > 0 })
                 {
                     searchTerms = cleanupResponse.CleanedItems;
+                    RawItemsText = string.Join(Environment.NewLine, cleanupResponse.CleanedItems);
                 }
             }
 
