@@ -15,7 +15,19 @@ public partial class MainPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        _viewModel.LoadSettings();
+        _ = InitializePage();
+    }
+
+    private async Task InitializePage()
+    {
+        try
+        {
+            _viewModel.LoadSettings();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync("Startup error", ex.Message, "OK");
+        }
     }
 
     private async void OnMenuClicked(object sender, EventArgs e)
