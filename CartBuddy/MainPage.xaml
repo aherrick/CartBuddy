@@ -32,7 +32,7 @@
     <Grid RowDefinitions="Auto,*">
         <VerticalStackLayout Padding="16,14,16,14" Spacing="14">
             <VerticalStackLayout Spacing="10">
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
                     <VerticalStackLayout Spacing="2" VerticalOptions="Center">
                         <Label Text="Shopping List" FontSize="22" FontAttributes="Bold" />
                         <Label Text="{Binding ItemsSummary}"
@@ -50,6 +50,18 @@
                             VerticalOptions="Center"
                             TextColor="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}"
                             BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray900}}" />
+                    <Button Grid.Column="2"
+                            Clicked="OnClearSearchClicked"
+                            IsVisible="{Binding HasItemsText}"
+                            Padding="12,8"
+                            WidthRequest="48"
+                            CornerRadius="6"
+                            VerticalOptions="Center"
+                            BackgroundColor="{StaticResource SaleRed}"
+                            Text="&#xF1F8;"
+                            FontFamily="FaSolid"
+                            FontSize="14"
+                            TextColor="{StaticResource White}" />
                 </Grid>
 
                 <VerticalStackLayout IsVisible="{Binding IsItemsEditorVisible}" Spacing="10">
@@ -66,19 +78,10 @@
                                 AutoSize="Disabled" />
                     </Border>
 
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <Button Text="Search"
-                                Command="{Binding SearchCommand}"
-                                CornerRadius="6" />
-                        <Button Grid.Column="1"
-                                Text="Clear"
-                                Command="{Binding ClearSearchCommand}"
-                                CornerRadius="6"
-                                TextColor="{StaticResource SaleRed}"
-                                BackgroundColor="Transparent"
-                                BorderColor="{StaticResource SaleRed}"
-                                BorderWidth="1" />
-                    </Grid>
+                    <Button Text="Search"
+                            Clicked="OnSearchClicked"
+                            HorizontalOptions="Start"
+                            CornerRadius="6" />
                 </VerticalStackLayout>
             </VerticalStackLayout>
 
@@ -89,6 +92,7 @@
                         ItemsSource="{Binding SearchGroups}"
                         SelectionMode="None"
                         ItemSizingStrategy="MeasureAllItems"
+                        VerticalScrollBarVisibility="Never"
                         VerticalOptions="FillAndExpand"
                         IsVisible="{Binding HasResults}">
             <CollectionView.ItemTemplate>
@@ -207,7 +211,10 @@
                                         TextColor="{StaticResource White}" />
                             </Grid>
 
-                            <CollectionView ItemsSource="{Binding CartItems}" SelectionMode="None" HeightRequest="420">
+                            <CollectionView ItemsSource="{Binding CartItems}"
+                                            SelectionMode="None"
+                                            HeightRequest="420"
+                                            VerticalScrollBarVisibility="Never">
                                 <CollectionView.EmptyView>
                                     <Label Text="Your cart is empty" FontSize="14" HorizontalOptions="Center"
                                            TextColor="{StaticResource Gray400}" />

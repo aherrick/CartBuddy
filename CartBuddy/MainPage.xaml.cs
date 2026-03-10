@@ -67,6 +67,28 @@ public partial class MainPage : ContentPage
         _viewModel.ToggleCartCommand.Execute(null);
     }
 
+    private async void OnSearchClicked(object sender, EventArgs e)
+    {
+        RawItemsEditor.Unfocus();
+        await _viewModel.SearchCommand.ExecuteAsync(null);
+    }
+
+    private async void OnClearSearchClicked(object sender, EventArgs e)
+    {
+        var shouldClear = await DisplayAlertAsync(
+            "Clear list?",
+            "This will remove your current shopping list and search results.",
+            "Clear",
+            "Cancel"
+        );
+        if (!shouldClear)
+        {
+            return;
+        }
+
+        _viewModel.ClearSearchCommand.Execute(null);
+    }
+
     private async void OnClearCartClicked(object sender, EventArgs e)
     {
         var shouldClear = await DisplayAlertAsync(
