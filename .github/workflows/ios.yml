@@ -8,7 +8,7 @@ on:
       configuration:
         description: 'Build Configuration'
         required: true
-        default: 'Release'
+        default: 'Debug'
         type: choice
         options:
           - Debug
