@@ -43,4 +43,6 @@ jobs:
             -f net10.0-ios \
             -c Debug \
             -p:RuntimeIdentifier=ios-arm64 \
-            -p:_DeviceName=${{ secrets.IOS_DEVICE_UDID }}
+            -p:_DeviceName=${{ secrets.IOS_DEVICE_UDID }} \
+            -p:CodesignKey="Apple Development: Andrew Herrick (J342D9426H)" 
+         
