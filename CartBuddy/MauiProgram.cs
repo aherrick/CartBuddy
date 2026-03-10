@@ -1,10 +1,8 @@
-﻿using CartBuddy.Services;
+using CartBuddy.Services;
 using CartBuddy.ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Plugin.Maui.BottomSheet.Hosting;
-using Refit;
-
 namespace CartBuddy;
 
 public static class MauiProgram
@@ -33,8 +31,7 @@ public static class MauiProgram
             });
 
         // Services
-        builder.Services.AddRefitClient<ICartBuddyApi>()
-            .ConfigureHttpClient(c => c.BaseAddress = new Uri(Constants.CartBuddyServerBaseUrl));
+        builder.Services.AddHttpClient<ICartBuddyApi, StandardCartBuddyApi>(httpClient => httpClient.BaseAddress = new Uri(Constants.CartBuddyServerBaseUrl));
         
         builder.Services.AddSingleton<PreferencesService>();
         builder.Services.AddSingleton<AiCleanupService>();
@@ -54,3 +51,4 @@ public static class MauiProgram
         return builder.Build();
     }
 }
+
