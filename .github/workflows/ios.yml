@@ -21,31 +21,22 @@ jobs:
       - name: Install MAUI workload
         run: dotnet workload install maui
 
-      - name: Build iOS on push
-        if: github.event_name == 'push'
+      - name: Build / Deploy iOS
         env:
           Kroger__ClientId: ${{ secrets.KROGER_CLIENT_ID }}
           Kroger__ClientSecret: ${{ secrets.KROGER_CLIENT_SECRET }}
+          IOS_DEVICE_UDID: ${{ secrets.IOS_DEVICE_UDID }}
+          IS_DEPLOY: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
+          if [ "$IS_DEPLOY" = "true" ]; then
+            EXTRA="-t:Run -c Debug -p:_DeviceName=$IOS_DEVICE_UDID"
+          else
+            EXTRA="-c Release"
+          fi
           dotnet build CartBuddy/CartBuddy.csproj \
+            $EXTRA \
             -f net10.0-ios \
-            -c Release \
             -p:RuntimeIdentifier=ios-arm64 \
-            -p:CodesignKey="Apple Development: Andrew Herrick (J342D9426H)" \
-            -p:CodesignProvision="AJH Wildcard"
-
-      - name: Deploy to connected device on manual run
-        if: github.event_name == 'workflow_dispatch'
-        env:
-          Kroger__ClientId: ${{ secrets.KROGER_CLIENT_ID }}
-          Kroger__ClientSecret: ${{ secrets.KROGER_CLIENT_SECRET }}
-        run: |
-          dotnet build CartBuddy/CartBuddy.csproj \
-            -t:Run \
-            -f net10.0-ios \
-            -c Debug \
-            -p:RuntimeIdentifier=ios-arm64 \
-            -p:_DeviceName=${{ secrets.IOS_DEVICE_UDID }} \
             -p:CodesignKey="Apple Development: Andrew Herrick (J342D9426H)" \
             -p:CodesignProvision="AJH Wildcard"
          
