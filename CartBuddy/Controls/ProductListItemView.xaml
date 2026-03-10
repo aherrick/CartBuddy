@@ -3,25 +3,24 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="CartBuddy.Controls.ProductListItemView"
              x:Name="ThisView">
+    <ContentView.GestureRecognizers>
+        <TapGestureRecognizer Command="{Binding ItemCommand, Source={x:Reference ThisView}}"
+                              CommandParameter="{Binding ItemCommandParameter, Source={x:Reference ThisView}}" />
+    </ContentView.GestureRecognizers>
 
-    <Border Padding="10"
-            StrokeShape="RoundRectangle 14"
-            BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}">
-        <Border.GestureRecognizers>
-            <TapGestureRecognizer Command="{Binding ItemCommand, Source={x:Reference ThisView}}"
-                                  CommandParameter="{Binding ItemCommandParameter, Source={x:Reference ThisView}}" />
-        </Border.GestureRecognizers>
-
-        <Grid ColumnDefinitions="64,*,Auto" ColumnSpacing="10">
-            <Border WidthRequest="64"
-                    HeightRequest="64"
+    <Grid RowDefinitions="Auto,Auto" RowSpacing="0">
+        <Grid ColumnDefinitions="60,*,Auto" ColumnSpacing="12" Padding="0,10">
+            <Border WidthRequest="60"
+                    HeightRequest="60"
                     Padding="2"
-                    StrokeShape="RoundRectangle 12"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
                     BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
                 <Image Source="{Binding ImageUrl, Source={x:Reference ThisView}}" Aspect="AspectFit" />
             </Border>
 
-            <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
                 <Label Text="{Binding Title, Source={x:Reference ThisView}}"
                        FontSize="14"
                        FontAttributes="Bold"
@@ -37,10 +36,10 @@
                        IsVisible="{Binding HasDetail, Source={x:Reference ThisView}}" />
             </VerticalStackLayout>
 
-            <VerticalStackLayout Grid.Column="2" Spacing="4" HorizontalOptions="End" VerticalOptions="Center">
+            <VerticalStackLayout Grid.Column="2" Spacing="2" HorizontalOptions="End" VerticalOptions="Center">
                 <Border Padding="10,4"
                         StrokeThickness="0"
-                        StrokeShape="RoundRectangle 8"
+                        StrokeShape="RoundRectangle 6"
                         HorizontalOptions="End"
                         BackgroundColor="{Binding PriceBadgeColor, Source={x:Reference ThisView}}"
                         IsVisible="{Binding ShowPriceBadge, Source={x:Reference ThisView}}">
@@ -68,31 +67,44 @@
                        TextColor="{Binding AccentColor, Source={x:Reference ThisView}}"
                        IsVisible="{Binding HasAccentText, Source={x:Reference ThisView}}" />
 
-                <Border Padding="4"
-                        StrokeThickness="0"
-                        BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}"
-                        IsVisible="{Binding ShowQuantityControls, Source={x:Reference ThisView}}">
-                    <HorizontalStackLayout Spacing="4" HorizontalOptions="End">
-                        <Button Text="-"
-                                Command="{Binding DecreaseCommand, Source={x:Reference ThisView}}"
-                                CommandParameter="{Binding QuantityCommandParameter, Source={x:Reference ThisView}}"
-                                Padding="10,6"
-                                FontSize="12"
-                                WidthRequest="38"
-                                BackgroundColor="{StaticResource Gray600}" />
+                <HorizontalStackLayout Spacing="4"
+                                       HorizontalOptions="End"
+                                       IsVisible="{Binding ShowQuantityControls, Source={x:Reference ThisView}}">
+                    <Button Text="-"
+                            Command="{Binding DecreaseCommand, Source={x:Reference ThisView}}"
+                            CommandParameter="{Binding QuantityCommandParameter, Source={x:Reference ThisView}}"
+                            Padding="10,6"
+                            FontSize="12"
+                            WidthRequest="38"
+                            TextColor="{StaticResource SaleRed}"
+                            BackgroundColor="Transparent"
+                            BorderColor="{StaticResource SaleRed}"
+                            BorderWidth="1" />
+                    <Border Padding="10,6"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 6"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray900}}">
                         <Label Text="{Binding QuantityText, Source={x:Reference ThisView}}"
-                               WidthRequest="28"
+                               WidthRequest="18"
                                HorizontalTextAlignment="Center"
                                VerticalTextAlignment="Center" />
-                        <Button Text="+"
-                                Command="{Binding IncreaseCommand, Source={x:Reference ThisView}}"
-                                CommandParameter="{Binding QuantityCommandParameter, Source={x:Reference ThisView}}"
-                                Padding="10,6"
-                                FontSize="12"
-                                WidthRequest="38" />
-                    </HorizontalStackLayout>
-                </Border>
+                    </Border>
+                    <Button Text="+"
+                            Command="{Binding IncreaseCommand, Source={x:Reference ThisView}}"
+                            CommandParameter="{Binding QuantityCommandParameter, Source={x:Reference ThisView}}"
+                            Padding="10,6"
+                            FontSize="12"
+                            WidthRequest="38"
+                            TextColor="{StaticResource SaleGreen}"
+                            BackgroundColor="Transparent"
+                            BorderColor="{StaticResource SaleGreen}"
+                            BorderWidth="1" />
+                </HorizontalStackLayout>
             </VerticalStackLayout>
         </Grid>
-    </Border>
+
+        <BoxView Grid.Row="1"
+                 HeightRequest="1"
+                 BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+    </Grid>
 </ContentView>

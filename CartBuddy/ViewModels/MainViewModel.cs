@@ -72,14 +72,16 @@ public partial class MainViewModel : ObservableObject
 
     public string CartButtonText => HasCartItems ? $"Cart ({CartItemCount})" : "Cart";
 
-    public string ItemsEditorToggleText => IsItemsEditorVisible ? "Hide Items" : "Show Items";
+    public bool CanToggleItemsEditor => SearchGroups.Count > 0;
+
+    public string ItemsEditorToggleText => IsItemsEditorVisible ? "Hide List" : "Edit List";
 
     public string ItemsSummary
     {
         get
         {
             var itemCount = ParseTerms(RawItemsText).Count;
-            return itemCount == 0 ? "Enter a list of items return delimited, then search" : $"{itemCount} items ready";
+            return itemCount == 0 ? "One item per line" : $"{itemCount} items in list";
         }
     }
 
@@ -460,6 +462,7 @@ public partial class MainViewModel : ObservableObject
     private void UpdateSearchState()
     {
         OnPropertyChanged(nameof(HasResults));
+        OnPropertyChanged(nameof(CanToggleItemsEditor));
         OnPropertyChanged(nameof(ToggleAllText));
     }
 
