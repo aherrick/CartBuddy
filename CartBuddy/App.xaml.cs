@@ -8,25 +8,5 @@ public partial class App : Application
     }
 
     protected override Window CreateWindow(IActivationState activationState) =>
-        new(
-            new ContentPage
-            {
-                Title = "CartBuddy",
-                BackgroundColor = Colors.White,
-                Content = new Grid
-                {
-                    Children =
-                    {
-                        new Label
-                        {
-                            Text = "CartBuddy launched",
-                            HorizontalOptions = LayoutOptions.Center,
-                            VerticalOptions = LayoutOptions.Center,
-                            TextColor = Colors.Black,
-                            FontSize = 24,
-                        },
-                    },
-                },
-            }
-        );
+        new(new AppShell());
 }

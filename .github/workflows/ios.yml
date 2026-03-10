@@ -31,7 +31,6 @@ jobs:
             -p:CodesignProvision="AJH Wildcard"
 
       - name: Install and launch on device
-        timeout-minutes: 2
         run: |
           APP_PATH="CartBuddy/bin/Debug/net10.0-ios/ios-arm64/CartBuddy.app"
 
@@ -41,6 +40,5 @@ jobs:
 
           xcrun devicectl device process launch \
             --terminate-existing \
-            --console \
             --device "${{ secrets.IOS_DEVICE_UDID }}" \
             com.ajh.cartbuddy
