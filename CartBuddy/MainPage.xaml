@@ -1,41 +1,231 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:CartBuddy.Models"
+             xmlns:vm="clr-namespace:CartBuddy.ViewModels"
+             xmlns:controls="clr-namespace:CartBuddy.Controls"
+             xmlns:bottomsheet="http://pluginmauibottomsheet.com"
              x:Class="CartBuddy.MainPage"
+             x:Name="ThisPage"
              Title="Cart Buddy"
-             BackgroundColor="{AppThemeBinding Light=White, Dark=Black}">
-    <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="14">
-                     <Label Text="MainPage bound"
-                   FontSize="24"
-                   FontAttributes="Bold"
-                   TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+             BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
 
-                     <Label Text="{Binding StoreDisplay}"
-                   FontSize="14"
-                   TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Clicked="OnCartClicked" Order="Primary" Priority="0">
+            <ToolbarItem.IconImageSource>
+                <FontImageSource FontFamily="FaSolid"
+                                 Glyph="&#xF07A;"
+                                 Size="18"
+                                 Color="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}" />
+            </ToolbarItem.IconImageSource>
+        </ToolbarItem>
+        <ToolbarItem Clicked="OnMenuClicked" Order="Primary" Priority="1">
+            <ToolbarItem.IconImageSource>
+                <FontImageSource FontFamily="FaSolid"
+                                 Glyph="&#xF0C9;"
+                                 Size="18"
+                                 Color="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}" />
+            </ToolbarItem.IconImageSource>
+        </ToolbarItem>
+    </ContentPage.ToolbarItems>
 
-                     <Label Text="{Binding ItemsSummary}"
-                   FontSize="14"
-                   TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+    <Grid>
+        <ScrollView>
+            <VerticalStackLayout Padding="16,14,16,110" Spacing="14">
+                <Border Padding="14" StrokeShape="RoundRectangle 18"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="Items" FontSize="16" FontAttributes="Bold" />
+                                <Label Text="{Binding ItemsSummary}"
+                                       FontSize="12"
+                                       TextColor="{StaticResource Gray400}" />
+                            </VerticalStackLayout>
+                            <Button Grid.Column="1"
+                                    Text="{Binding ItemsEditorToggleText}"
+                                    Command="{Binding ToggleItemsEditorCommand}"
+                                    Padding="12,8"
+                                    FontSize="12"
+                                    BackgroundColor="{StaticResource Gray600}" />
+                        </Grid>
 
-                     <Editor Text="{Binding RawItemsText}"
-                                   Placeholder="milk&#10;cheese&#10;water"
-                    HeightRequest="140"
-                    AutoSize="TextChanges"
-                    BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}"
-                    TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+                        <Editor Text="{Binding RawItemsText}"
+                                Placeholder="milk&#10;cheese&#10;water&#10;coke"
+                                HeightRequest="120"
+                                AutoSize="TextChanges"
+                                IsVisible="{Binding IsItemsEditorVisible}" />
 
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                            <Button Text="Search"
-                                          Command="{Binding SearchCommand}" />
-                <Button Grid.Column="1"
-                                          Text="Clear"
-                                          Command="{Binding ClearSearchCommand}" />
-            </Grid>
+                        <Border IsVisible="{Binding IsItemsPreviewVisible}"
+                                Padding="12"
+                                StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}">
+                            <Label Text="{Binding RawItemsText}"
+                                   MaxLines="3"
+                                   LineBreakMode="TailTruncation"
+                                   TextColor="{StaticResource Gray400}" />
+                        </Border>
 
-                     <ActivityIndicator IsRunning="{Binding IsBusy}"
-                                                    IsVisible="{Binding IsBusy}" />
-        </VerticalStackLayout>
-    </ScrollView>
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button Text="Search" Command="{Binding SearchCommand}" />
+                            <Button Grid.Column="1" Text="Clear" Command="{Binding ClearSearchCommand}"
+                                    BackgroundColor="{StaticResource Gray600}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <VerticalStackLayout Spacing="10" IsVisible="{Binding HasResults}">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <Label Text="Matched Items" FontSize="22" FontAttributes="Bold" />
+                        <Button Grid.Column="1" Text="{Binding ToggleAllText}" Command="{Binding ToggleAllGroupsCommand}"
+                                Padding="12,8" FontSize="12" />
+                    </Grid>
+
+                    <CollectionView ItemsSource="{Binding SearchGroups}" SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:SearchGroup">
+                                <Border Margin="0,0,0,10" Padding="12" StrokeShape="RoundRectangle 16"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                    <VerticalStackLayout Spacing="10">
+                                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                                            <VerticalStackLayout Spacing="2">
+                                                <HorizontalStackLayout Spacing="6">
+                                                    <Label Text="{Binding Query}" FontSize="17" FontAttributes="Bold" />
+                                                    <Label Text="&#xF058;"
+                                                           FontFamily="FaSolid"
+                                                           FontSize="14"
+                                                           TextColor="{StaticResource SaleGreen}"
+                                                           IsVisible="{Binding IsCompleted}"
+                                                           VerticalOptions="Center" />
+                                                </HorizontalStackLayout>
+                                                <Label Text="{Binding PageSummary}" FontSize="12"
+                                                       TextColor="{StaticResource Gray400}" />
+                                            </VerticalStackLayout>
+                                            <Button Grid.Column="1" Text="View More"
+                                                    IsVisible="{Binding HasMore}"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=ViewMoreCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Padding="12,8" FontSize="12" />
+                                            <Button Grid.Column="2"
+                                                    Text="{Binding ToggleIconGlyph}"
+                                                    FontFamily="FaSolid"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=ToggleGroupCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Padding="12,8" FontSize="14"
+                                                    WidthRequest="44"
+                                                    BackgroundColor="{StaticResource Gray600}" />
+                                        </Grid>
+
+                                        <VerticalStackLayout Spacing="8" IsVisible="{Binding IsExpanded}">
+                                            <Label Text="No Kroger matches found for this item."
+                                                   IsVisible="{Binding IsEmpty}"
+                                                   FontSize="13"
+                                                   TextColor="{StaticResource Gray400}" />
+
+                                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Matches}" Spacing="8">
+                                                <BindableLayout.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:ProductMatch">
+                                                        <controls:ProductListItemView
+                                                            Title="{Binding Description}"
+                                                            Subtitle="{Binding Brand}"
+                                                            Detail="{Binding Size}"
+                                                            ImageUrl="{Binding ImageUrl}"
+                                                            PriceText="{Binding Price, StringFormat='${0:F2}'}"
+                                                            SecondaryPriceText="{Binding RegularPrice, StringFormat='Reg ${0:F2}'}"
+                                                            AccentText="{Binding PromoEndDisplay}"
+                                                            AccentColor="{StaticResource SaleRed}"
+                                                            ItemCommand="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=AddToCartCommand}"
+                                                            ItemCommandParameter="{Binding}"
+                                                            PriceColor="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}">
+                                                            <controls:ProductListItemView.Triggers>
+                                                                <DataTrigger TargetType="controls:ProductListItemView" Binding="{Binding HasSale}" Value="True">
+                                                                    <Setter Property="PriceColor" Value="{StaticResource SaleGreen}" />
+                                                                </DataTrigger>
+                                                            </controls:ProductListItemView.Triggers>
+                                                        </controls:ProductListItemView>
+                                                    </DataTemplate>
+                                                </BindableLayout.ItemTemplate>
+                                            </VerticalStackLayout>
+                                        </VerticalStackLayout>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+                <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" HeightRequest="20" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <Border IsVisible="{Binding IsSnackbarVisible}"
+                VerticalOptions="Start"
+                Margin="16,12,16,0"
+                Padding="14,12"
+                StrokeThickness="0"
+                ZIndex="2"
+                BackgroundColor="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray900}}">
+            <Label Text="{Binding SnackbarMessage}"
+                   TextColor="{StaticResource White}"
+                   FontSize="13"
+                   LineBreakMode="TailTruncation" />
+        </Border>
+
+        <bottomsheet:BottomSheet IsOpen="{Binding IsCartOpen}"
+                                 IsModal="True"
+                                 IsCancelable="True"
+                                 IsDraggable="True"
+                                 HasHandle="True"
+                                 ShowHeader="False"
+                                 States="Medium,Large"
+                                 CurrentState="Medium">
+            <bottomsheet:BottomSheetContent>
+                <bottomsheet:BottomSheetContent.ContentTemplate>
+                    <DataTemplate>
+                        <VerticalStackLayout Padding="16,10,16,16" Spacing="12">
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="Cart" FontSize="22" FontAttributes="Bold" />
+                                <Label Text="{Binding CartSummary}" FontSize="13" TextColor="{StaticResource Gray400}" />
+                            </VerticalStackLayout>
+
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" IsVisible="{Binding HasCartItems}">
+                                <Button Text="Checkout" Command="{Binding CheckoutCommand}" />
+                                <Button Grid.Column="1"
+                                        Clicked="OnClearCartClicked"
+                                        Padding="12,8"
+                                        WidthRequest="48"
+                                        BackgroundColor="{StaticResource SaleRed}"
+                                        Text="&#xF1F8;"
+                                        FontFamily="FaSolid"
+                                        FontSize="14"
+                                        TextColor="{StaticResource White}" />
+                            </Grid>
+
+                            <CollectionView ItemsSource="{Binding CartItems}" SelectionMode="None" HeightRequest="420">
+                                <CollectionView.EmptyView>
+                                    <Label Text="Your cart is empty" FontSize="14" HorizontalOptions="Center"
+                                           TextColor="{StaticResource Gray400}" />
+                                </CollectionView.EmptyView>
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:CartLine">
+                                        <controls:ProductListItemView
+                                            Title="{Binding Description}"
+                                            Subtitle="{Binding Price, StringFormat='${0:F2} each'}"
+                                            ImageUrl="{Binding ImageUrl}"
+                                            PriceText="{Binding LineTotal, StringFormat='${0:F2}'}"
+                                            PriceColor="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}"
+                                            ShowQuantityControls="True"
+                                            Quantity="{Binding Quantity}"
+                                            IncreaseCommand="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=IncreaseQuantityCommand}"
+                                            DecreaseCommand="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=DecreaseQuantityCommand}"
+                                            QuantityCommandParameter="{Binding}" />
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </bottomsheet:BottomSheetContent.ContentTemplate>
+            </bottomsheet:BottomSheetContent>
+        </bottomsheet:BottomSheet>
+    </Grid>
 </ContentPage>

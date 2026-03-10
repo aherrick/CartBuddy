@@ -2,6 +2,7 @@ using CartBuddy.Services;
 using CartBuddy.ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Plugin.Maui.BottomSheet.Hosting;
 using Refit;
 
 namespace CartBuddy;
@@ -14,10 +15,12 @@ public static class MauiProgram
 
         builder
             .UseMauiApp<App>()
+            .UseBottomSheet()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                fonts.AddFont("fa-solid-900.ttf", "FaSolid");
             });
 
         // Services

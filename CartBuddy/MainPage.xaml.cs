@@ -15,18 +15,66 @@ public partial class MainPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        _ = InitializePage();
+        _viewModel.LoadSettings();
+
+        if (!_viewModel.HasStore)
+        {
+            Dispatcher.DispatchAsync(() => _viewModel.GoToStorePickerCommand.ExecuteAsync(null));
+        }
     }
 
-    private async Task InitializePage()
+    private async void OnMenuClicked(object sender, EventArgs e)
     {
-        try
+        List<string> actions = [_viewModel.StoreActionText, _viewModel.ThemeActionText];
+        var title = _viewModel.HasStore ? _viewModel.StoreDisplay : "Cart Buddy";
+
+        if (_viewModel.HasStore)
         {
-            _viewModel.LoadSettings();
+            actions.Add("Clear Store");
         }
-        catch (Exception ex)
+
+        var selectedAction = await DisplayActionSheetAsync(
+            title,
+            "Cancel",
+            null,
+            [.. actions]
+        );
+        switch (selectedAction)
         {
-            await DisplayAlertAsync("Startup error", ex.Message, "OK");
+            case "Select Store":
+            case "Change Store":
+                await _viewModel.GoToStorePickerCommand.ExecuteAsync(null);
+                break;
+
+            case "Clear Store":
+                _viewModel.ClearStoreCommand.Execute(null);
+                break;
+
+            case "Use Light Mode":
+            case "Use Dark Mode":
+                _viewModel.ToggleThemeCommand.Execute(null);
+                break;
         }
+    }
+
+    private void OnCartClicked(object sender, EventArgs e)
+    {
+        _viewModel.ToggleCartCommand.Execute(null);
+    }
+
+    private async void OnClearCartClicked(object sender, EventArgs e)
+    {
+        var shouldClear = await DisplayAlertAsync(
+            "Clear cart?",
+            "This will remove all cart items and reset your selected matches.",
+            "Clear",
+            "Cancel"
+        );
+        if (!shouldClear)
+        {
+            return;
+        }
+
+        _viewModel.ClearCartCommand.Execute(null);
     }
 }

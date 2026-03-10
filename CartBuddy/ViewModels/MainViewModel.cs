@@ -415,6 +415,11 @@ public partial class MainViewModel : ObservableObject
 
     private static List<string> ParseTerms(string input)
     {
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return [];
+        }
+
         return
         [
             .. input
