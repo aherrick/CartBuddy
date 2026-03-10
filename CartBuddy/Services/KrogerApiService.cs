@@ -17,10 +17,8 @@ public class KrogerApiService(KrogerClient krogerClient)
         return new ProductSearchPage([.. page.Results.Select(MapProductMatch)], page.TotalCount);
     }
 
-    public async Task<List<KrogerLocation>> SearchLocations(string zipCode)
-    {
-        return [.. await krogerClient.SearchLocations(zipCode)];
-    }
+    public Task<List<KrogerLocation>> SearchLocations(string zipCode) =>
+        krogerClient.SearchLocations(zipCode);
 
     // Opens Kroger's login page in the platform browser via WebAuthenticator.
     // MAUI intercepts the cartbuddy:// callback and returns the auth code.

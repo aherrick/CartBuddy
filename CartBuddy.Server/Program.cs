@@ -2,6 +2,7 @@ using AspNetCoreRateLimit;
 using CartBuddy.Data.Services;
 using CartBuddy.Server;
 using CartBuddy.Shared.Models;
+using Microsoft.Extensions.Caching.Memory;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,7 +35,6 @@ builder.Services.Configure<IpRateLimitOptions>(options =>
 builder.Services.AddInMemoryRateLimiting();
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
-builder.Services.AddScoped<SessionService>();
 builder.Services.AddSingleton<HttpClient>();
 builder.Services.AddSingleton<KrogerClient>();
 builder.Services.AddSingleton<KrogerService>();
@@ -78,9 +78,10 @@ app.MapGet(
 
 app.MapPost(
     "/api/checkout",
-    async (HttpContext context, CheckoutRequest req, SessionService session, KrogerService kroger) =>
+    async (HttpContext context, CheckoutRequest req, IMemoryCache cache, KrogerService kroger) =>
     {
-        var state = session.SavePendingCheckout(req);
+        var state = Guid.NewGuid().ToString();
+        cache.Set(state, req, TimeSpan.FromMinutes(30));
         var redirectUri = $"{context.Request.Scheme}://{context.Request.Host}/api/oauth/callback";
         var authUrl = kroger.CreateAuthorizationUrl(redirectUri, "cart.basic:write", state);
 
@@ -95,17 +96,16 @@ app.MapGet(
         string code,
         string state,
         KrogerService kroger,
-        SessionService session,
+        IMemoryCache cache,
         ILogger<Program> logger
     ) =>
     {
-        var pending = session.GetPendingCheckout(state);
-        if (pending == null)
+        if (!cache.TryGetValue(state, out CheckoutRequest pending))
         {
             return Results.BadRequest("Invalid state");
         }
 
-        session.ClearPendingCheckout(state);
+        cache.Remove(state);
 
         try
         {
