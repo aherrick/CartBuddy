@@ -21,22 +21,22 @@ jobs:
       - name: Install MAUI workload
         run: dotnet workload install maui
 
-      - name: Build / Deploy iOS
+      - name: Build iOS
+        if: github.event_name == 'push'
+        run: |
+          dotnet build CartBuddy/CartBuddy.csproj 
+
+      - name: Deploy to device
+        if: github.event_name == 'workflow_dispatch'
         env:
           Kroger__ClientId: ${{ secrets.KROGER_CLIENT_ID }}
           Kroger__ClientSecret: ${{ secrets.KROGER_CLIENT_SECRET }}
-          IOS_DEVICE_UDID: ${{ secrets.IOS_DEVICE_UDID }}
-          IS_DEPLOY: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
-          if [ "$IS_DEPLOY" = "true" ]; then
-            EXTRA="-t:Run -c Debug -p:_DeviceName=$IOS_DEVICE_UDID"
-          else
-            EXTRA="-c Release"
-          fi
           dotnet build CartBuddy/CartBuddy.csproj \
-            $EXTRA \
+            -t:Run \
             -f net10.0-ios \
+            -c Release \
             -p:RuntimeIdentifier=ios-arm64 \
+            -p:_DeviceName=${{ secrets.IOS_DEVICE_UDID }} \
             -p:CodesignKey="Apple Development: Andrew Herrick (J342D9426H)" \
             -p:CodesignProvision="AJH Wildcard"
-         
