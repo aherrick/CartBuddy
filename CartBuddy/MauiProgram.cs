@@ -2,6 +2,7 @@ using CartBuddy.Services;
 using CartBuddy.ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Refit;
 
 namespace CartBuddy;
 
@@ -20,7 +21,11 @@ public static class MauiProgram
             });
 
         // Services
-        builder.Services.AddSingleton<ICartBuddyApi, MockCartBuddyApi>();
+        builder.Services.AddRefitClient<ICartBuddyApi>()
+            .ConfigureHttpClient(httpClient =>
+            {
+                httpClient.BaseAddress = new Uri(Constants.CartBuddyServerBaseUrl);
+            });
         builder.Services.AddSingleton<PreferencesService>();
         builder.Services.AddSingleton<AiCleanupService>();
 
