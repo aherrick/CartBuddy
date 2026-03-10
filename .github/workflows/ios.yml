@@ -30,7 +30,9 @@ jobs:
           dotnet build CartBuddy/CartBuddy.csproj \
             -f net10.0-ios \
             -c Release \
-            -p:RuntimeIdentifier=ios-arm64
+            -p:RuntimeIdentifier=ios-arm64 \
+            -p:CodesignKey="Apple Development: Andrew Herrick (J342D9426H)" \
+            -p:CodesignProvision="AJH Wildcard"
 
       - name: Deploy to connected device on manual run
         if: github.event_name == 'workflow_dispatch'
@@ -44,5 +46,6 @@ jobs:
             -c Debug \
             -p:RuntimeIdentifier=ios-arm64 \
             -p:_DeviceName=${{ secrets.IOS_DEVICE_UDID }} \
-            -p:CodesignKey="Apple Development: Andrew Herrick (J342D9426H)" 
+            -p:CodesignKey="Apple Development: Andrew Herrick (J342D9426H)" \
+            -p:CodesignProvision="AJH Wildcard"
          
