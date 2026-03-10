@@ -23,7 +23,7 @@ jobs:
 
       - name: Build iOS on push
         if: github.event_name == 'push'
-        run: dotnet build CartBuddy/CartBuddy.csproj -f net10.0-iossimulator
+        run: dotnet build CartBuddy/CartBuddy.csproj -f net10.0-ios
 
       - name: Build app for device
         if: github.event_name == 'workflow_dispatch'
