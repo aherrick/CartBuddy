@@ -12,17 +12,14 @@ public partial class MainViewModel : ObservableObject
     private const int PageSize = 4;
 
     private readonly ICartBuddyApi _api;
-    private readonly AiCleanupService _aiCleanup;
     private readonly PreferencesService _preferences;
 
     public MainViewModel(
         ICartBuddyApi api,
-        AiCleanupService aiCleanup,
         PreferencesService preferences
     )
     {
         _api = api;
-        _aiCleanup = aiCleanup;
         _preferences = preferences;
         SearchGroups.CollectionChanged += (_, _) => UpdateSearchState();
         CartItems.CollectionChanged += (_, _) => UpdateCartState();
@@ -51,7 +48,6 @@ public partial class MainViewModel : ObservableObject
 
     private int _snackbarVersion;
 
-    public bool IsAiAvailable => _preferences.IsAiConfigured;
 
     public ObservableCollection<SearchGroup> SearchGroups { get; } = [];
 
@@ -146,21 +142,7 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            var rawTerms = ParseTerms(RawItemsText);
-            var searchTerms = rawTerms;
-
-            if (IsAiAvailable)
-            {
-                try
-                {
-                    searchTerms = await _aiCleanup.CleanupList(rawTerms);
-                    RawItemsText = string.Join(Environment.NewLine, searchTerms);
-                }
-                catch
-                {
-                    searchTerms = rawTerms;
-                }
-            }
+            var searchTerms = ParseTerms(RawItemsText);
 
             SearchGroups.Clear();
             var index = 0;
