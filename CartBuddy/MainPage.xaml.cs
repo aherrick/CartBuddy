@@ -16,11 +16,6 @@ public partial class MainPage : ContentPage
     {
         base.OnAppearing();
         _viewModel.LoadSettings();
-
-        if (!_viewModel.HasStore)
-        {
-            Dispatcher.DispatchAsync(() => _viewModel.GoToStorePickerCommand.ExecuteAsync(null));
-        }
     }
 
     private async void OnMenuClicked(object sender, EventArgs e)
