@@ -28,7 +28,7 @@ public class PreferencesService(IConfiguration config)
         set
         {
             Preferences.Default.Set(nameof(Theme), (int)value);
-            Application.Current?.UserAppTheme = value;
+            MainThread.BeginInvokeOnMainThread(() => Application.Current?.UserAppTheme = value);
         }
     }
 
@@ -38,5 +38,5 @@ public class PreferencesService(IConfiguration config)
         !string.IsNullOrEmpty(config["AzureOpenAI:Endpoint"])
         && !string.IsNullOrEmpty(config["AzureOpenAI:Key"]);
 
-    public void ApplyTheme() => Application.Current?.UserAppTheme = Theme;
+    public void ApplyTheme() => MainThread.BeginInvokeOnMainThread(() => Application.Current?.UserAppTheme = Theme);
 }
