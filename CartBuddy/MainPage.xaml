@@ -6,36 +6,34 @@
              BackgroundColor="{AppThemeBinding Light=White, Dark=Black}">
     <ScrollView>
         <VerticalStackLayout Padding="16" Spacing="14">
-            <Label Text="MainPage bound"
+            <Label Text="MainPage standalone"
                    FontSize="24"
                    FontAttributes="Bold"
                    TextColor="{AppThemeBinding Light=Black, Dark=White}" />
 
-            <Label Text="{Binding StoreDisplay}"
+            <Label Text="No view model attached"
                    FontSize="14"
                    TextColor="{AppThemeBinding Light=Black, Dark=White}" />
 
-            <Label Text="{Binding ItemsSummary}"
+            <Label Text="If this still crashes, the problem is outside MainPage binding logic."
                    FontSize="14"
+                   LineBreakMode="WordWrap"
                    TextColor="{AppThemeBinding Light=Black, Dark=White}" />
 
-            <Editor Text="{Binding RawItemsText}"
-                    Placeholder="milk&#10;cheese&#10;water"
+            <Editor Placeholder="milk&#10;cheese&#10;water"
                     HeightRequest="140"
                     AutoSize="TextChanges"
                     BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}"
                     TextColor="{AppThemeBinding Light=Black, Dark=White}" />
 
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                <Button Text="Search"
-                        Command="{Binding SearchCommand}" />
+                <Button Text="Search" />
                 <Button Grid.Column="1"
-                        Text="Clear"
-                        Command="{Binding ClearSearchCommand}" />
+                        Text="Clear" />
             </Grid>
 
-            <ActivityIndicator IsRunning="{Binding IsBusy}"
-                               IsVisible="{Binding IsBusy}" />
+            <ActivityIndicator IsRunning="False"
+                               IsVisible="False" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
