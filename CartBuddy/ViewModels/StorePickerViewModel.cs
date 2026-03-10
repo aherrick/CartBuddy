@@ -6,10 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CartBuddy.ViewModels;
 
-public partial class StorePickerViewModel(
-    ICartBuddyApi api,
-    PreferencesService preferences
-) : ObservableObject
+public partial class StorePickerViewModel(ICartBuddyApi api) : ObservableObject
 {
     [ObservableProperty]
     private string _zipCode;
@@ -20,15 +17,15 @@ public partial class StorePickerViewModel(
     [ObservableProperty]
     private string _statusMessage;
 
-    public bool CanNavigateBack => preferences.HasStore;
+    public bool CanNavigateBack => PreferencesService.HasStore;
 
     public ObservableCollection<LocationInfo> Stores { get; } = [];
 
     public void LoadSavedZip()
     {
-        ZipCode = preferences.ZipCode;
-        StatusMessage = preferences.HasStore
-            ? $"Current store: {preferences.StoreName}"
+        ZipCode = PreferencesService.ZipCode;
+        StatusMessage = PreferencesService.HasStore
+            ? $"Current store: {PreferencesService.StoreName}"
             : "Pick a store before searching or checking out.";
         OnPropertyChanged(nameof(CanNavigateBack));
     }
@@ -55,7 +52,7 @@ public partial class StorePickerViewModel(
                 Stores.Add(location);
             }
 
-            preferences.ZipCode = ZipCode;
+            PreferencesService.ZipCode = ZipCode;
             StatusMessage = $"Found {locations.Count} stores";
         }
         catch (Exception ex)
@@ -71,8 +68,8 @@ public partial class StorePickerViewModel(
     [RelayCommand]
     private async Task SelectStore(LocationInfo store)
     {
-        preferences.StoreId = store.LocationId;
-        preferences.StoreName = string.IsNullOrWhiteSpace(store.Address)
+        PreferencesService.StoreId = store.LocationId;
+        PreferencesService.StoreName = string.IsNullOrWhiteSpace(store.Address)
             ? store.Name
             : $"{store.Name} - {store.Address}";
         OnPropertyChanged(nameof(CanNavigateBack));

@@ -26,7 +26,6 @@ public static class MauiProgram
             {
                 httpClient.BaseAddress = new Uri(Constants.CartBuddyServerBaseUrl);
             });
-        builder.Services.AddSingleton<PreferencesService>();
 
         // ViewModels
         builder.Services.AddTransient<MainViewModel>();

@@ -12,15 +12,10 @@ public partial class MainViewModel : ObservableObject
     private const int PageSize = 4;
 
     private readonly ICartBuddyApi _api;
-    private readonly PreferencesService _preferences;
 
-    public MainViewModel(
-        ICartBuddyApi api,
-        PreferencesService preferences
-    )
+    public MainViewModel(ICartBuddyApi api)
     {
         _api = api;
-        _preferences = preferences;
         SearchGroups.CollectionChanged += (_, _) => UpdateSearchState();
         CartItems.CollectionChanged += (_, _) => UpdateCartState();
     }
@@ -53,9 +48,9 @@ public partial class MainViewModel : ObservableObject
 
     public ObservableCollection<CartLine> CartItems { get; } = [];
 
-    public bool HasStore => _preferences.HasStore;
+    public bool HasStore => PreferencesService.HasStore;
 
-    public string StoreDisplay => HasStore ? $"🏪 {_preferences.StoreName}" : "No store selected";
+    public string StoreDisplay => HasStore ? $"🏪 {PreferencesService.StoreName}" : "No store selected";
 
     public string StoreActionText => HasStore ? "Change Store" : "Select Store";
 
@@ -94,7 +89,7 @@ public partial class MainViewModel : ObservableObject
 
     public void LoadSettings()
     {
-        IsDarkMode = _preferences.Theme == AppTheme.Dark;
+        IsDarkMode = PreferencesService.Theme == AppTheme.Dark;
         OnPropertyChanged(nameof(HasStore));
         OnPropertyChanged(nameof(StoreDisplay));
         OnPropertyChanged(nameof(StoreActionText));
@@ -105,7 +100,7 @@ public partial class MainViewModel : ObservableObject
 
     partial void OnIsDarkModeChanged(bool value)
     {
-        _preferences.Theme = value ? AppTheme.Dark : AppTheme.Light;
+        PreferencesService.Theme = value ? AppTheme.Dark : AppTheme.Light;
         OnPropertyChanged(nameof(ThemeActionText));
     }
 
@@ -148,7 +143,7 @@ public partial class MainViewModel : ObservableObject
             var index = 0;
             foreach (var term in searchTerms)
             {
-                var page = await SearchProducts(term, _preferences.StoreId, 0, PageSize);
+                var page = await SearchProducts(term, PreferencesService.StoreId, 0, PageSize);
                 var group = new SearchGroup(term, page.TotalCount, PageSize)
                 {
                     IsExpanded = index == 0,
@@ -178,7 +173,7 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task ViewMore(SearchGroup group)
     {
-        if (group is null || !group.HasMore || string.IsNullOrWhiteSpace(_preferences.StoreId))
+        if (group is null || !group.HasMore || string.IsNullOrWhiteSpace(PreferencesService.StoreId))
         {
             return;
         }
@@ -189,7 +184,7 @@ public partial class MainViewModel : ObservableObject
         {
             var page = await SearchProducts(
                 group.Query,
-                _preferences.StoreId,
+                PreferencesService.StoreId,
                 group.LoadedCount,
                 group.PageSize
             );
@@ -223,7 +218,7 @@ public partial class MainViewModel : ObservableObject
             var checkout = await _api.Checkout(
                 new CheckoutRequest
                 {
-                    LocationId = _preferences.StoreId,
+                    LocationId = PreferencesService.StoreId,
                     Items =
                     [
                         .. cartItems.Select(item => new CartItem
@@ -405,8 +400,8 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void ClearStore()
     {
-        _preferences.StoreId = string.Empty;
-        _preferences.StoreName = string.Empty;
+        PreferencesService.StoreId = string.Empty;
+        PreferencesService.StoreName = string.Empty;
         OnPropertyChanged(nameof(HasStore));
         OnPropertyChanged(nameof(StoreDisplay));
         OnPropertyChanged(nameof(StoreActionText));
