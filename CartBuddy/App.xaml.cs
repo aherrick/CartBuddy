@@ -12,7 +12,21 @@ public partial class App : Application
             new ContentPage
             {
                 Title = "CartBuddy",
-                Content = new Grid(),
+                BackgroundColor = Colors.White,
+                Content = new Grid
+                {
+                    Children =
+                    {
+                        new Label
+                        {
+                            Text = "CartBuddy launched",
+                            HorizontalOptions = LayoutOptions.Center,
+                            VerticalOptions = LayoutOptions.Center,
+                            TextColor = Colors.Black,
+                            FontSize = 24,
+                        },
+                    },
+                },
             }
         );
 }
