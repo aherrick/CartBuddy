@@ -30,6 +30,15 @@ public static class EndpointExtensions
         );
 
         apiGroup.MapPost(
+            "/cleanup",
+            async (CleanupRequest req, AiCleanupService aiCleanup) =>
+            {
+                var cleanedItems = await aiCleanup.CleanupList(req.Items);
+                return Results.Ok(new CleanupResponse { CleanedItems = cleanedItems });
+            }
+        );
+
+        apiGroup.MapPost(
             "/checkout",
             async (HttpContext context, CheckoutRequest req, IMemoryCache cache, KrogerService kroger) =>
             {

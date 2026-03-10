@@ -14,6 +14,7 @@ builder.Services.AddCartBuddyRateLimiter();
 builder.Services.AddSingleton<HttpClient>();
 builder.Services.AddSingleton<KrogerClient>();
 builder.Services.AddSingleton<KrogerService>();
+builder.Services.AddSingleton<AiCleanupService>();
 
 var app = builder.Build();
 

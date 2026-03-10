@@ -11,6 +11,9 @@ public interface ICartBuddyApi
     [Get("/api/search")]
     Task<ProductSearchResponse> SearchProducts(string locationId, string term, int start = 0, int limit = 4);
 
+    [Post("/api/cleanup")]
+    Task<CleanupResponse> CleanupList([Body] CleanupRequest request);
+
     [Post("/api/checkout")]
     Task<CheckoutResponse> Checkout(CheckoutRequest request);
 }

@@ -1,9 +1,8 @@
 using Azure;
 using Azure.AI.OpenAI;
-using Microsoft.Extensions.Configuration;
 using OpenAI.Chat;
 
-namespace CartBuddy.Services;
+namespace CartBuddy.Server;
 
 public class AiCleanupService(IConfiguration config)
 {
@@ -25,7 +24,7 @@ public class AiCleanupService(IConfiguration config)
             )
         );
 
-        var chatClient = client.GetChatClient(Constants.AzureOpenAIDeployment);
+        var chatClient = client.GetChatClient(config["AzureOpenAI:DeploymentName"] ?? "gpt-4o");
         var itemList = string.Join("\n", rawItems);
 
         var completion = await chatClient.CompleteChatAsync(
