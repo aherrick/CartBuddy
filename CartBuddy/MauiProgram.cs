@@ -2,7 +2,7 @@ using CartBuddy.Services;
 using CartBuddy.ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Plugin.Maui.BottomSheet.Hosting;
+
 namespace CartBuddy;
 
 public static class MauiProgram
@@ -11,28 +11,16 @@ public static class MauiProgram
     {
         var builder = MauiApp.CreateBuilder();
 
-#if DEBUG
-        builder.Configuration.AddUserSecrets<App>();
-#endif
-
-        // Always allow CI / shell / host-level overrides
-        builder.Configuration.AddEnvironmentVariables();
-
         builder
             .UseMauiApp<App>()
-            .UseBottomSheet()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-                fonts.AddFont("fa-solid-900.ttf", "FaSolid");
-                fonts.AddFont("fa-regular-400.ttf", "FaRegular");
-                fonts.AddFont("fa-light-300.ttf", "FaLight");
             });
 
         // Services
         builder.Services.AddSingleton<ICartBuddyApi, MockCartBuddyApi>();
-        
         builder.Services.AddSingleton<PreferencesService>();
         builder.Services.AddSingleton<AiCleanupService>();
 
@@ -51,7 +39,3 @@ public static class MauiProgram
         return builder.Build();
     }
 }
-
-
-
-

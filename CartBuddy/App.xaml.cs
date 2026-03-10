@@ -1,13 +1,10 @@
-﻿using CartBuddy.Services;
-
 namespace CartBuddy;
 
 public partial class App : Application
 {
-    public App(PreferencesService preferences)
+    public App()
     {
         InitializeComponent();
-        preferences.ApplyTheme();
     }
 
     protected override Window CreateWindow(IActivationState activationState) =>
