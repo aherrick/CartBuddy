@@ -33,12 +33,9 @@ public static class MauiProgram
             });
 
         // Services
-        builder.Services.AddSingleton<HttpClient>();
-        builder.Services.AddSingleton<ICartBuddyApi>(_ =>
-            RestService.For<ICartBuddyApi>(
-                new HttpClient { BaseAddress = new Uri(Constants.CartBuddyServerBaseUrl) }
-            )
-        );
+        builder.Services.AddRefitClient<ICartBuddyApi>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(Constants.CartBuddyServerBaseUrl));
+        
         builder.Services.AddSingleton<PreferencesService>();
         builder.Services.AddSingleton<AiCleanupService>();
 
