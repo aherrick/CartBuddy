@@ -1,14 +1,13 @@
 using System.Collections.ObjectModel;
-using CartBuddy.Data.Models;
-using CartBuddy.Models;
 using CartBuddy.Services;
+using CartBuddy.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace CartBuddy.ViewModels;
 
 public partial class StorePickerViewModel(
-    KrogerApiService krogerApi,
+    ICartBuddyApi api,
     PreferencesService preferences
 ) : ObservableObject
 {
@@ -21,9 +20,18 @@ public partial class StorePickerViewModel(
     [ObservableProperty]
     private string _statusMessage;
 
-    public ObservableCollection<KrogerLocation> Stores { get; } = [];
+    public bool CanNavigateBack => preferences.HasStore;
 
-    public void LoadSavedZip() => ZipCode = preferences.ZipCode;
+    public ObservableCollection<LocationInfo> Stores { get; } = [];
+
+    public void LoadSavedZip()
+    {
+        ZipCode = preferences.ZipCode;
+        StatusMessage = preferences.HasStore
+            ? $"Current store: {preferences.StoreName}"
+            : "Pick a store before searching or checking out.";
+        OnPropertyChanged(nameof(CanNavigateBack));
+    }
 
     [RelayCommand]
     private async Task SearchStores()
@@ -40,7 +48,8 @@ public partial class StorePickerViewModel(
 
         try
         {
-            var locations = await krogerApi.SearchLocations(ZipCode);
+            var response = await api.SearchLocations(ZipCode);
+            var locations = response.Locations ?? [];
             foreach (var location in locations)
             {
                 Stores.Add(location);
@@ -60,12 +69,13 @@ public partial class StorePickerViewModel(
     }
 
     [RelayCommand]
-    private async Task SelectStore(KrogerLocation store)
+    private async Task SelectStore(LocationInfo store)
     {
         preferences.StoreId = store.LocationId;
-        preferences.StoreName = store.Address is not null
-            ? $"{store.Name} - {store.Address.AddressLine1}"
-            : store.Name;
+        preferences.StoreName = string.IsNullOrWhiteSpace(store.Address)
+            ? store.Name
+            : $"{store.Name} - {store.Address}";
+        OnPropertyChanged(nameof(CanNavigateBack));
         await Shell.Current.GoToAsync("..");
     }
 }

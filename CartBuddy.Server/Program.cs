@@ -114,12 +114,12 @@ app.MapGet(
             var userToken = await kroger.ExchangeCodeForToken(code, redirectUri);
             await kroger.CreateCart(userToken, pending.Items);
 
-            return Results.Redirect("/?success=true");
+            return Results.Redirect(BuildCheckoutRedirect(pending.ReturnUri, true));
         }
         catch (HttpRequestException ex)
         {
             logger.LogError(ex, "Kroger cart creation failed");
-            return Results.Redirect("/?error=cart");
+            return Results.Redirect(BuildCheckoutRedirect(pending.ReturnUri, false));
         }
     }
 );
@@ -127,3 +127,15 @@ app.MapGet(
 app.MapFallbackToFile("index.html");
 
 app.Run();
+
+static string BuildCheckoutRedirect(string returnUri, bool isSuccess)
+{
+    if (string.IsNullOrWhiteSpace(returnUri))
+    {
+        return isSuccess ? "/?success=true" : "/?error=cart";
+    }
+
+    var separator = returnUri.Contains('?') ? '&' : '?';
+    var outcome = isSuccess ? "success=true" : "error=cart";
+    return $"{returnUri}{separator}{outcome}";
+}

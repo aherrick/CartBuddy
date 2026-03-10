@@ -74,10 +74,11 @@
 		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.3" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.3" />
 		<PackageReference Include="Plugin.Maui.BottomSheet" Version="10.0.6" />
+		<PackageReference Include="Refit" Version="8.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\CartBuddy.Data\CartBuddy.Data.csproj" />
+		<ProjectReference Include="..\CartBuddy.Shared\CartBuddy.Shared.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -16,5 +16,18 @@ public partial class StorePickerPage : ContentPage
     {
         base.OnAppearing();
         _viewModel.LoadSavedZip();
+        Shell.SetBackButtonBehavior(
+            this,
+            new BackButtonBehavior
+            {
+                IsEnabled = _viewModel.CanNavigateBack,
+                IsVisible = _viewModel.CanNavigateBack,
+            }
+        );
+    }
+
+    protected override bool OnBackButtonPressed()
+    {
+        return !_viewModel.CanNavigateBack || base.OnBackButtonPressed();
     }
 }

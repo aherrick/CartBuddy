@@ -34,25 +34,37 @@
             <VerticalStackLayout Padding="16,14,16,110" Spacing="14">
                 <Border Padding="14" StrokeShape="RoundRectangle 18"
                         BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
-                    <VerticalStackLayout Spacing="4">
-                        <Label Text="{Binding StoreDisplay}" FontSize="15" FontAttributes="Bold" />
-                        <Label Text="Paste your list and search Kroger." FontSize="13"
-                               TextColor="{StaticResource Gray400}" />
-                    </VerticalStackLayout>
-                </Border>
-
-                <Border Padding="14" StrokeShape="RoundRectangle 18"
-                        BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
                     <VerticalStackLayout Spacing="10">
-                        <VerticalStackLayout Spacing="2">
-                            <Label Text="Items" FontSize="12" TextColor="{StaticResource Gray400}" />
-                            <Label Text="{Binding SearchModeLabel}" FontSize="13" />
-                        </VerticalStackLayout>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="Items" FontSize="16" FontAttributes="Bold" />
+                                <Label Text="{Binding ItemsSummary}"
+                                       FontSize="12"
+                                       TextColor="{StaticResource Gray400}" />
+                            </VerticalStackLayout>
+                            <Button Grid.Column="1"
+                                    Text="{Binding ItemsEditorToggleText}"
+                                    Command="{Binding ToggleItemsEditorCommand}"
+                                    Padding="12,8"
+                                    FontSize="12"
+                                    BackgroundColor="{StaticResource Gray600}" />
+                        </Grid>
 
                         <Editor Text="{Binding RawItemsText}"
                                 Placeholder="milk&#10;cheese&#10;water&#10;coke"
                                 HeightRequest="120"
-                                AutoSize="TextChanges" />
+                                AutoSize="TextChanges"
+                                IsVisible="{Binding IsItemsEditorVisible}" />
+
+                        <Border IsVisible="{Binding IsItemsPreviewVisible}"
+                                Padding="12"
+                                StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}">
+                            <Label Text="{Binding RawItemsText}"
+                                   MaxLines="3"
+                                   LineBreakMode="TailTruncation"
+                                   TextColor="{StaticResource Gray400}" />
+                        </Border>
 
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                             <Button Text="Search" Command="{Binding SearchCommand}" />

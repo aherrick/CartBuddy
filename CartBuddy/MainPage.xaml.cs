@@ -16,11 +16,17 @@ public partial class MainPage : ContentPage
     {
         base.OnAppearing();
         _viewModel.LoadSettings();
+
+        if (!_viewModel.HasStore)
+        {
+            Dispatcher.DispatchAsync(() => _viewModel.GoToStorePickerCommand.ExecuteAsync(null));
+        }
     }
 
     private async void OnMenuClicked(object sender, EventArgs e)
     {
         List<string> actions = [_viewModel.StoreActionText, _viewModel.ThemeActionText];
+        var title = _viewModel.HasStore ? _viewModel.StoreDisplay : "Cart Buddy";
 
         if (_viewModel.HasStore)
         {
@@ -28,7 +34,7 @@ public partial class MainPage : ContentPage
         }
 
         var selectedAction = await DisplayActionSheetAsync(
-            "Cart Buddy",
+            title,
             "Cancel",
             null,
             [.. actions]

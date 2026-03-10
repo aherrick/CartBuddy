@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CartBuddy.Models;
 using CartBuddy.Services;
+using CartBuddy.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -10,17 +11,17 @@ public partial class MainViewModel : ObservableObject
 {
     private const int PageSize = 4;
 
-    private readonly KrogerApiService _krogerApi;
+    private readonly ICartBuddyApi _api;
     private readonly AiCleanupService _aiCleanup;
     private readonly PreferencesService _preferences;
 
     public MainViewModel(
-        KrogerApiService krogerApi,
+        ICartBuddyApi api,
         AiCleanupService aiCleanup,
         PreferencesService preferences
     )
     {
-        _krogerApi = krogerApi;
+        _api = api;
         _aiCleanup = aiCleanup;
         _preferences = preferences;
         SearchGroups.CollectionChanged += (_, _) => UpdateSearchState();
@@ -43,7 +44,7 @@ public partial class MainViewModel : ObservableObject
     private bool _isCartOpen;
 
     [ObservableProperty]
-    private string _searchModeLabel;
+    private bool _isItemsEditorVisible = true;
 
     [ObservableProperty]
     private bool _isSnackbarVisible;
@@ -64,6 +65,10 @@ public partial class MainViewModel : ObservableObject
 
     public bool HasResults => SearchGroups.Count > 0;
 
+    public bool HasItemsText => !string.IsNullOrWhiteSpace(RawItemsText);
+
+    public bool IsItemsPreviewVisible => !IsItemsEditorVisible && HasItemsText;
+
     public bool HasCartItems => CartItems.Count > 0;
 
     public int CartItemCount => CartItems.Sum(item => item.Quantity);
@@ -75,6 +80,17 @@ public partial class MainViewModel : ObservableObject
 
     public string CartButtonText => HasCartItems ? $"Cart ({CartItemCount})" : "Cart";
 
+    public string ItemsEditorToggleText => IsItemsEditorVisible ? "Hide Items" : "Show Items";
+
+    public string ItemsSummary
+    {
+        get
+        {
+            var itemCount = ParseTerms(RawItemsText).Count;
+            return itemCount == 0 ? "No items yet" : $"{itemCount} items ready";
+        }
+    }
+
     public string ToggleAllText =>
         SearchGroups.Any(group => !group.IsExpanded) ? "Expand All" : "Collapse All";
 
@@ -83,7 +99,6 @@ public partial class MainViewModel : ObservableObject
     public void LoadSettings()
     {
         IsDarkMode = _preferences.Theme == AppTheme.Dark;
-        SearchModeLabel = IsAiAvailable ? "AI cleanup is automatic" : "Direct Kroger search";
         OnPropertyChanged(nameof(HasStore));
         OnPropertyChanged(nameof(StoreDisplay));
         OnPropertyChanged(nameof(StoreActionText));
@@ -96,6 +111,20 @@ public partial class MainViewModel : ObservableObject
     {
         _preferences.Theme = value ? AppTheme.Dark : AppTheme.Light;
         OnPropertyChanged(nameof(ThemeActionText));
+    }
+
+    partial void OnIsItemsEditorVisibleChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ItemsEditorToggleText));
+        OnPropertyChanged(nameof(ItemsSummary));
+        OnPropertyChanged(nameof(IsItemsPreviewVisible));
+    }
+
+    partial void OnRawItemsTextChanged(string value)
+    {
+        OnPropertyChanged(nameof(HasItemsText));
+        OnPropertyChanged(nameof(ItemsSummary));
+        OnPropertyChanged(nameof(IsItemsPreviewVisible));
     }
 
     [RelayCommand]
@@ -137,7 +166,7 @@ public partial class MainViewModel : ObservableObject
             var index = 0;
             foreach (var term in searchTerms)
             {
-                var page = await _krogerApi.SearchProducts(term, _preferences.StoreId, 0, PageSize);
+                var page = await SearchProducts(term, _preferences.StoreId, 0, PageSize);
                 var group = new SearchGroup(term, page.TotalCount, PageSize)
                 {
                     IsExpanded = index == 0,
@@ -145,6 +174,11 @@ public partial class MainViewModel : ObservableObject
                 group.AddMatches(page.Results);
                 SearchGroups.Add(group);
                 index++;
+            }
+
+            if (SearchGroups.Count > 0)
+            {
+                IsItemsEditorVisible = false;
             }
 
             await ShowSnackbar($"Loaded {SearchGroups.Count} groups");
@@ -171,7 +205,7 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            var page = await _krogerApi.SearchProducts(
+            var page = await SearchProducts(
                 group.Query,
                 _preferences.StoreId,
                 group.LoadedCount,
@@ -204,8 +238,34 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            var userToken = await _krogerApi.AuthenticateUser();
-            await _krogerApi.AddToCart(userToken, cartItems);
+            var checkout = await _api.Checkout(
+                new CheckoutRequest
+                {
+                    LocationId = _preferences.StoreId,
+                    Items =
+                    [
+                        .. cartItems.Select(item => new CartItem
+                        {
+                            Upc = item.Upc,
+                            Description = item.Description,
+                            Price = item.Price,
+                            Quantity = item.Quantity,
+                            ImageUrl = item.ImageUrl,
+                        })
+                    ],
+                    ReturnUri = Constants.KrogerRedirectUri,
+                }
+            );
+
+            var result = await WebAuthenticator.Default.AuthenticateAsync(
+                new Uri(checkout.AuthUrl),
+                new Uri(Constants.KrogerRedirectUri)
+            );
+
+            if (result.Properties.TryGetValue("error", out var error) && error == "cart")
+            {
+                throw new InvalidOperationException("Server checkout failed.");
+            }
 
             ClearCart();
             IsCartOpen = false;
@@ -342,9 +402,16 @@ public partial class MainViewModel : ObservableObject
     {
         SearchGroups.Clear();
         RawItemsText = string.Empty;
+        IsItemsEditorVisible = true;
         SnackbarMessage = string.Empty;
         IsSnackbarVisible = false;
         UpdateSearchState();
+    }
+
+    [RelayCommand]
+    private void ToggleItemsEditor()
+    {
+        IsItemsEditorVisible = !IsItemsEditorVisible;
     }
 
     [RelayCommand]
@@ -426,6 +493,38 @@ public partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(CartTotal));
         OnPropertyChanged(nameof(CartSummary));
         OnPropertyChanged(nameof(CartButtonText));
+    }
+
+    private async Task<ProductSearchPage> SearchProducts(
+        string term,
+        string locationId,
+        int start,
+        int limit
+    )
+    {
+        var page = await _api.SearchProducts(locationId, term, start, limit);
+        return new ProductSearchPage(
+            [.. page.Results.Select(result => MapProductMatch(result, term))],
+            page.Total
+        );
+    }
+
+    private static ProductMatch MapProductMatch(ProductSearchResult product, string query)
+    {
+        return new ProductMatch
+        {
+            Query = query,
+            ProductId = product.ProductId,
+            Upc = product.Upc,
+            Description = product.Description,
+            Brand = string.IsNullOrWhiteSpace(product.Brand) ? "Unknown" : product.Brand,
+            Size = string.IsNullOrWhiteSpace(product.Size) ? "N/A" : product.Size,
+            ImageUrl = product.ImageUrl,
+            Price = product.Price,
+            RegularPrice = product.RegularPrice ?? product.Price,
+            HasPromo = product.HasPromo,
+            PromoEndDate = product.PromoEndDate,
+        };
     }
 
     private async Task ShowSnackbar(string message)

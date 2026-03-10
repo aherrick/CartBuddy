@@ -2,42 +2,77 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:CartBuddy.ViewModels"
-             xmlns:data="clr-namespace:CartBuddy.Data.Models;assembly=CartBuddy.Data"
+             xmlns:shared="clr-namespace:CartBuddy.Shared.Models;assembly=CartBuddy.Shared"
              x:Class="CartBuddy.StorePickerPage"
              x:Name="ThisPage"
-             Title="Select Store">
+             Title="Select Store"
+             BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
 
-    <Grid RowDefinitions="Auto,*,Auto" Padding="16" RowSpacing="12">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="16,14,16,20" RowSpacing="14">
 
-        <!-- Row 0: Zip Code Input -->
-        <HorizontalStackLayout Spacing="8">
-            <Entry Text="{Binding ZipCode}"
-                   Placeholder="Enter zip code"
-                   Keyboard="Numeric"
-                   WidthRequest="160"
-                   ReturnCommand="{Binding SearchStoresCommand}" />
-            <Button Text="🔍 Search" Command="{Binding SearchStoresCommand}" />
-        </HorizontalStackLayout>
-
-        <!-- Row 1: Store List -->
-        <CollectionView Grid.Row="1" ItemsSource="{Binding Stores}">
-            <CollectionView.EmptyView>
-                <Label Text="Enter a zip code to find nearby Kroger stores"
-                       HorizontalOptions="Center"
-                       VerticalOptions="Center"
+        <Border Padding="16"
+                StrokeShape="RoundRectangle 18"
+                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Choose your Kroger store" FontSize="22" FontAttributes="Bold" />
+                <Label Text="We'll use this store for product search, pricing, and checkout."
+                       FontSize="13"
                        TextColor="{StaticResource Gray400}" />
+            </VerticalStackLayout>
+        </Border>
+
+        <Border Grid.Row="1"
+                Padding="14"
+                StrokeShape="RoundRectangle 18"
+                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                <Entry Text="{Binding ZipCode}"
+                       Placeholder="Enter zip code"
+                       Keyboard="Numeric"
+                       ReturnCommand="{Binding SearchStoresCommand}" />
+                <Button Grid.Column="1"
+                        Text="Search"
+                        Command="{Binding SearchStoresCommand}"
+                        Padding="18,0"
+                        MinimumWidthRequest="108" />
+            </Grid>
+        </Border>
+
+        <CollectionView Grid.Row="2" ItemsSource="{Binding Stores}" SelectionMode="None">
+            <CollectionView.EmptyView>
+                <Border Padding="20"
+                        Margin="0,40,0,0"
+                        StrokeShape="RoundRectangle 18"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}"
+                        HorizontalOptions="Center"
+                        MaximumWidthRequest="420">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="No stores yet" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center" />
+                        <Label Text="Enter a zip code to find nearby Kroger stores"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"
+                               TextColor="{StaticResource Gray400}" />
+                    </VerticalStackLayout>
+                </Border>
             </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="data:KrogerLocation">
-                    <Border Margin="0,4" Padding="12" StrokeShape="RoundRectangle 8">
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <DataTemplate x:DataType="shared:LocationInfo">
+                    <Border Margin="0,0,0,10"
+                            Padding="14"
+                            StrokeShape="RoundRectangle 16"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
                             <VerticalStackLayout VerticalOptions="Center">
-                                <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold" />
-                                <Label Text="{Binding Address.AddressLine1}" FontSize="13" />
-                                <Label Text="{Binding Address.City}" FontSize="12"
-                                       TextColor="{StaticResource Gray400}" />
+                                <Label Text="{Binding Name}" FontSize="17" FontAttributes="Bold" />
+                                <Label Text="{Binding Address}" FontSize="13"
+                                       TextColor="{StaticResource Gray400}"
+                                       LineBreakMode="WordWrap"
+                                       MaxLines="2" />
                             </VerticalStackLayout>
-                            <Button Grid.Column="1" Text="Select" VerticalOptions="Center"
+                            <Button Grid.Column="1"
+                                    Text="Select"
+                                    VerticalOptions="Center"
+                                    Padding="14,8"
                                     Command="{Binding Source={RelativeSource AncestorType={x:Type vm:StorePickerViewModel}}, Path=SelectStoreCommand}"
                                     CommandParameter="{Binding}" />
                         </Grid>
@@ -46,11 +81,14 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- Row 2: Status -->
-        <VerticalStackLayout Grid.Row="2" Spacing="4">
+        <VerticalStackLayout Grid.Row="3" Spacing="4">
             <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
                                HeightRequest="20" />
-            <Label Text="{Binding StatusMessage}" HorizontalOptions="Center" FontSize="12" />
+            <Label Text="{Binding StatusMessage}"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"
+                   FontSize="12"
+                   TextColor="{StaticResource Gray400}" />
         </VerticalStackLayout>
     </Grid>
 </ContentPage>
