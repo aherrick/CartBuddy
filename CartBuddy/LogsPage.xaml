@@ -2,9 +2,9 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:CartBuddy.Shared.Models;assembly=CartBuddy.Shared"
-             xmlns:vm="clr-namespace:CartBuddy.ViewModels"
-             xmlns:localModels="clr-namespace:CartBuddy.Models"
              xmlns:converters="clr-namespace:CartBuddy.Converters"
+             xmlns:sfListView="clr-namespace:Syncfusion.Maui.ListView;assembly=Syncfusion.Maui.ListView"
+             xmlns:data="clr-namespace:Syncfusion.Maui.DataSource;assembly=Syncfusion.Maui.DataSource"
              xmlns:bottomsheet="http://pluginmauibottomsheet.com"
              x:Class="CartBuddy.LogsPage"
              x:Name="ThisPage"
@@ -14,6 +14,7 @@
     <ContentPage.Resources>
         <converters:DirectionColorConverter x:Key="DirectionColorConverter" />
         <converters:DirectionGlyphConverter x:Key="DirectionGlyphConverter" />
+        <converters:ApiLogGroupHeaderConverter x:Key="ApiLogGroupHeaderConverter" />
     </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,*">
@@ -23,7 +24,7 @@
             <Grid ColumnDefinitions="*,Auto">
                 <VerticalStackLayout Spacing="2" VerticalOptions="Center">
                     <Label Text="API Logs" FontSize="22" FontAttributes="Bold" />
-                          <Label Text="{Binding TransactionGroups.Count, StringFormat='{0} transactions'}"
+                    <Label Text="{Binding TransactionCount, StringFormat='{0} transactions'}"
                            FontSize="12"
                            TextColor="{StaticResource Gray400}" />
                 </VerticalStackLayout>
@@ -41,48 +42,62 @@
         </VerticalStackLayout>
 
         <!-- Log list -->
-        <CollectionView Grid.Row="1"
-                        IsGrouped="True"
-                        ItemsSource="{Binding TransactionGroups}"
-                        SelectionMode="None">
-            <CollectionView.EmptyView>
+        <sfListView:SfListView Grid.Row="1"
+                               ItemsSource="{Binding Logs}"
+                               SelectionMode="None"
+                               AutoFitMode="Height"
+                               GroupHeaderSize="58"
+                               AllowGroupExpandCollapse="False"
+                               IsStickyGroupHeader="True"
+                               ItemTapped="OnEntryTapped">
+            <sfListView:SfListView.DataSource>
+                <data:DataSource AutoExpandGroups="True">
+                    <data:DataSource.GroupDescriptors>
+                        <data:GroupDescriptor PropertyName="TransactionId" />
+                    </data:DataSource.GroupDescriptors>
+                </data:DataSource>
+            </sfListView:SfListView.DataSource>
+            <sfListView:SfListView.EmptyView>
                 <Label Text="No logs yet — make some API calls and refresh"
                        FontSize="14"
                        HorizontalOptions="Center"
                        VerticalOptions="Center"
                        TextColor="{StaticResource Gray400}"
                        Margin="32" />
-            </CollectionView.EmptyView>
-            <CollectionView.GroupHeaderTemplate>
-                <DataTemplate x:DataType="localModels:LogTransactionGroup">
-                    <VerticalStackLayout Padding="16,12,16,4" Spacing="4">
-                        <Label Text="{Binding MethodName}"
-                               FontSize="15"
-                               FontAttributes="Bold" />
-                        <HorizontalStackLayout Spacing="6">
-                            <Label Text="{Binding EntryCountLabel}"
+            </sfListView:SfListView.EmptyView>
+            <sfListView:SfListView.GroupHeaderTemplate>
+                <DataTemplate>
+                    <Grid BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}"
+                          Padding="16,10,16,10"
+                          ColumnDefinitions="*,Auto"
+                          ColumnSpacing="8">
+                        <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                            <Label Text="{Binding ., Converter={StaticResource ApiLogGroupHeaderConverter}, ConverterParameter=MethodName}"
+                                   FontSize="17"
+                                   FontAttributes="Bold" />
+                            <Label Text="{Binding ., Converter={StaticResource ApiLogGroupHeaderConverter}, ConverterParameter=DirectionSummary}"
                                    FontSize="11"
+                                   LineBreakMode="TailTruncation"
                                    TextColor="{StaticResource Gray400}" />
-                            <Label Text="•"
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" HorizontalOptions="End" VerticalOptions="Center">
+                            <Label Text="{Binding ., Converter={StaticResource ApiLogGroupHeaderConverter}, ConverterParameter=EntryCountLabel}"
+                                   FontSize="12"
+                                   HorizontalTextAlignment="End"
+                                   TextColor="{StaticResource Gray400}" />
+                            <Label Text="{Binding ., Converter={StaticResource ApiLogGroupHeaderConverter}, ConverterParameter=Timestamp}"
                                    FontSize="11"
+                                   HorizontalTextAlignment="End"
                                    TextColor="{StaticResource Gray400}" />
-                            <Label Text="{Binding Timestamp, StringFormat='{0:MM/dd HH:mm:ss}'}"
-                                   FontSize="11"
-                                   TextColor="{StaticResource Gray400}" />
-                        </HorizontalStackLayout>
-                    </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Grid>
                 </DataTemplate>
-            </CollectionView.GroupHeaderTemplate>
-            <CollectionView.ItemTemplate>
+            </sfListView:SfListView.GroupHeaderTemplate>
+            <sfListView:SfListView.ItemTemplate>
                 <DataTemplate x:DataType="models:ApiLogEntry">
                     <Grid Padding="16,12,16,12"
                           ColumnDefinitions="Auto,*,Auto"
                           ColumnSpacing="12">
-
-                        <Grid.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.SelectEntryCommand}"
-                                                  CommandParameter="{Binding .}" />
-                        </Grid.GestureRecognizers>
 
                         <!-- Direction badge -->
                         <Border WidthRequest="28"
@@ -109,14 +124,14 @@
                                    LineBreakMode="TailTruncation" />
                             <HorizontalStackLayout Spacing="6">
                                 <Label Text="{Binding DirectionLabel}"
-                                    FontSize="11"
-                                    TextColor="{StaticResource Gray400}" />
+                                       FontSize="11"
+                                       TextColor="{StaticResource Gray400}" />
                             </HorizontalStackLayout>
                             <Label Text="{Binding PayloadPreview}"
-                                FontSize="11"
-                                LineBreakMode="TailTruncation"
-                                MaxLines="1"
-                                TextColor="{StaticResource Gray400}" />
+                                   FontSize="11"
+                                   LineBreakMode="TailTruncation"
+                                   MaxLines="1"
+                                   TextColor="{StaticResource Gray400}" />
                             <Label Text="{Binding Timestamp, StringFormat='{0:MM/dd HH:mm:ss}'}"
                                    FontSize="11"
                                    TextColor="{StaticResource Gray400}" />
@@ -131,8 +146,8 @@
                                VerticalOptions="Center" />
                     </Grid>
                 </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+            </sfListView:SfListView.ItemTemplate>
+        </sfListView:SfListView>
 
         <!-- Detail bottom sheet -->
         <bottomsheet:BottomSheet Grid.RowSpan="2"

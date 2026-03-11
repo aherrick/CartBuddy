@@ -9,7 +9,10 @@ namespace CartBuddy.ViewModels;
 
 public partial class LogsViewModel(ICartBuddyApi api) : ObservableObject
 {
+    public ObservableCollection<ApiLogEntry> Logs { get; } = [];
     public ObservableCollection<LogTransactionGroup> TransactionGroups { get; } = [];
+
+    public int TransactionCount => TransactionGroups.Count;
 
     [ObservableProperty]
     private LogTransactionGroup _selectedTransaction;
@@ -26,11 +29,19 @@ public partial class LogsViewModel(ICartBuddyApi api) : ObservableObject
             .OrderByDescending(group => group.Max(entry => entry.Timestamp))
             .Select(group => new LogTransactionGroup(group.Key, group));
 
+        Logs.Clear();
+        foreach (var entry in entries)
+        {
+            Logs.Add(entry);
+        }
+
         TransactionGroups.Clear();
         foreach (var group in groups)
         {
             TransactionGroups.Add(group);
         }
+
+        OnPropertyChanged(nameof(TransactionCount));
     }
 
     [RelayCommand]

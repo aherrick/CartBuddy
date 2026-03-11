@@ -2,6 +2,7 @@ using System.Globalization;
 using CartBuddy.Models;
 using CartBuddy.Shared.Models;
 using CartBuddy.ViewModels;
+using Syncfusion.Maui.DataSource.Extensions;
 
 namespace CartBuddy.Converters;
 
@@ -102,6 +103,39 @@ public class DirectionGlyphConverter : IValueConverter
             ApiLogDirection.KrogerRequest => "\uF0C1",
             ApiLogDirection.KrogerResponse => "\uF15C",
             _ => "\uF059"
+        };
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+        throw new NotImplementedException();
+}
+
+public class ApiLogGroupHeaderConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is not GroupResult groupResult)
+        {
+            return string.Empty;
+        }
+
+        var entries = groupResult.Items.Cast<ApiLogEntry>().OrderBy(entry => entry.Timestamp).ToList();
+        if (entries.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var latestEntry = entries[^1];
+        var firstEntry = entries[0];
+
+        return parameter switch
+        {
+            "MethodName" => latestEntry.MethodName,
+            "EntryCountLabel" => entries.Count == 1 ? "1 entry" : $"{entries.Count} entries",
+            "Timestamp" => latestEntry.Timestamp.ToString("MM/dd HH:mm:ss", culture),
+            "DirectionSummary" => string.Join(" • ", entries.Select(entry => entry.DirectionLabel)),
+            "TransactionId" => firstEntry.TransactionId.ToString(),
+            _ => string.Empty
         };
     }
 
