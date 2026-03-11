@@ -4,6 +4,7 @@ using CartBuddy.ViewModels;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using Syncfusion.Maui.DataSource;
+using Syncfusion.Maui.DataSource.Extensions;
 
 namespace CartBuddy;
 
@@ -28,8 +29,11 @@ public partial class MainPage : ContentPage
             conv.ViewModel = viewModel;
         }
 
-        // Group the flat AllProducts list by Query term
+        // Keep search groups collapsed natively to prevent an open-to-close layout jolt
+        // upon initial population of the shopping list
         SearchListView.DataSource.AutoExpandGroups = false;
+
+        // Group the flat AllProducts list by Query term
         SearchListView.DataSource.GroupDescriptors.Add(new Syncfusion.Maui.DataSource.GroupDescriptor
         {
             PropertyName = "Query"
@@ -68,7 +72,27 @@ public partial class MainPage : ContentPage
         }
 
         SearchListView.CanMaintainScrollPosition = true;
+
+        // Since AutoExpandGroups is false, calling Refresh() will collapse everything.
+        // We capture the currently expanded groups first so we can restore them.
+        var expandedKeys = SearchListView.DataSource.Groups
+            .OfType<GroupResult>()
+            .Where(g => g.IsExpand)
+            .Select(g => g.Key)
+            .ToList();
+
+        // Refresh applies new data (like View More items)
         SearchListView.DataSource.Refresh();
+
+        // Restore the expanded state of any groups that were already open
+        foreach (var group in SearchListView.DataSource.Groups.OfType<GroupResult>())
+        {
+            if (expandedKeys.Contains(group.Key))
+            {
+                SearchListView.ExpandGroup(group);
+            }
+        }
+
         SearchListView.CanMaintainScrollPosition = false;
     }
 
@@ -149,6 +173,13 @@ public partial class MainPage : ContentPage
     {
         RawItemsEditor.Unfocus();
         await _viewModel.SearchCommand.ExecuteAsync(null);
+
+        if (_viewModel.HasResults)
+        {
+            // Syncfusion automatically renders new groups collapsed (via AutoExpandGroups = false)
+            // We just ensure the expand/collapse toggle button state resets properly.
+            _viewModel.AllGroupsExpanded = false;
+        }
     }
 
     private async void OnClearSearchClicked(object sender, EventArgs e)
