@@ -11,9 +11,6 @@ public partial class ProductMatch : ObservableObject
     private string _query;
 
     [ObservableProperty]
-    private string _productId;
-
-    [ObservableProperty]
     private string _upc;
 
     [ObservableProperty]
@@ -90,9 +87,6 @@ public partial class ProductMatch : ObservableObject
 public partial class CartLine : ObservableObject
 {
     [ObservableProperty]
-    private string _productId;
-
-    [ObservableProperty]
     private string _upc;
 
     [ObservableProperty]
@@ -115,22 +109,15 @@ public partial class CartLine : ObservableObject
     }
 }
 
-public class SearchGroup : ObservableCollection<ProductMatch>
+public class SearchGroup(string query, int totalCount, int pageSize) : ObservableCollection<ProductMatch>
 {
-    private int _totalCount;
+    private int _totalCount = totalCount;
     private int _loadedCount;
     private bool _isCompleted;
 
-    public SearchGroup(string query, int totalCount, int pageSize)
-    {
-        Query = query;
-        PageSize = pageSize;
-        _totalCount = totalCount;
-    }
+    public string Query { get; } = query;
 
-    public string Query { get; }
-
-    public int PageSize { get; }
+    public int PageSize { get; } = pageSize;
 
     public int TotalCount
     {
@@ -150,10 +137,6 @@ public class SearchGroup : ObservableCollection<ProductMatch>
         set => SetProperty(ref _isCompleted, value, nameof(IsCompleted));
     }
 
-    public bool HasMatches => Count > 0;
-
-    public bool IsEmpty => Count == 0;
-
     public bool HasMore => LoadedCount < TotalCount;
 
     public string PageSummary => TotalCount == 0 ? "No matches" : $"{LoadedCount}/{TotalCount}";
@@ -170,8 +153,6 @@ public class SearchGroup : ObservableCollection<ProductMatch>
     {
         base.OnCollectionChanged(e);
         LoadedCount = Count;
-        OnPropertyChanged(new PropertyChangedEventArgs(nameof(HasMatches)));
-        OnPropertyChanged(new PropertyChangedEventArgs(nameof(IsEmpty)));
     }
 
     private void SetProperty<T>(ref T field, T value, params string[] propertyNames)

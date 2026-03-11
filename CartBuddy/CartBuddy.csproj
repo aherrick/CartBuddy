@@ -75,6 +75,7 @@
 		<PackageReference Include="Plugin.Maui.BottomSheet" Version="10.0.6" />
 		<PackageReference Include="Refit" Version="10.0.1" />
 		<PackageReference Include="Refit.HttpClientFactory" Version="10.0.1" />
+		<PackageReference Include="Syncfusion.Maui.ListView" Version="32.2.9" />
 	</ItemGroup>
 
 	<ItemGroup>

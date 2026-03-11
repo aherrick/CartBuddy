@@ -4,11 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Plugin.Maui.BottomSheet.Hosting;
 using Refit;
-
-#if IOS || MACCATALYST
-using Microsoft.Maui.Controls.Handlers.Items2;
-using UIKit;
-#endif
+using Syncfusion.Maui.Core.Hosting;
 
 namespace CartBuddy;
 
@@ -18,30 +14,9 @@ public static class MauiProgram
     {
         var builder = MauiApp.CreateBuilder();
 
-#if IOS || MACCATALYST
-        CollectionViewHandler2.Mapper.AppendToMapping(
-            "StickyGroupHeaders",
-            (handler, view) =>
-            {
-                if (!view.IsGrouped)
-                {
-                    return;
-                }
-
-                if (
-                    handler.PlatformView is UICollectionView collectionView
-                    && collectionView.CollectionViewLayout is UICollectionViewFlowLayout layout
-                )
-                {
-                    layout.SectionHeadersPinToVisibleBounds = true;
-                    layout.InvalidateLayout();
-                }
-            }
-        );
-#endif
-
         builder
             .UseMauiApp<App>()
+            .ConfigureSyncfusionCore()
             .UseBottomSheet()
             .ConfigureFonts(fonts =>
             {

@@ -1,4 +1,7 @@
-﻿using CartBuddy.ViewModels;
+﻿using CartBuddy.Converters;
+using CartBuddy.Models;
+using CartBuddy.ViewModels;
+using Syncfusion.Maui.DataSource;
 
 namespace CartBuddy;
 
@@ -10,6 +13,43 @@ public partial class MainPage : ContentPage
     {
         InitializeComponent();
         BindingContext = _viewModel = viewModel;
+
+        // Wire the converter so it can look up SearchGroup metadata by query key
+        if (Resources["GroupInfoConverter"] is GroupInfoConverter conv)
+        {
+            conv.ViewModel = viewModel;
+        }
+
+        // Group the flat AllProducts list by Query term
+        SearchListView.DataSource.GroupDescriptors.Add(new Syncfusion.Maui.DataSource.GroupDescriptor
+        {
+            PropertyName = "Query"
+        });
+
+        // Refresh group headers whenever SearchGroup metadata changes (HasMore, IsCompleted, PageSummary)
+        _viewModel.SearchGroups.CollectionChanged += (_, e) =>
+        {
+            if (e.NewItems is not null)
+            {
+                foreach (SearchGroup group in e.NewItems)
+                {
+                    ((System.ComponentModel.INotifyPropertyChanged)group).PropertyChanged += OnSearchGroupPropertyChanged;
+                }
+            }
+            SearchListView.DataSource?.Refresh();
+        };
+    }
+
+    private void OnSearchGroupPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (SearchListView.DataSource is null)
+        {
+            return;
+        }
+
+        SearchListView.CanMaintainScrollPosition = true;
+        SearchListView.DataSource.Refresh();
+        SearchListView.CanMaintainScrollPosition = false;
     }
 
     protected override void OnAppearing()
@@ -20,6 +60,20 @@ public partial class MainPage : ContentPage
         if (!_viewModel.HasStore)
         {
             Dispatcher.DispatchAsync(() => _viewModel.GoToStorePickerCommand.ExecuteAsync(null));
+        }
+    }
+
+    private void OnToggleExpandAll(object sender, EventArgs e)
+    {
+        if (_viewModel.AllGroupsExpanded)
+        {
+            SearchListView.CollapseAll();
+            _viewModel.AllGroupsExpanded = false;
+        }
+        else
+        {
+            SearchListView.ExpandAll();
+            _viewModel.AllGroupsExpanded = true;
         }
     }
 

@@ -43,7 +43,6 @@ public partial class MainViewModel : ObservableObject
 
     private int _snackbarVersion;
 
-
     [ObservableProperty]
     private bool _isAiCleanupEnabled;
 
@@ -51,9 +50,14 @@ public partial class MainViewModel : ObservableObject
 
     public ObservableCollection<CartLine> CartItems { get; } = [];
 
+    public ObservableCollection<ProductMatch> AllProducts { get; } = [];
+
+    [ObservableProperty]
+    private bool _allGroupsExpanded = true;
+
     public bool HasStore => PreferencesService.HasStore;
 
-    public string StoreDisplay => HasStore ? $"🏪 {PreferencesService.StoreName}" : "No store selected";
+    public string StoreDisplay => HasStore ? PreferencesService.StoreName : "No store selected";
 
     public string StoreActionText => HasStore ? "Change Store" : "Select Store";
 
@@ -151,7 +155,9 @@ public partial class MainViewModel : ObservableObject
             if (IsAiCleanupEnabled)
             {
                 // Clean up list with AI so you don't have to worry about strange pasted text
-                var cleanupResponse = await _api.CleanupList(new CleanupRequest { Items = rawTerms });
+                var cleanupResponse = await _api.CleanupList(
+                    new CleanupRequest { Items = rawTerms }
+                );
                 if (cleanupResponse.CleanedItems is { Count: > 0 })
                 {
                     searchTerms = cleanupResponse.CleanedItems;
@@ -160,19 +166,25 @@ public partial class MainViewModel : ObservableObject
             }
 
             SearchGroups.Clear();
+            AllProducts.Clear();
             foreach (var term in searchTerms)
             {
                 var page = await SearchProducts(term, PreferencesService.StoreId, 0, PageSize);
                 var group = new SearchGroup(term, page.TotalCount, PageSize);
                 group.AddMatches(page.Results);
                 SearchGroups.Add(group);
+                foreach (var product in page.Results)
+                {
+                    AllProducts.Add(product);
+                }
             }
+
+            AllGroupsExpanded = true;
 
             if (SearchGroups.Count > 0)
             {
                 IsItemsEditorVisible = false;
             }
-
         }
         catch (Exception ex)
         {
@@ -187,7 +199,11 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task ViewMore(SearchGroup group)
     {
-        if (group is null || !group.HasMore || string.IsNullOrWhiteSpace(PreferencesService.StoreId))
+        if (
+            group is null
+            || !group.HasMore
+            || string.IsNullOrWhiteSpace(PreferencesService.StoreId)
+        )
         {
             return;
         }
@@ -203,6 +219,10 @@ public partial class MainViewModel : ObservableObject
                 group.PageSize
             );
             group.AddMatches(page.Results);
+            foreach (var product in page.Results)
+            {
+                AllProducts.Add(product);
+            }
         }
         catch (Exception ex)
         {
@@ -241,7 +261,7 @@ public partial class MainViewModel : ObservableObject
                             Price = item.Price,
                             Quantity = item.Quantity,
                             ImageUrl = item.ImageUrl,
-                        })
+                        }),
                     ],
                     ReturnUri = Constants.KrogerRedirectUri,
                 }
@@ -293,7 +313,6 @@ public partial class MainViewModel : ObservableObject
             CartItems.Add(
                 new CartLine
                 {
-                    ProductId = match.ProductId,
                     Upc = match.Upc,
                     Description = match.Description,
                     ImageUrl = match.ImageUrl,
@@ -367,6 +386,7 @@ public partial class MainViewModel : ObservableObject
     private void ClearSearch()
     {
         SearchGroups.Clear();
+        AllProducts.Clear();
         RawItemsText = string.Empty;
         IsItemsEditorVisible = true;
         SnackbarMessage = string.Empty;
@@ -479,7 +499,6 @@ public partial class MainViewModel : ObservableObject
         return new ProductMatch
         {
             Query = query,
-            ProductId = product.ProductId,
             Upc = product.Upc,
             Description = product.Description,
             Brand = string.IsNullOrWhiteSpace(product.Brand) ? string.Empty : product.Brand,
