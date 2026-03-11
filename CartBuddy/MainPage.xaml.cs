@@ -148,6 +148,15 @@ public partial class MainPage : ContentPage
     {
         RawItemsEditor.Unfocus();
         await _viewModel.SearchCommand.ExecuteAsync(null);
+
+        if (_viewModel.HasResults)
+        {
+            await Dispatcher.DispatchAsync(() =>
+            {
+                SearchListView.CollapseAll();
+                _viewModel.AllGroupsExpanded = false;
+            });
+        }
     }
 
     private async void OnClearSearchClicked(object sender, EventArgs e)
