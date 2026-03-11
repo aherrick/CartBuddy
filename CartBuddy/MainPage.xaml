@@ -94,7 +94,7 @@
                         SelectionMode="None"
                         ItemSizingStrategy="MeasureAllItems"
                         VerticalScrollBarVisibility="Never"
-                        VerticalOptions="FillAndExpand"
+                        VerticalOptions="Fill"
                         IsVisible="{Binding HasResults}">
             <CollectionView.GroupHeaderTemplate>
                 <DataTemplate x:DataType="models:SearchGroup">

@@ -27,7 +27,8 @@ public static class MauiProgram
                     return;
                 }
 
-                if (handler.PlatformView.CollectionViewLayout is UICollectionViewFlowLayout layout)
+                if (handler.PlatformView is UICollectionView collectionView &&
+                    collectionView.CollectionViewLayout is UICollectionViewFlowLayout layout)
                 {
                     layout.SectionHeadersPinToVisibleBounds = true;
                     layout.InvalidateLayout();
