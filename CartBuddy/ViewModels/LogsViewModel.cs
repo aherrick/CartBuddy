@@ -16,25 +16,14 @@ public partial class LogsViewModel(ICartBuddyApi api) : ObservableObject
     [ObservableProperty]
     private bool _isDetailOpen;
 
-    [ObservableProperty]
-    private bool _isLoading;
-
     [RelayCommand]
     public async Task LoadLogs()
     {
-        IsLoading = true;
-        try
+        var entries = await api.GetLogs();
+        Logs.Clear();
+        foreach (var entry in entries)
         {
-            var entries = await api.GetLogs();
-            Logs.Clear();
-            foreach (var entry in entries)
-            {
-                Logs.Add(entry);
-            }
-        }
-        finally
-        {
-            IsLoading = false;
+            Logs.Add(entry);
         }
     }
 

@@ -103,12 +103,6 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- Loading overlay -->
-        <ActivityIndicator IsRunning="{Binding IsLoading}"
-                           IsVisible="{Binding IsLoading}"
-                           VerticalOptions="Center"
-                           HorizontalOptions="Center" />
-
         <!-- Detail bottom sheet -->
         <bottomsheet:BottomSheet Grid.RowSpan="1"
                                  IsOpen="{Binding IsDetailOpen}"
