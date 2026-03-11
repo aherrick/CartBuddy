@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using CartBuddy.Models;
 using CartBuddy.Services;
 using CartBuddy.Shared.Models;
@@ -72,9 +72,7 @@ public partial class MainViewModel : ObservableObject
     public decimal CartTotal => CartItems.Sum(item => item.LineTotal);
 
     public string CartSummary =>
-        HasCartItems ? $"{CartItemCount} items • ${CartTotal:F2}" : "Cart is empty";
-
-    public string CartButtonText => HasCartItems ? $"Cart ({CartItemCount})" : "Cart";
+        HasCartItems ? $"{CartItemCount} items | ${CartTotal:F2}" : "Cart is empty";
 
     public bool CanToggleItemsEditor => SearchGroups.Count > 0;
 
@@ -477,7 +475,6 @@ public partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(CartItemCount));
         OnPropertyChanged(nameof(CartTotal));
         OnPropertyChanged(nameof(CartSummary));
-        OnPropertyChanged(nameof(CartButtonText));
     }
 
     private async Task<ProductSearchPage> SearchProducts(
@@ -524,3 +521,4 @@ public partial class MainViewModel : ObservableObject
         }
     }
 }
+

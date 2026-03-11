@@ -1,6 +1,8 @@
 ﻿using CartBuddy.Converters;
 using CartBuddy.Models;
 using CartBuddy.ViewModels;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using Syncfusion.Maui.DataSource;
 
 namespace CartBuddy;
@@ -8,6 +10,12 @@ namespace CartBuddy;
 public partial class MainPage : ContentPage
 {
     private readonly MainViewModel _viewModel;
+    private static readonly HashSet<string> GroupRefreshProperties =
+    [
+        nameof(SearchGroup.HasMore),
+        nameof(SearchGroup.IsCompleted),
+        nameof(SearchGroup.PageSummary),
+    ];
 
     public MainPage(MainViewModel viewModel)
     {
@@ -27,22 +35,33 @@ public partial class MainPage : ContentPage
         });
 
         // Refresh group headers whenever SearchGroup metadata changes (HasMore, IsCompleted, PageSummary)
-        _viewModel.SearchGroups.CollectionChanged += (_, e) =>
-        {
-            if (e.NewItems is not null)
-            {
-                foreach (SearchGroup group in e.NewItems)
-                {
-                    ((System.ComponentModel.INotifyPropertyChanged)group).PropertyChanged += OnSearchGroupPropertyChanged;
-                }
-            }
-            SearchListView.DataSource?.Refresh();
-        };
+        _viewModel.SearchGroups.CollectionChanged += OnSearchGroupsCollectionChanged;
     }
 
-    private void OnSearchGroupPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void OnSearchGroupsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
     {
-        if (SearchListView.DataSource is null)
+        if (e.OldItems is not null)
+        {
+            foreach (SearchGroup group in e.OldItems)
+            {
+                ((INotifyPropertyChanged)group).PropertyChanged -= OnSearchGroupPropertyChanged;
+            }
+        }
+
+        if (e.NewItems is not null)
+        {
+            foreach (SearchGroup group in e.NewItems)
+            {
+                ((INotifyPropertyChanged)group).PropertyChanged += OnSearchGroupPropertyChanged;
+            }
+        }
+
+        SearchListView.DataSource?.Refresh();
+    }
+
+    private void OnSearchGroupPropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (SearchListView.DataSource is null || !GroupRefreshProperties.Contains(e.PropertyName ?? string.Empty))
         {
             return;
         }

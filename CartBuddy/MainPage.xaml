@@ -67,6 +67,8 @@
                             Text="&#xF1F8;"
                             FontFamily="FaSolid"
                             FontSize="14"
+                            SemanticProperties.Description="Clear shopping list"
+                            SemanticProperties.Hint="Removes the current list and search results"
                             TextColor="{StaticResource White}" />
                 </Grid>
 
@@ -224,6 +226,8 @@
                                         Text="&#xF1F8;"
                                         FontFamily="FaSolid"
                                         FontSize="14"
+                                        SemanticProperties.Description="Clear cart"
+                                        SemanticProperties.Hint="Removes all items from the cart"
                                         TextColor="{StaticResource White}" />
                             </Grid>
 
