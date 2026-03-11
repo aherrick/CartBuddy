@@ -90,14 +90,17 @@
         <CollectionView Grid.Row="1"
                         Margin="16,0,16,16"
                         ItemsSource="{Binding SearchGroups}"
+                        IsGrouped="True"
                         SelectionMode="None"
                         ItemSizingStrategy="MeasureAllItems"
                         VerticalScrollBarVisibility="Never"
                         VerticalOptions="FillAndExpand"
                         IsVisible="{Binding HasResults}">
-            <CollectionView.ItemTemplate>
+            <CollectionView.GroupHeaderTemplate>
                 <DataTemplate x:DataType="models:SearchGroup">
-                    <VerticalStackLayout Margin="0,0,0,16" Spacing="10">
+                    <VerticalStackLayout Padding="0,12,0,0"
+                                         Spacing="8"
+                                         BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                             <VerticalStackLayout Spacing="2">
                                 <HorizontalStackLayout Spacing="6">
@@ -122,38 +125,33 @@
                                     CornerRadius="6" />
                         </Grid>
 
-                        <VerticalStackLayout Spacing="0">
-                            <Label Text="No Kroger matches found for this item."
-                                   IsVisible="{Binding IsEmpty}"
-                                   FontSize="13"
-                                   TextColor="{StaticResource Gray400}" />
+                        <Label Text="No Kroger matches found for this item."
+                               IsVisible="{Binding IsEmpty}"
+                               FontSize="13"
+                               TextColor="{StaticResource Gray400}" />
 
-                            <BoxView HeightRequest="1"
-                                     BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                                     IsVisible="{Binding HasMatches}" />
-
-                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Matches}" Spacing="0">
-                                <BindableLayout.ItemTemplate>
-                                    <DataTemplate x:DataType="models:ProductMatch">
-                                        <controls:ProductListItemView
-                                            Title="{Binding Description}"
-                                            Subtitle="{Binding Brand}"
-                                            Detail="{Binding Size}"
-                                            ImageUrl="{Binding ImageUrl}"
-                                            PriceText="{Binding Price, StringFormat='${0:F2}'}"
-                                            SecondaryPriceText="{Binding RegularPriceDisplay}"
-                                            AccentText="{Binding PromoEndDisplay}"
-                                            AccentColor="{StaticResource SaleRed}"
-                                            ShowPriceBadge="{Binding HasSale}"
-                                            PriceBadgeColor="{StaticResource SaleGreen}"
-                                            ItemCommand="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=AddToCartCommand}"
-                                            ItemCommandParameter="{Binding}"
-                                            PriceColor="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}" />
-                                    </DataTemplate>
-                                </BindableLayout.ItemTemplate>
-                            </VerticalStackLayout>
-                        </VerticalStackLayout>
+                        <BoxView HeightRequest="1"
+                                 BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                 IsVisible="{Binding HasMatches}" />
                     </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.GroupHeaderTemplate>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:ProductMatch">
+                    <controls:ProductListItemView
+                        Title="{Binding Description}"
+                        Subtitle="{Binding Brand}"
+                        Detail="{Binding Size}"
+                        ImageUrl="{Binding ImageUrl}"
+                        PriceText="{Binding Price, StringFormat='${0:F2}'}"
+                        SecondaryPriceText="{Binding RegularPriceDisplay}"
+                        AccentText="{Binding PromoEndDisplay}"
+                        AccentColor="{StaticResource SaleRed}"
+                        ShowPriceBadge="{Binding HasSale}"
+                        PriceBadgeColor="{StaticResource SaleGreen}"
+                        ItemCommand="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=AddToCartCommand}"
+                        ItemCommandParameter="{Binding}"
+                        PriceColor="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}" />
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>

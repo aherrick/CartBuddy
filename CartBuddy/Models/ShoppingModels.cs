@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CartBuddy.Models;
@@ -113,29 +115,51 @@ public partial class CartLine : ObservableObject
     }
 }
 
-public partial class SearchGroup(string query, int totalCount, int pageSize) : ObservableObject
+public class SearchGroup : ObservableCollection<ProductMatch>
 {
-    public string Query { get; } = query;
-
-    public int PageSize { get; } = pageSize;
-
-    public ObservableCollection<ProductMatch> Matches { get; } = [];
-
-    [ObservableProperty]
     private bool _isExpanded;
-
-    [ObservableProperty]
-    private int _totalCount = totalCount;
-
-    [ObservableProperty]
+    private int _totalCount;
     private int _loadedCount;
-
-    [ObservableProperty]
     private bool _isCompleted;
 
-    public bool HasMatches => Matches.Count > 0;
+    public SearchGroup(string query, int totalCount, int pageSize)
+    {
+        Query = query;
+        PageSize = pageSize;
+        _totalCount = totalCount;
+    }
 
-    public bool IsEmpty => Matches.Count == 0;
+    public string Query { get; }
+
+    public int PageSize { get; }
+
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set => SetProperty(ref _isExpanded, value, nameof(IsExpanded), nameof(ToggleText), nameof(ToggleIconGlyph));
+    }
+
+    public int TotalCount
+    {
+        get => _totalCount;
+        set => SetProperty(ref _totalCount, value, nameof(TotalCount), nameof(HasMore), nameof(PageSummary));
+    }
+
+    public int LoadedCount
+    {
+        get => _loadedCount;
+        private set => SetProperty(ref _loadedCount, value, nameof(LoadedCount), nameof(HasMore), nameof(PageSummary));
+    }
+
+    public bool IsCompleted
+    {
+        get => _isCompleted;
+        set => SetProperty(ref _isCompleted, value, nameof(IsCompleted));
+    }
+
+    public bool HasMatches => Count > 0;
+
+    public bool IsEmpty => Count == 0;
 
     public bool HasMore => LoadedCount < TotalCount;
 
@@ -149,37 +173,30 @@ public partial class SearchGroup(string query, int totalCount, int pageSize) : O
     {
         foreach (var match in matches)
         {
-            Matches.Add(match);
+            Add(match);
+        }
+    }
+
+    protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
+    {
+        base.OnCollectionChanged(e);
+        LoadedCount = Count;
+        OnPropertyChanged(new PropertyChangedEventArgs(nameof(HasMatches)));
+        OnPropertyChanged(new PropertyChangedEventArgs(nameof(IsEmpty)));
+    }
+
+    private void SetProperty<T>(ref T field, T value, params string[] propertyNames)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value))
+        {
+            return;
         }
 
-        LoadedCount = Matches.Count;
-        OnPropertyChanged(nameof(HasMatches));
-        OnPropertyChanged(nameof(IsEmpty));
-        OnPropertyChanged(nameof(HasMore));
-        OnPropertyChanged(nameof(PageSummary));
-    }
-
-    partial void OnIsExpandedChanged(bool value)
-    {
-        OnPropertyChanged(nameof(ToggleText));
-        OnPropertyChanged(nameof(ToggleIconGlyph));
-    }
-
-    partial void OnTotalCountChanged(int value)
-    {
-        OnPropertyChanged(nameof(HasMore));
-        OnPropertyChanged(nameof(PageSummary));
-    }
-
-    partial void OnLoadedCountChanged(int value)
-    {
-        OnPropertyChanged(nameof(HasMore));
-        OnPropertyChanged(nameof(PageSummary));
-    }
-
-    partial void OnIsCompletedChanged(bool value)
-    {
-        OnPropertyChanged(nameof(PageSummary));
+        field = value;
+        foreach (var propertyName in propertyNames)
+        {
+            OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
 
