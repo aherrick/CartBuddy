@@ -74,7 +74,9 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
 
         var page = new KrogerProductSearchPage
         {
-            Results = []
+            Results = [],
+            RawRequest = requestUri.ToString(),
+            RawResponse = payload,
         };
         if (
             document.RootElement.TryGetProperty("meta", out var meta)

@@ -19,6 +19,8 @@ public class KrogerProductSearchPage
 {
     public List<KrogerProduct> Results { get; set; }
     public int TotalCount { get; set; }
+    public string RawRequest { get; set; }
+    public string RawResponse { get; set; }
 }
 
 public class KrogerLocation

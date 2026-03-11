@@ -12,12 +12,15 @@ public class ApiLogger
 
     public void Log(string methodName, string direction, object payload)
     {
-        var json = JsonSerializer.Serialize(payload, IndentedOptions);
+        var formattedPayload = payload is string rawPayload
+            ? rawPayload
+            : JsonSerializer.Serialize(payload, IndentedOptions);
+
         _entries.Enqueue(new ApiLogEntry
         {
             MethodName = methodName,
             Direction = direction,
-            Payload = json,
+            Payload = formattedPayload,
         });
 
         while (_entries.Count > MaxEntries)

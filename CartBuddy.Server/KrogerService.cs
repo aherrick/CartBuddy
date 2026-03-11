@@ -22,8 +22,10 @@ public class KrogerService(KrogerClient krogerClient, ApiLogger apiLogger)
         int limit = 5
     )
     {
-        apiLogger.Log(nameof(SearchProducts), "Request", new { locationId, term, start, limit });
         var page = await krogerClient.SearchProducts(term, locationId, start, limit);
+        apiLogger.Log(nameof(SearchProducts), "Kroger Request", page.RawRequest);
+        apiLogger.Log(nameof(SearchProducts), "Kroger Response", page.RawResponse);
+
         var response = new ProductSearchResponse
         {
             Results = [.. page.Results.Select(MapProductSearchResult)],
