@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Plugin.Maui.BottomSheet.Hosting;
 using Refit;
+
 #if IOS || MACCATALYST
 using Microsoft.Maui.Controls.Handlers.Items2;
 using UIKit;
@@ -27,8 +28,10 @@ public static class MauiProgram
                     return;
                 }
 
-                if (handler.PlatformView is UICollectionView collectionView &&
-                    collectionView.CollectionViewLayout is UICollectionViewFlowLayout layout)
+                if (
+                    handler.PlatformView is UICollectionView collectionView
+                    && collectionView.CollectionViewLayout is UICollectionViewFlowLayout layout
+                )
                 {
                     layout.SectionHeadersPinToVisibleBounds = true;
                     layout.InvalidateLayout();
@@ -42,13 +45,12 @@ public static class MauiProgram
             .UseBottomSheet()
             .ConfigureFonts(fonts =>
             {
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 fonts.AddFont("fa-solid-900.ttf", "FaSolid");
             });
 
         // Services
-        builder.Services.AddRefitClient<ICartBuddyApi>()
+        builder
+            .Services.AddRefitClient<ICartBuddyApi>()
             .ConfigureHttpClient(httpClient =>
             {
                 httpClient.BaseAddress = new Uri(Constants.CartBuddyServerBaseUrl);

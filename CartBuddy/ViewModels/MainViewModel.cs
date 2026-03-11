@@ -85,9 +85,6 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    public string ToggleAllText =>
-        SearchGroups.Any(group => !group.IsExpanded) ? "Expand All" : "Collapse All";
-
     public string ThemeActionText => IsDarkMode ? "Use Light Mode" : "Use Dark Mode";
 
     public string AiActionText => IsAiCleanupEnabled ? "Disable AI Cleanup" : "Enable AI Cleanup";
@@ -163,17 +160,12 @@ public partial class MainViewModel : ObservableObject
             }
 
             SearchGroups.Clear();
-            var index = 0;
             foreach (var term in searchTerms)
             {
                 var page = await SearchProducts(term, PreferencesService.StoreId, 0, PageSize);
-                var group = new SearchGroup(term, page.TotalCount, PageSize)
-                {
-                    IsExpanded = index == 0,
-                };
+                var group = new SearchGroup(term, page.TotalCount, PageSize);
                 group.AddMatches(page.Results);
                 SearchGroups.Add(group);
-                index++;
             }
 
             if (SearchGroups.Count > 0)
@@ -211,7 +203,6 @@ public partial class MainViewModel : ObservableObject
                 group.PageSize
             );
             group.AddMatches(page.Results);
-            group.IsExpanded = true;
         }
         catch (Exception ex)
         {
@@ -282,30 +273,6 @@ public partial class MainViewModel : ObservableObject
         {
             IsBusy = false;
         }
-    }
-
-    [RelayCommand]
-    private void ToggleGroup(SearchGroup group)
-    {
-        if (group is null)
-        {
-            return;
-        }
-
-        group.IsExpanded = !group.IsExpanded;
-        OnPropertyChanged(nameof(ToggleAllText));
-    }
-
-    [RelayCommand]
-    private void ToggleAllGroups()
-    {
-        var expandAll = SearchGroups.Any(group => !group.IsExpanded);
-        foreach (var group in SearchGroups)
-        {
-            group.IsExpanded = expandAll;
-        }
-
-        OnPropertyChanged(nameof(ToggleAllText));
     }
 
     [RelayCommand]
@@ -463,7 +430,6 @@ public partial class MainViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(HasResults));
         OnPropertyChanged(nameof(CanToggleItemsEditor));
-        OnPropertyChanged(nameof(ToggleAllText));
     }
 
     private void CompleteGroupAndAdvance(ProductMatch match)
@@ -475,17 +441,6 @@ public partial class MainViewModel : ObservableObject
         }
 
         currentGroup.IsCompleted = true;
-        currentGroup.IsExpanded = false;
-
-        var currentIndex = SearchGroups.IndexOf(currentGroup);
-        for (var i = currentIndex + 1; i < SearchGroups.Count; i++)
-        {
-            if (!SearchGroups[i].IsCompleted)
-            {
-                SearchGroups[i].IsExpanded = true;
-                return;
-            }
-        }
     }
 
     private void ResetGroupSelections()
@@ -493,7 +448,6 @@ public partial class MainViewModel : ObservableObject
         for (var i = 0; i < SearchGroups.Count; i++)
         {
             SearchGroups[i].IsCompleted = false;
-            SearchGroups[i].IsExpanded = i == 0;
         }
     }
 

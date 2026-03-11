@@ -117,7 +117,6 @@ public partial class CartLine : ObservableObject
 
 public class SearchGroup : ObservableCollection<ProductMatch>
 {
-    private bool _isExpanded;
     private int _totalCount;
     private int _loadedCount;
     private bool _isCompleted;
@@ -132,12 +131,6 @@ public class SearchGroup : ObservableCollection<ProductMatch>
     public string Query { get; }
 
     public int PageSize { get; }
-
-    public bool IsExpanded
-    {
-        get => _isExpanded;
-        set => SetProperty(ref _isExpanded, value, nameof(IsExpanded), nameof(ToggleText), nameof(ToggleIconGlyph));
-    }
 
     public int TotalCount
     {
@@ -164,10 +157,6 @@ public class SearchGroup : ObservableCollection<ProductMatch>
     public bool HasMore => LoadedCount < TotalCount;
 
     public string PageSummary => TotalCount == 0 ? "No matches" : $"{LoadedCount}/{TotalCount}";
-
-    public string ToggleText => IsExpanded ? "Collapse" : "View";
-
-    public string ToggleIconGlyph => IsExpanded ? "\uf078" : "\uf054";
 
     public void AddMatches(IEnumerable<ProductMatch> matches)
     {
