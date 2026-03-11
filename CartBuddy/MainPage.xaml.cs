@@ -29,6 +29,7 @@ public partial class MainPage : ContentPage
         }
 
         // Group the flat AllProducts list by Query term
+        SearchListView.DataSource.AutoExpandGroups = false;
         SearchListView.DataSource.GroupDescriptors.Add(new Syncfusion.Maui.DataSource.GroupDescriptor
         {
             PropertyName = "Query"
@@ -148,15 +149,6 @@ public partial class MainPage : ContentPage
     {
         RawItemsEditor.Unfocus();
         await _viewModel.SearchCommand.ExecuteAsync(null);
-
-        if (_viewModel.HasResults)
-        {
-            await Dispatcher.DispatchAsync(() =>
-            {
-                SearchListView.CollapseAll();
-                _viewModel.AllGroupsExpanded = false;
-            });
-        }
     }
 
     private async void OnClearSearchClicked(object sender, EventArgs e)

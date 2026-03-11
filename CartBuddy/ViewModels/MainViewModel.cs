@@ -177,7 +177,7 @@ public partial class MainViewModel : ObservableObject
                 }
             }
 
-            AllGroupsExpanded = true;
+            AllGroupsExpanded = false;
 
             if (SearchGroups.Count > 0)
             {
