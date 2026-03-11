@@ -13,6 +13,7 @@ builder.Services.AddCartBuddyRateLimiter();
 
 builder.Services.AddSingleton<HttpClient>();
 builder.Services.AddSingleton<KrogerClient>();
+builder.Services.AddSingleton<ApiLogger>();
 builder.Services.AddSingleton<KrogerService>();
 builder.Services.AddSingleton<AiCleanupService>();
 

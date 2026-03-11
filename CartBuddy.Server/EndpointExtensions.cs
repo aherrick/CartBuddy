@@ -20,6 +20,8 @@ public static class EndpointExtensions
 
         apiGroup.MapGet("/health", () => Results.Ok());
 
+        apiGroup.MapGet("/logs", (ApiLogger logger) => Results.Ok(logger.GetAll()));
+
         apiGroup.MapGet(
             "/search",
             async (string locationId, string term, KrogerService kroger, int start = 0, int limit = 5) =>

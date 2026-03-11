@@ -16,4 +16,7 @@ public interface ICartBuddyApi
 
     [Post("/api/checkout")]
     Task<CheckoutResponse> Checkout(CheckoutRequest request);
+
+    [Get("/api/logs")]
+    Task<List<ApiLogEntry>> GetLogs();
 }

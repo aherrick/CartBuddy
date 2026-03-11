@@ -61,3 +61,23 @@ public class GroupInfoConverter : IValueConverter
             _ => null
         };
 }
+
+public class DirectionColorConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        value is string direction && direction == "Request"
+            ? Color.FromArgb("#5B8DEF")
+            : Color.FromArgb("#34C759");
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+        throw new NotImplementedException();
+}
+
+public class DirectionGlyphConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        value is string direction && direction == "Request" ? "\uF062" : "\uF063"; // FA arrow-up / arrow-down
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+        throw new NotImplementedException();
+}

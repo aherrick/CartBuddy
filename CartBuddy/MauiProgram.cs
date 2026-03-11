@@ -34,10 +34,12 @@ public static class MauiProgram
         // ViewModels
         builder.Services.AddTransient<MainViewModel>();
         builder.Services.AddTransient<StorePickerViewModel>();
+        builder.Services.AddTransient<LogsViewModel>();
 
         // Pages
         builder.Services.AddTransient<MainPage>();
         builder.Services.AddTransient<StorePickerPage>();
+        builder.Services.AddTransient<LogsPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

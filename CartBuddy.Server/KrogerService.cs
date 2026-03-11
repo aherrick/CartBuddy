@@ -4,12 +4,15 @@ using CartBuddy.Shared.Models;
 
 namespace CartBuddy.Server;
 
-public class KrogerService(KrogerClient krogerClient)
+public class KrogerService(KrogerClient krogerClient, ApiLogger apiLogger)
 {
     public async Task<List<LocationInfo>> GetLocationsByZip(string zipCode)
     {
+        apiLogger.Log(nameof(GetLocationsByZip), "Request", new { zipCode });
         var locations = await krogerClient.SearchLocations(zipCode, 5);
-        return [.. locations.Select(MapLocationInfo)];
+        var result = locations.Select(MapLocationInfo).ToList();
+        apiLogger.Log(nameof(GetLocationsByZip), "Response", result);
+        return result;
     }
 
     public async Task<ProductSearchResponse> SearchProducts(
@@ -19,12 +22,15 @@ public class KrogerService(KrogerClient krogerClient)
         int limit = 5
     )
     {
+        apiLogger.Log(nameof(SearchProducts), "Request", new { locationId, term, start, limit });
         var page = await krogerClient.SearchProducts(term, locationId, start, limit);
-        return new ProductSearchResponse
+        var response = new ProductSearchResponse
         {
             Results = [.. page.Results.Select(MapProductSearchResult)],
             Total = page.TotalCount,
         };
+        apiLogger.Log(nameof(SearchProducts), "Response", response);
+        return response;
     }
 
     /// <summary>
@@ -44,11 +50,12 @@ public class KrogerService(KrogerClient krogerClient)
     /// </summary>
     public async Task<string> CreateCart(string userToken, List<CartItem> items)
     {
+        apiLogger.Log(nameof(CreateCart), "Request", new { itemCount = items.Count, items });
         await krogerClient.AddToCart(
             userToken,
             items.Select(item => new KrogerCartItem { Upc = item.Upc, Quantity = item.Quantity })
         );
-
+        apiLogger.Log(nameof(CreateCart), "Response", new { result = "success" });
         return "success";
     }
 
