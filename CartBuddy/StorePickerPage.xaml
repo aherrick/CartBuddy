@@ -3,28 +3,26 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:CartBuddy.ViewModels"
              xmlns:shared="clr-namespace:CartBuddy.Shared.Models;assembly=CartBuddy.Shared"
+             xmlns:sfListView="clr-namespace:Syncfusion.Maui.ListView;assembly=Syncfusion.Maui.ListView"
              x:Class="CartBuddy.StorePickerPage"
              x:Name="ThisPage"
              Title="Select Store"
              BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
 
-    <Grid RowDefinitions="Auto,Auto,*" Padding="16,14,16,20" RowSpacing="14">
+    <Grid RowDefinitions="Auto,*">
 
-        <Border Padding="16"
-                StrokeShape="RoundRectangle 18"
-                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
-            <VerticalStackLayout Spacing="4">
+        <!-- Header -->
+        <VerticalStackLayout Padding="16,14,16,14" Spacing="14">
+            <VerticalStackLayout Spacing="2">
                 <Label Text="Choose your Kroger store" FontSize="22" FontAttributes="Bold" />
                 <Label Text="We'll use this store for product search, pricing, and checkout."
-                       FontSize="13"
+                       FontSize="12"
                        TextColor="{StaticResource Gray400}" />
             </VerticalStackLayout>
-        </Border>
 
-        <Border Grid.Row="1"
-                Padding="14"
-                StrokeShape="RoundRectangle 18"
-                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+            <BoxView HeightRequest="1"
+                     BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
                 <Entry Text="{Binding ZipCode}"
                        Placeholder="Enter zip code"
@@ -34,45 +32,59 @@
                         Text="Search"
                         Command="{Binding SearchStoresCommand}"
                         Padding="18,0"
-                        MinimumWidthRequest="108" />
+                        CornerRadius="6"
+                        MinimumWidthRequest="100" />
             </Grid>
-        </Border>
+        </VerticalStackLayout>
 
-        <Grid Grid.Row="2">
-            <CollectionView ItemsSource="{Binding Stores}" SelectionMode="None">
-                <CollectionView.ItemTemplate>
+        <!-- Results -->
+        <Grid Grid.Row="1">
+            <sfListView:SfListView ItemsSource="{Binding Stores}"
+                                   SelectionMode="None"
+                                   AutoFitMode="Height"
+                                   IsVisible="{Binding HasStores}">
+                <sfListView:SfListView.ItemTemplate>
                     <DataTemplate x:DataType="shared:LocationInfo">
-                        <Border Margin="0,0,0,10"
-                                Padding="14"
-                                StrokeShape="RoundRectangle 16"
-                                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                                <VerticalStackLayout VerticalOptions="Center">
-                                    <Label Text="{Binding Name}" FontSize="17" FontAttributes="Bold" />
-                                    <Label Text="{Binding Address}" FontSize="13"
-                                           TextColor="{StaticResource Gray400}"
-                                           LineBreakMode="WordWrap"
-                                           MaxLines="2" />
-                                </VerticalStackLayout>
-                                <Button Grid.Column="1"
-                                        Text="Select"
-                                        VerticalOptions="Center"
-                                        Padding="14,8"
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:StorePickerViewModel}}, Path=SelectStoreCommand}"
-                                        CommandParameter="{Binding}" />
-                            </Grid>
-                        </Border>
+                        <Grid Padding="16,12,16,12"
+                              ColumnDefinitions="*,Auto"
+                              ColumnSpacing="10">
+                            <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                                <Label Text="{Binding Name}"
+                                       FontSize="15"
+                                       FontAttributes="Bold" />
+                                <Label Text="{Binding Address}"
+                                       FontSize="12"
+                                       TextColor="{StaticResource Gray400}"
+                                       LineBreakMode="WordWrap"
+                                       MaxLines="2" />
+                            </VerticalStackLayout>
+                            <Button Grid.Column="1"
+                                    Text="Select"
+                                    VerticalOptions="Center"
+                                    Padding="14,8"
+                                    FontSize="13"
+                                    CornerRadius="6"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:StorePickerViewModel}}, Path=SelectStoreCommand}"
+                                    CommandParameter="{Binding}" />
+                        </Grid>
                     </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                </sfListView:SfListView.ItemTemplate>
+            </sfListView:SfListView>
 
-            <VerticalStackLayout Spacing="8" 
-                                 VerticalOptions="Center" 
-                                 HorizontalOptions="Center" 
+            <VerticalStackLayout Spacing="8"
+                                 VerticalOptions="Center"
+                                 HorizontalOptions="Center"
                                  IsVisible="{Binding IsBusy}">
                 <ActivityIndicator IsRunning="True" HeightRequest="32" WidthRequest="32" />
                 <Label Text="{Binding StatusMessage}" FontSize="13" TextColor="{StaticResource Gray400}" />
             </VerticalStackLayout>
+
+            <Label Text="Enter a zip code to find stores near you"
+                   FontSize="14"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   TextColor="{StaticResource Gray400}"
+                   IsVisible="{Binding IsIdle}" />
         </Grid>
     </Grid>
 </ContentPage>

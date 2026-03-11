@@ -19,9 +19,9 @@ public partial class LogsPage : ContentPage
         _viewModel.LoadLogsCommand.ExecuteAsync(null);
     }
 
-    private void OnEntryTapped(object sender, TappedEventArgs e)
+    private void OnEntryTapped(object sender, Syncfusion.Maui.ListView.ItemTappedEventArgs e)
     {
-        if (sender is BindableObject bindable && bindable.BindingContext is ApiLogEntry entry)
+        if (e.DataItem is ApiLogEntry entry)
         {
             _viewModel.SelectEntry(entry);
         }

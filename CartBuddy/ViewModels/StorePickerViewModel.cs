@@ -18,6 +18,8 @@ public partial class StorePickerViewModel(ICartBuddyApi api) : ObservableObject
     private string _statusMessage;
 
     public bool CanNavigateBack => PreferencesService.HasStore;
+    public bool HasStores => Stores.Count > 0;
+    public bool IsIdle => !IsBusy && Stores.Count == 0;
 
     public ObservableCollection<LocationInfo> Stores { get; } = [];
 
@@ -42,6 +44,8 @@ public partial class StorePickerViewModel(ICartBuddyApi api) : ObservableObject
         IsBusy = true;
         StatusMessage = "Searching stores...";
         Stores.Clear();
+        OnPropertyChanged(nameof(HasStores));
+        OnPropertyChanged(nameof(IsIdle));
 
         try
         {
@@ -62,6 +66,8 @@ public partial class StorePickerViewModel(ICartBuddyApi api) : ObservableObject
         finally
         {
             IsBusy = false;
+            OnPropertyChanged(nameof(HasStores));
+            OnPropertyChanged(nameof(IsIdle));
         }
     }
 
