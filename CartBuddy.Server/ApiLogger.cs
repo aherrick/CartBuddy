@@ -10,7 +10,12 @@ public class ApiLogger
     private static readonly JsonSerializerOptions IndentedOptions = new() { WriteIndented = true };
     private readonly ConcurrentQueue<ApiLogEntry> _entries = new();
 
-    public void Log(string methodName, string direction, object payload)
+    public void Log(
+        string methodName,
+        ApiLogDirection direction,
+        object payload,
+        Guid transactionId = default
+    )
     {
         var formattedPayload = payload is string rawPayload
             ? rawPayload
@@ -18,6 +23,7 @@ public class ApiLogger
 
         _entries.Enqueue(new ApiLogEntry
         {
+            TransactionId = transactionId,
             MethodName = methodName,
             Direction = direction,
             Payload = formattedPayload,

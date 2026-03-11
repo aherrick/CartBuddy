@@ -3,8 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:CartBuddy.Shared.Models;assembly=CartBuddy.Shared"
              xmlns:vm="clr-namespace:CartBuddy.ViewModels"
+             xmlns:localModels="clr-namespace:CartBuddy.Models"
              xmlns:converters="clr-namespace:CartBuddy.Converters"
-             xmlns:sfListView="clr-namespace:Syncfusion.Maui.ListView;assembly=Syncfusion.Maui.ListView"
              xmlns:bottomsheet="http://pluginmauibottomsheet.com"
              x:Class="CartBuddy.LogsPage"
              x:Name="ThisPage"
@@ -23,7 +23,7 @@
             <Grid ColumnDefinitions="*,Auto">
                 <VerticalStackLayout Spacing="2" VerticalOptions="Center">
                     <Label Text="API Logs" FontSize="22" FontAttributes="Bold" />
-                    <Label Text="{Binding Logs.Count, StringFormat='{0} entries'}"
+                          <Label Text="{Binding TransactionGroups.Count, StringFormat='{0} transactions'}"
                            FontSize="12"
                            TextColor="{StaticResource Gray400}" />
                 </VerticalStackLayout>
@@ -41,24 +41,48 @@
         </VerticalStackLayout>
 
         <!-- Log list -->
-        <sfListView:SfListView Grid.Row="1"
-                               ItemsSource="{Binding Logs}"
-                               SelectionMode="None"
-                               AutoFitMode="Height"
-                               ItemTapped="OnEntryTapped">
-            <sfListView:SfListView.EmptyView>
+        <CollectionView Grid.Row="1"
+                        IsGrouped="True"
+                        ItemsSource="{Binding TransactionGroups}"
+                        SelectionMode="None">
+            <CollectionView.EmptyView>
                 <Label Text="No logs yet — make some API calls and refresh"
                        FontSize="14"
                        HorizontalOptions="Center"
                        VerticalOptions="Center"
                        TextColor="{StaticResource Gray400}"
                        Margin="32" />
-            </sfListView:SfListView.EmptyView>
-            <sfListView:SfListView.ItemTemplate>
+            </CollectionView.EmptyView>
+            <CollectionView.GroupHeaderTemplate>
+                <DataTemplate x:DataType="localModels:LogTransactionGroup">
+                    <VerticalStackLayout Padding="16,12,16,4" Spacing="4">
+                        <Label Text="{Binding MethodName}"
+                               FontSize="15"
+                               FontAttributes="Bold" />
+                        <HorizontalStackLayout Spacing="6">
+                            <Label Text="{Binding EntryCountLabel}"
+                                   FontSize="11"
+                                   TextColor="{StaticResource Gray400}" />
+                            <Label Text="•"
+                                   FontSize="11"
+                                   TextColor="{StaticResource Gray400}" />
+                            <Label Text="{Binding Timestamp, StringFormat='{0:MM/dd HH:mm:ss}'}"
+                                   FontSize="11"
+                                   TextColor="{StaticResource Gray400}" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.GroupHeaderTemplate>
+            <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:ApiLogEntry">
                     <Grid Padding="16,12,16,12"
                           ColumnDefinitions="Auto,*,Auto"
                           ColumnSpacing="12">
+
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.SelectEntryCommand}"
+                                                  CommandParameter="{Binding .}" />
+                        </Grid.GestureRecognizers>
 
                         <!-- Direction badge -->
                         <Border WidthRequest="28"
@@ -83,6 +107,16 @@
                                    FontSize="14"
                                    FontAttributes="Bold"
                                    LineBreakMode="TailTruncation" />
+                            <HorizontalStackLayout Spacing="6">
+                                <Label Text="{Binding DirectionLabel}"
+                                    FontSize="11"
+                                    TextColor="{StaticResource Gray400}" />
+                            </HorizontalStackLayout>
+                            <Label Text="{Binding PayloadPreview}"
+                                FontSize="11"
+                                LineBreakMode="TailTruncation"
+                                MaxLines="1"
+                                TextColor="{StaticResource Gray400}" />
                             <Label Text="{Binding Timestamp, StringFormat='{0:MM/dd HH:mm:ss}'}"
                                    FontSize="11"
                                    TextColor="{StaticResource Gray400}" />
@@ -97,8 +131,8 @@
                                VerticalOptions="Center" />
                     </Grid>
                 </DataTemplate>
-            </sfListView:SfListView.ItemTemplate>
-        </sfListView:SfListView>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
 
         <!-- Detail bottom sheet -->
         <bottomsheet:BottomSheet Grid.RowSpan="2"
@@ -116,21 +150,65 @@
                     <DataTemplate>
                         <VerticalStackLayout Padding="16,12,16,16" Spacing="12">
                             <VerticalStackLayout Spacing="2">
-                                <Label Text="{Binding SelectedEntry.MethodName}"
+                                <Label Text="{Binding SelectedTransaction.MethodName}"
                                        FontSize="18"
                                        FontAttributes="Bold" />
-                                <Label Text="{Binding SelectedEntry.Direction}"
-                                       FontSize="12"
-                                       TextColor="{StaticResource Gray400}" />
-                                <Label Text="{Binding SelectedEntry.Timestamp, StringFormat='{0:yyyy-MM-dd HH:mm:ss} UTC'}"
-                                       FontSize="12"
-                                       TextColor="{StaticResource Gray400}" />
+                                <HorizontalStackLayout Spacing="8">
+                                    <Label Text="{Binding SelectedTransaction.EntryCountLabel}"
+                                           FontSize="12"
+                                           TextColor="{StaticResource Gray400}" />
+                                    <Label Text="•"
+                                           FontSize="12"
+                                           TextColor="{StaticResource Gray400}" />
+                                    <Label Text="{Binding SelectedTransaction.Timestamp, StringFormat='{0:yyyy-MM-dd HH:mm:ss} UTC'}"
+                                           FontSize="12"
+                                           TextColor="{StaticResource Gray400}" />
+                                </HorizontalStackLayout>
                             </VerticalStackLayout>
 
+                            <Button Text="Copy Transaction"
+                                    Command="{Binding CopyTransactionCommand}"
+                                    HorizontalOptions="Start"
+                                    Padding="12,8"
+                                    FontSize="12"
+                                    CornerRadius="8" />
+
                             <ScrollView HeightRequest="380">
-                                <Label Text="{Binding SelectedEntry.Payload}"
-                                       FontSize="11"
-                                       LineBreakMode="CharacterWrap" />
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding SelectedTransaction}"
+                                                     Spacing="12">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="models:ApiLogEntry">
+                                            <Border StrokeThickness="0"
+                                                    Padding="12"
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="12" />
+                                                </Border.StrokeShape>
+                                                <VerticalStackLayout Spacing="8">
+                                                    <HorizontalStackLayout Spacing="8">
+                                                        <Border Padding="8,4"
+                                                                StrokeThickness="0"
+                                                                BackgroundColor="{Binding Direction, Converter={StaticResource DirectionColorConverter}}">
+                                                            <Border.StrokeShape>
+                                                                <RoundRectangle CornerRadius="999" />
+                                                            </Border.StrokeShape>
+                                                            <Label Text="{Binding DirectionLabel}"
+                                                                   FontSize="11"
+                                                                   TextColor="White" />
+                                                        </Border>
+                                                        <Label Text="{Binding Timestamp, StringFormat='{0:HH:mm:ss} UTC'}"
+                                                               FontSize="11"
+                                                               TextColor="{StaticResource Gray400}"
+                                                               VerticalOptions="Center" />
+                                                    </HorizontalStackLayout>
+                                                    <Label Text="{Binding Payload}"
+                                                           FontSize="11"
+                                                           LineBreakMode="CharacterWrap" />
+                                                </VerticalStackLayout>
+                                            </Border>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
                             </ScrollView>
                         </VerticalStackLayout>
                     </DataTemplate>

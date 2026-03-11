@@ -1,5 +1,6 @@
 using System.Globalization;
 using CartBuddy.Models;
+using CartBuddy.Shared.Models;
 using CartBuddy.ViewModels;
 
 namespace CartBuddy.Converters;
@@ -64,10 +65,22 @@ public class GroupInfoConverter : IValueConverter
 
 public class DirectionColorConverter : IValueConverter
 {
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
-        value is string direction && direction == "Request"
-            ? Color.FromArgb("#5B8DEF")
-            : Color.FromArgb("#34C759");
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is not ApiLogDirection direction)
+        {
+            return Color.FromArgb("#34C759");
+        }
+
+        return direction switch
+        {
+            ApiLogDirection.Request => Color.FromArgb("#5B8DEF"),
+            ApiLogDirection.Response => Color.FromArgb("#34C759"),
+            ApiLogDirection.KrogerRequest => Color.FromArgb("#2F6FED"),
+            ApiLogDirection.KrogerResponse => Color.FromArgb("#14B8A6"),
+            _ => Color.FromArgb("#7C7C88")
+        };
+    }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
         throw new NotImplementedException();
@@ -75,8 +88,22 @@ public class DirectionColorConverter : IValueConverter
 
 public class DirectionGlyphConverter : IValueConverter
 {
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
-        value is string direction && direction == "Request" ? "\uF062" : "\uF063"; // FA arrow-up / arrow-down
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is not ApiLogDirection direction)
+        {
+            return "\uF15C";
+        }
+
+        return direction switch
+        {
+            ApiLogDirection.Request => "\uF062",
+            ApiLogDirection.Response => "\uF063",
+            ApiLogDirection.KrogerRequest => "\uF0C1",
+            ApiLogDirection.KrogerResponse => "\uF15C",
+            _ => "\uF059"
+        };
+    }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
         throw new NotImplementedException();

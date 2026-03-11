@@ -8,10 +8,11 @@ public class KrogerService(KrogerClient krogerClient, ApiLogger apiLogger)
 {
     public async Task<List<LocationInfo>> GetLocationsByZip(string zipCode)
     {
-        apiLogger.Log(nameof(GetLocationsByZip), "Request", new { zipCode });
+        var transactionId = Guid.NewGuid();
+        apiLogger.Log(nameof(GetLocationsByZip), ApiLogDirection.Request, new { zipCode }, transactionId);
         var locations = await krogerClient.SearchLocations(zipCode, 5);
         var result = locations.Select(MapLocationInfo).ToList();
-        apiLogger.Log(nameof(GetLocationsByZip), "Response", result);
+        apiLogger.Log(nameof(GetLocationsByZip), ApiLogDirection.Response, result, transactionId);
         return result;
     }
 
@@ -22,16 +23,17 @@ public class KrogerService(KrogerClient krogerClient, ApiLogger apiLogger)
         int limit = 5
     )
     {
+        var transactionId = Guid.NewGuid();
         var page = await krogerClient.SearchProducts(term, locationId, start, limit);
-        apiLogger.Log(nameof(SearchProducts), "Kroger Request", page.RawRequest);
-        apiLogger.Log(nameof(SearchProducts), "Kroger Response", page.RawResponse);
+        apiLogger.Log(nameof(SearchProducts), ApiLogDirection.KrogerRequest, page.RawRequest, transactionId);
+        apiLogger.Log(nameof(SearchProducts), ApiLogDirection.KrogerResponse, page.RawResponse, transactionId);
 
         var response = new ProductSearchResponse
         {
             Results = [.. page.Results.Select(MapProductSearchResult)],
             Total = page.TotalCount,
         };
-        apiLogger.Log(nameof(SearchProducts), "Response", response);
+        apiLogger.Log(nameof(SearchProducts), ApiLogDirection.Response, response, transactionId);
         return response;
     }
 
@@ -52,12 +54,13 @@ public class KrogerService(KrogerClient krogerClient, ApiLogger apiLogger)
     /// </summary>
     public async Task<string> CreateCart(string userToken, List<CartItem> items)
     {
-        apiLogger.Log(nameof(CreateCart), "Request", new { itemCount = items.Count, items });
+        var transactionId = Guid.NewGuid();
+        apiLogger.Log(nameof(CreateCart), ApiLogDirection.Request, new { itemCount = items.Count, items }, transactionId);
         await krogerClient.AddToCart(
             userToken,
             items.Select(item => new KrogerCartItem { Upc = item.Upc, Quantity = item.Quantity })
         );
-        apiLogger.Log(nameof(CreateCart), "Response", new { result = "success" });
+        apiLogger.Log(nameof(CreateCart), ApiLogDirection.Response, new { result = "success" }, transactionId);
         return "success";
     }
 
