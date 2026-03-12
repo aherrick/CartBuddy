@@ -12,10 +12,12 @@ public partial class MainViewModel : ObservableObject
     private const int PageSize = 10;
 
     private readonly ICartBuddyApi _api;
+    private readonly INotificationPopupService _notifications;
 
-    public MainViewModel(ICartBuddyApi api)
+    public MainViewModel(ICartBuddyApi api, INotificationPopupService notifications)
     {
         _api = api;
+        _notifications = notifications;
         SearchGroups.CollectionChanged += (_, _) => UpdateSearchState();
         CartItems.CollectionChanged += (_, _) => UpdateCartState();
     }
@@ -27,9 +29,6 @@ public partial class MainViewModel : ObservableObject
     private bool _isBusy;
 
     [ObservableProperty]
-    private string _snackbarMessage;
-
-    [ObservableProperty]
     private bool _isDarkMode;
 
     [ObservableProperty]
@@ -37,11 +36,6 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isItemsEditorVisible = true;
-
-    [ObservableProperty]
-    private bool _isSnackbarVisible;
-
-    private int _snackbarVersion;
 
     [ObservableProperty]
     private bool _isAiCleanupEnabled;
@@ -147,13 +141,13 @@ public partial class MainViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(RawItemsText))
         {
-            await ShowSnackbar("Paste a list first");
+            await ShowSnackbar("Paste a list first", NotificationPopupType.Info);
             return;
         }
 
         if (!HasStore)
         {
-            await ShowSnackbar("Select a store first");
+            await ShowSnackbar("Select a store first", NotificationPopupType.Info);
             return;
         }
 
@@ -201,7 +195,7 @@ public partial class MainViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            _ = ShowSnackbar($"Search failed: {ex.Message}");
+            _ = ShowSnackbar($"Search failed: {ex.Message}", NotificationPopupType.Error);
         }
         finally
         {
@@ -246,7 +240,7 @@ public partial class MainViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            await ShowSnackbar($"Couldn't load more: {ex.Message}");
+            await ShowSnackbar($"Couldn't load more: {ex.Message}", NotificationPopupType.Error);
         }
         finally
         {
@@ -260,7 +254,7 @@ public partial class MainViewModel : ObservableObject
         var cartItems = CartItems.Where(item => item.Quantity > 0).ToList();
         if (cartItems.Count == 0)
         {
-            await ShowSnackbar("Add items to the cart first");
+            await ShowSnackbar("Add items to the cart first", NotificationPopupType.Info);
             return;
         }
 
@@ -299,15 +293,15 @@ public partial class MainViewModel : ObservableObject
 
             ClearCart();
             IsCartOpen = false;
-            await ShowSnackbar($"Added {cartItems.Count} lines to your Kroger cart");
+            await ShowSnackbar($"Added {cartItems.Count} lines to your Kroger cart", NotificationPopupType.Success);
         }
         catch (TaskCanceledException)
         {
-            await ShowSnackbar("Sign-in cancelled");
+            await ShowSnackbar("Sign-in cancelled", NotificationPopupType.Info);
         }
         catch (Exception ex)
         {
-            await ShowSnackbar($"Checkout failed: {ex.Message}");
+            await ShowSnackbar($"Checkout failed: {ex.Message}", NotificationPopupType.Error);
         }
         finally
         {
@@ -346,7 +340,7 @@ public partial class MainViewModel : ObservableObject
         }
 
         UpdateCartState();
-        await ShowSnackbar("Added to cart");
+        await ShowSnackbar("Added to cart", NotificationPopupType.Success);
     }
 
     [RelayCommand]
@@ -410,8 +404,6 @@ public partial class MainViewModel : ObservableObject
         AllProducts.Clear();
         RawItemsText = string.Empty;
         IsItemsEditorVisible = true;
-        SnackbarMessage = string.Empty;
-        IsSnackbarVisible = false;
         UpdateSearchState();
     }
 
@@ -515,17 +507,9 @@ public partial class MainViewModel : ObservableObject
         };
     }
 
-    private async Task ShowSnackbar(string message)
+    private async Task ShowSnackbar(string message, NotificationPopupType type = NotificationPopupType.Info)
     {
-        var version = Interlocked.Increment(ref _snackbarVersion);
-        SnackbarMessage = message;
-        IsSnackbarVisible = true;
-
-        await Task.Delay(2200);
-        if (version == _snackbarVersion)
-        {
-            IsSnackbarVisible = false;
-        }
+        await _notifications.Show(message, type);
     }
 }
 

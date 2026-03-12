@@ -207,19 +207,6 @@
                            HorizontalOptions="Center"
                            VerticalOptions="Center" />
 
-        <Border IsVisible="{Binding IsSnackbarVisible}"
-                VerticalOptions="Start"
-                Margin="16,12,16,0"
-                Padding="14,12"
-                StrokeThickness="0"
-                ZIndex="2"
-                BackgroundColor="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray900}}">
-            <Label Text="{Binding SnackbarMessage}"
-                   TextColor="{StaticResource White}"
-                   FontSize="13"
-                   LineBreakMode="TailTruncation" />
-        </Border>
-
         <bottomsheet:BottomSheet Grid.RowSpan="2"
                                  IsOpen="{Binding IsCartOpen}"
                                  IsVisible="{Binding IsCartOpen}"
@@ -233,13 +220,18 @@
             <bottomsheet:BottomSheetContent>
                 <bottomsheet:BottomSheetContent.ContentTemplate>
                     <DataTemplate>
-                        <VerticalStackLayout Padding="10,10,10,12" Spacing="12">
-                            <VerticalStackLayout Spacing="2">
+                        <Grid Padding="10,10,10,12"
+                              RowDefinitions="Auto,Auto,*"
+                              RowSpacing="12">
+                            <VerticalStackLayout Grid.Row="0" Spacing="2">
                                 <Label Text="Cart" FontSize="22" FontAttributes="Bold" />
                                 <Label Text="{Binding CartSummary}" FontSize="13" TextColor="{StaticResource Gray400}" />
                             </VerticalStackLayout>
 
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" IsVisible="{Binding HasCartItems}">
+                            <Grid Grid.Row="1"
+                                  ColumnDefinitions="*,Auto"
+                                  ColumnSpacing="10"
+                                  IsVisible="{Binding HasCartItems}">
                                 <Button Text="Checkout" Command="{Binding CheckoutCommand}" />
                                 <Button Grid.Column="1"
                                         Clicked="OnClearCartClicked"
@@ -254,9 +246,10 @@
                                         TextColor="{StaticResource White}" />
                             </Grid>
 
-                            <CollectionView ItemsSource="{Binding CartItems}"
+                            <CollectionView Grid.Row="2"
+                                            ItemsSource="{Binding CartItems}"
                                             SelectionMode="None"
-                                            HeightRequest="420"
+                                            VerticalOptions="Fill"
                                             VerticalScrollBarVisibility="Never">
                                 <CollectionView.EmptyView>
                                     <Label Text="Your cart is empty" FontSize="14" HorizontalOptions="Center"
@@ -279,7 +272,7 @@
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
-                        </VerticalStackLayout>
+                        </Grid>
                     </DataTemplate>
                 </bottomsheet:BottomSheetContent.ContentTemplate>
             </bottomsheet:BottomSheetContent>
