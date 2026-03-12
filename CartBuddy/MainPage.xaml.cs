@@ -67,29 +67,30 @@ public partial class MainPage : ContentPage
 
     private async void OnMenuClicked(object sender, EventArgs e)
     {
-        List<string> actions = [_viewModel.StoreActionText, _viewModel.ThemeActionText, _viewModel.AiActionText, "View Logs"];
         var title = _viewModel.HasStore ? _viewModel.StoreDisplay : "Cart Buddy";
-
-        if (_viewModel.HasStore)
-        {
-            actions.Add("Clear Store");
-        }
-
         var selectedAction = await DisplayActionSheetAsync(
             title,
             "Cancel",
             null,
-            [.. actions]
+            "Select Store", _viewModel.ThemeActionText, _viewModel.AiActionText, "View Logs"
         );
         switch (selectedAction)
         {
             case "Select Store":
-            case "Change Store":
+                if (_viewModel.HasStore)
+                {
+                    var confirmed = await DisplayAlertAsync(
+                        "Change Store",
+                        "Switching stores will clear your current search and cart.",
+                        "Continue",
+                        "Cancel"
+                    );
+                    if (!confirmed)
+                    {
+                        break;
+                    }
+                }
                 await _viewModel.GoToStorePickerCommand.ExecuteAsync(null);
-                break;
-
-            case "Clear Store":
-                _viewModel.ClearStoreCommand.Execute(null);
                 break;
 
             case "Use Light Mode":

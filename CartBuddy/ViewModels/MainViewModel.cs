@@ -60,11 +60,11 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private int _groupStateVersion;
 
+    private string _lastKnownStoreId;
+
     public bool HasStore => PreferencesService.HasStore;
 
     public string StoreDisplay => HasStore ? PreferencesService.StoreName : "No store selected";
-
-    public string StoreActionText => HasStore ? "Change Store" : "Select Store";
 
     public bool HasResults => SearchGroups.Count > 0;
 
@@ -100,9 +100,18 @@ public partial class MainViewModel : ObservableObject
     {
         IsDarkMode = PreferencesService.Theme == AppTheme.Dark;
         IsAiCleanupEnabled = PreferencesService.UseAiCleanup;
+
+        var currentStoreId = PreferencesService.StoreId;
+        if (_lastKnownStoreId is not null && _lastKnownStoreId != currentStoreId)
+        {
+            ClearSearch();
+            CartItems.Clear();
+            UpdateCartState();
+        }
+        _lastKnownStoreId = currentStoreId;
+
         OnPropertyChanged(nameof(HasStore));
         OnPropertyChanged(nameof(StoreDisplay));
-        OnPropertyChanged(nameof(StoreActionText));
         OnPropertyChanged(nameof(ThemeActionText));
         OnPropertyChanged(nameof(AiActionText));
         UpdateSearchState();
@@ -416,16 +425,6 @@ public partial class MainViewModel : ObservableObject
     private async Task GoToStorePicker()
     {
         await Shell.Current.GoToAsync("StorePickerPage");
-    }
-
-    [RelayCommand]
-    private void ClearStore()
-    {
-        PreferencesService.StoreId = string.Empty;
-        PreferencesService.StoreName = string.Empty;
-        OnPropertyChanged(nameof(HasStore));
-        OnPropertyChanged(nameof(StoreDisplay));
-        OnPropertyChanged(nameof(StoreActionText));
     }
 
     [RelayCommand]
