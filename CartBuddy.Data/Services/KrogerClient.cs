@@ -3,12 +3,28 @@ using System.Text;
 using System.Text.Json;
 using CartBuddy.Data.Models;
 using Microsoft.Extensions.Configuration;
+using Polly;
+using Polly.Retry;
 
 namespace CartBuddy.Data.Services;
 
 public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
 {
     private static readonly Uri BaseUri = new("https://api.kroger.com/v1/");
+
+    private static readonly ResiliencePipeline<KrogerProductSearchPage> SearchProductsRetryPipeline =
+        new ResiliencePipelineBuilder<KrogerProductSearchPage>()
+            .AddRetry(
+                new RetryStrategyOptions<KrogerProductSearchPage>
+                {
+                    MaxRetryAttempts = 4,
+                    Delay = TimeSpan.FromMilliseconds(250),
+                    ShouldHandle = args =>
+                        ValueTask.FromResult(ShouldRetryForMissingPrice(args.Outcome.Result)),
+                }
+            )
+            .Build();
+
     private readonly SemaphoreSlim tokenLock = new(1, 1);
     private string clientToken = string.Empty;
     private DateTime clientTokenExpiry = DateTime.MinValue;
@@ -55,53 +71,54 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
         string locationId,
         int start = 0,
         int limit = 4
-    )
-    {
-        var token = await GetClientToken();
-        var requestUri = new Uri(
-            BaseUri,
-            $"products?filter.term={Uri.EscapeDataString(term)}&filter.locationId={Uri.EscapeDataString(locationId)}&filter.limit={limit}&filter.start={start + 1}"
-        );
-
-        using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        using var response = await httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-
-        var payload = await response.Content.ReadAsStringAsync();
-        using var document = JsonDocument.Parse(payload);
-
-        var page = new KrogerProductSearchPage
+    ) =>
+        await SearchProductsRetryPipeline.ExecuteAsync(async _ =>
         {
-            Results = [],
-            RawRequest = requestUri.ToString(),
-            RawResponse = payload,
-        };
-        if (
-            document.RootElement.TryGetProperty("meta", out var meta)
-            && meta.TryGetProperty("pagination", out var pagination)
-            && pagination.TryGetProperty("total", out var totalElement)
-        )
-        {
-            page.TotalCount = totalElement.GetInt32();
-        }
+            var token = await GetClientToken();
+            var requestUri = new Uri(
+                BaseUri,
+                $"products?filter.term={Uri.EscapeDataString(term)}&filter.locationId={Uri.EscapeDataString(locationId)}&filter.limit={limit}&filter.start={start + 1}"
+            );
 
-        if (!document.RootElement.TryGetProperty("data", out var data))
-        {
-            return page;
-        }
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        foreach (var item in data.EnumerateArray())
-        {
-            if (TryCreateProduct(term, item, out var product))
+            using var response = await httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            var payload = await response.Content.ReadAsStringAsync();
+            using var document = JsonDocument.Parse(payload);
+
+            var page = new KrogerProductSearchPage
             {
-                page.Results.Add(product);
+                Results = [],
+                RawRequest = requestUri.ToString(),
+                RawResponse = payload,
+            };
+            if (
+                document.RootElement.TryGetProperty("meta", out var meta)
+                && meta.TryGetProperty("pagination", out var pagination)
+                && pagination.TryGetProperty("total", out var totalElement)
+            )
+            {
+                page.TotalCount = totalElement.GetInt32();
             }
-        }
 
-        return page;
-    }
+            if (!document.RootElement.TryGetProperty("data", out var data))
+            {
+                return page;
+            }
+
+            foreach (var item in data.EnumerateArray())
+            {
+                if (TryCreateProduct(term, item, out var product))
+                {
+                    page.Results.Add(product);
+                }
+            }
+
+            return page;
+        });
 
     public async Task<List<KrogerLocation>> SearchLocations(string zipCode, int limit = 10)
     {
@@ -211,7 +228,8 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
             var payload = await response.Content.ReadAsStringAsync();
             using var document = JsonDocument.Parse(payload);
 
-            clientToken = document.RootElement.GetProperty("access_token").GetString() ?? string.Empty;
+            clientToken =
+                document.RootElement.GetProperty("access_token").GetString() ?? string.Empty;
             var expiresIn = document.RootElement.GetProperty("expires_in").GetInt32();
             clientTokenExpiry = DateTime.UtcNow.AddSeconds(expiresIn - 60);
             return clientToken;
@@ -232,7 +250,10 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
             )
         );
 
-        var request = new HttpRequestMessage(HttpMethod.Post, new Uri(BaseUri, "connect/oauth2/token"));
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri(BaseUri, "connect/oauth2/token")
+        );
         request.Headers.Authorization = new AuthenticationHeaderValue("Basic", credentials);
         request.Content = new FormUrlEncodedContent(formValues);
         return request;
@@ -260,20 +281,21 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
 
         var itemValue = items[0];
         var priceValue = FindPrice(items);
+        JsonElement regularPriceElement = default;
+        JsonElement promoPriceElement = default;
         var hasRegularPrice =
             priceValue.HasValue
-            && priceValue.Value.TryGetProperty("regular", out var regularPriceElement)
+            && priceValue.Value.TryGetProperty("regular", out regularPriceElement)
             && regularPriceElement.ValueKind is JsonValueKind.Number;
         var hasPromoPrice =
             priceValue.HasValue
-            && priceValue.Value.TryGetProperty("promo", out var promoPriceElement)
+            && priceValue.Value.TryGetProperty("promo", out promoPriceElement)
             && promoPriceElement.ValueKind is JsonValueKind.Number;
 
-        var regularPrice = hasRegularPrice
-            ? regularPriceElement.GetDecimal()
-            : hasPromoPrice
-                ? promoPriceElement.GetDecimal()
-                : 0m;
+        var regularPrice =
+            hasRegularPrice ? regularPriceElement.GetDecimal()
+            : hasPromoPrice ? promoPriceElement.GetDecimal()
+            : 0m;
         var hasPromo = hasPromoPrice;
 
         var promoEndDate = string.Empty;
@@ -317,12 +339,27 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
         return true;
     }
 
+    private static bool ShouldRetryForMissingPrice(KrogerProductSearchPage page)
+    {
+        if (page is null)
+        {
+            return false;
+        }
+
+        return page.TotalCount > 0
+            && page.Results.Count > 0
+            && page.Results.All(product => product.Price <= 0m);
+    }
+
     private static JsonElement? FindPrice(JsonElement items)
     {
         for (var i = 0; i < items.GetArrayLength(); i++)
         {
             var item = items[i];
-            if (item.TryGetProperty("price", out var price) && price.ValueKind == JsonValueKind.Object)
+            if (
+                item.TryGetProperty("price", out var price)
+                && price.ValueKind == JsonValueKind.Object
+            )
             {
                 return price;
             }
