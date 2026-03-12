@@ -75,15 +75,13 @@ public partial class MainViewModel : ObservableObject
     public bool CanToggleItemsEditor => SearchGroups.Count > 0;
 
     public string ItemsEditorToggleText => IsItemsEditorVisible ? "Hide List" : "Edit List";
-    
-    public bool IsItemsEditorHidden => !IsItemsEditorVisible;
 
     public string ItemsSummary
     {
         get
         {
             var itemCount = ParseTerms(RawItemsText).Count;
-            return itemCount == 0 ? "One item per line" : $"{itemCount} items in list";
+            return itemCount == 0 ? "Enter one item per line" : $"{itemCount} items in list";
         }
     }
 
@@ -294,7 +292,10 @@ public partial class MainViewModel : ObservableObject
 
             ClearCart();
             CloseCartRequested?.Invoke();
-            await ShowSnackbar($"Added {cartItems.Count} lines to your Kroger cart", NotificationPopupType.Success);
+            await ShowSnackbar(
+                $"Added {cartItems.Count} lines to your Kroger cart",
+                NotificationPopupType.Success
+            );
         }
         catch (TaskCanceledException)
         {
@@ -490,9 +491,11 @@ public partial class MainViewModel : ObservableObject
         };
     }
 
-    private async Task ShowSnackbar(string message, NotificationPopupType type = NotificationPopupType.Info)
+    private async Task ShowSnackbar(
+        string message,
+        NotificationPopupType type = NotificationPopupType.Info
+    )
     {
         await _notifications.Show(message, type);
     }
 }
-
