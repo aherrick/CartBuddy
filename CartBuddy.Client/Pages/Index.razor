@@ -76,8 +76,8 @@
                 var collapseId = $"collapse-{searchResults.IndexOf(termResult)}";
                 var hasMore = termResult.NextStart < termResult.TotalAvailable;
                 var isFulfilled = IsTermFulfilled(termResult);
-                var currentPage = termResult.NextStart / 5;
-                var totalPages = (int)Math.Ceiling(termResult.TotalAvailable / 5.0);
+                var currentPage = termResult.NextStart / SearchPageSize;
+                var totalPages = (int)Math.Ceiling(termResult.TotalAvailable / (double)SearchPageSize);
                 <div class="card mb-3">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <button @onclick="() => ToggleCollapse(termResult)" class="btn btn-link text-decoration-none p-0 text-start flex-grow-1">
@@ -88,7 +88,7 @@
                                 <iconify-icon icon="mdi:check-circle" class="ms-2 text-success"></iconify-icon>
                             }
                         </button>
-                        @if (!termResult.IsCollapsed && termResult.TotalAvailable > 5)
+                        @if (!termResult.IsCollapsed && termResult.TotalAvailable > SearchPageSize)
                         {
                             <div class="d-flex align-items-center gap-2">
                                 <span class="badge bg-secondary">@currentPage/@totalPages</span>

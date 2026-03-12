@@ -10,6 +10,8 @@ namespace CartBuddy.Client.Pages;
 
 public partial class Index
 {
+    private const int SearchPageSize = 10;
+
     [Inject]
     private IJSRuntime JS { get; set; }
 
@@ -213,7 +215,7 @@ public partial class Index
             foreach (var term in terms)
             {
                 var response = await Api.GetAsync<ProductSearchResponse>(
-                    $"/api/search?locationId={locationId}&term={Uri.EscapeDataString(term)}&start=0&limit=5"
+                    $"/api/search?locationId={locationId}&term={Uri.EscapeDataString(term)}&start=0&limit={SearchPageSize}"
                 );
 
                 searchResults.Add(
@@ -222,7 +224,7 @@ public partial class Index
                         Term = term,
                         Results = response?.Results ?? [],
                         TotalAvailable = response?.Total ?? 0,
-                        NextStart = 5,
+                        NextStart = SearchPageSize,
                         IsCollapsed = !isFirst,
                     }
                 );
@@ -252,7 +254,7 @@ public partial class Index
     private async Task LoadMore(TermSearchResult termResult)
     {
         var response = await Api.GetAsync<ProductSearchResponse>(
-            $"/api/search?locationId={locationId}&term={Uri.EscapeDataString(termResult.Term)}&start={termResult.NextStart}&limit=5"
+            $"/api/search?locationId={locationId}&term={Uri.EscapeDataString(termResult.Term)}&start={termResult.NextStart}&limit={SearchPageSize}"
         );
 
         if (response?.Results != null && response.Results.Count != 0)
@@ -260,7 +262,7 @@ public partial class Index
             termResult.Results.AddRange(response.Results);
         }
 
-        termResult.NextStart += 5;
+        termResult.NextStart += SearchPageSize;
 
         if (termResult.NextStart >= termResult.TotalAvailable)
         {
@@ -428,7 +430,7 @@ public partial class Index
         public string Term { get; set; }
         public List<ProductSearchResult> Results { get; set; } = [];
         public int TotalAvailable { get; set; }
-        public int NextStart { get; set; } = 5;
+        public int NextStart { get; set; } = SearchPageSize;
         public bool IsCollapsed { get; set; }
     }
 }

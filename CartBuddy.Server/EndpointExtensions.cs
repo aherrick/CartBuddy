@@ -24,7 +24,7 @@ public static class EndpointExtensions
 
         apiGroup.MapGet(
             "/search",
-            async (string locationId, string term, KrogerService kroger, int start = 0, int limit = 5) =>
+            async (string locationId, string term, KrogerService kroger, int start = 0, int limit = 10) =>
             {
                 var response = await kroger.SearchProducts(locationId, term, start, limit);
                 return Results.Ok(response);

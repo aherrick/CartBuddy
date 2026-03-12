@@ -9,7 +9,7 @@ namespace CartBuddy.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
-    private const int PageSize = 4;
+    private const int PageSize = 10;
 
     private readonly ICartBuddyApi _api;
 

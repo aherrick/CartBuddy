@@ -20,7 +20,7 @@ public class KrogerService(KrogerClient krogerClient, ApiLogger apiLogger)
         string locationId,
         string term,
         int start = 0,
-        int limit = 5
+        int limit = 10
     )
     {
         var transactionId = Guid.NewGuid();

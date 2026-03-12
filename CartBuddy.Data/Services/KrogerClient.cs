@@ -70,7 +70,7 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
         string term,
         string locationId,
         int start = 0,
-        int limit = 4
+        int limit = 10
     ) =>
         await SearchProductsRetryPipeline.ExecuteAsync(async _ =>
         {
