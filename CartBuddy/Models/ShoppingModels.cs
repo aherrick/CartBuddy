@@ -106,6 +106,8 @@ public partial class CartLine : ObservableObject
 
     public decimal LineTotal => Price * Quantity;
 
+    public HashSet<string> SourceQueries { get; } = new(StringComparer.OrdinalIgnoreCase);
+
     public string DisplayBrand =>
         string.IsNullOrWhiteSpace(Brand)
         || Description.StartsWith(Brand, StringComparison.OrdinalIgnoreCase)

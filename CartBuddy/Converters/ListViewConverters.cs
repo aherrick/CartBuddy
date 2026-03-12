@@ -24,24 +24,25 @@ public class ExpandAllTextConverter : IValueConverter
         throw new NotImplementedException();
 }
 
-public class GroupInfoConverter : IValueConverter
+public class GroupInfoConverter : IMultiValueConverter
 {
     public MainViewModel ViewModel { get; set; }
 
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is not string query || ViewModel is null)
+        var param = parameter as string;
+        if (values[0] is not string query || ViewModel is null)
         {
-            return GetDefault(parameter as string);
+            return GetDefault(param);
         }
 
         var group = ViewModel.SearchGroups.FirstOrDefault(g => g.Query == query);
         if (group is null)
         {
-            return GetDefault(parameter as string);
+            return GetDefault(param);
         }
 
-        return parameter switch
+        return param switch
         {
             "IsCompleted" => group.IsCompleted,
             "HasMore" => group.HasMore,
@@ -51,7 +52,7 @@ public class GroupInfoConverter : IValueConverter
         };
     }
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) =>
         throw new NotImplementedException();
 
     private static object GetDefault(string param) =>

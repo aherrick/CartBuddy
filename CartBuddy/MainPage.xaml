@@ -136,22 +136,45 @@
                                    FontFamily="FaSolid"
                                    FontSize="14"
                                    TextColor="{StaticResource SaleGreen}"
-                                   IsVisible="{Binding Key, Converter={StaticResource GroupInfoConverter}, ConverterParameter=IsCompleted}"
-                                   VerticalOptions="Center" />
+                                   VerticalOptions="Center">
+                                <Label.IsVisible>
+                                    <MultiBinding Converter="{StaticResource GroupInfoConverter}" ConverterParameter="IsCompleted">
+                                        <Binding Path="Key" />
+                                        <Binding Source="{x:Reference ThisPage}" Path="BindingContext.GroupStateVersion" />
+                                    </MultiBinding>
+                                </Label.IsVisible>
+                            </Label>
                         </HorizontalStackLayout>
                         <Label Grid.Column="2"
-                               Text="{Binding Key, Converter={StaticResource GroupInfoConverter}, ConverterParameter=PageSummary}"
                                FontSize="12"
                                TextColor="{StaticResource Gray400}"
-                               VerticalOptions="Center" />
+                               VerticalOptions="Center">
+                            <Label.Text>
+                                <MultiBinding Converter="{StaticResource GroupInfoConverter}" ConverterParameter="PageSummary">
+                                    <Binding Path="Key" />
+                                    <Binding Source="{x:Reference ThisPage}" Path="BindingContext.GroupStateVersion" />
+                                </MultiBinding>
+                            </Label.Text>
+                        </Label>
                         <Button Grid.Column="3"
                                 Text="View More"
                                 Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.ViewMoreCommand}"
-                                CommandParameter="{Binding Key, Converter={StaticResource GroupInfoConverter}, ConverterParameter=Group}"
-                                IsVisible="{Binding Key, Converter={StaticResource GroupInfoConverter}, ConverterParameter=HasMore}"
                                 Padding="12,6"
                                 FontSize="12"
-                                CornerRadius="6" />
+                                CornerRadius="6">
+                            <Button.CommandParameter>
+                                <MultiBinding Converter="{StaticResource GroupInfoConverter}" ConverterParameter="Group">
+                                    <Binding Path="Key" />
+                                    <Binding Source="{x:Reference ThisPage}" Path="BindingContext.GroupStateVersion" />
+                                </MultiBinding>
+                            </Button.CommandParameter>
+                            <Button.IsVisible>
+                                <MultiBinding Converter="{StaticResource GroupInfoConverter}" ConverterParameter="HasMore">
+                                    <Binding Path="Key" />
+                                    <Binding Source="{x:Reference ThisPage}" Path="BindingContext.GroupStateVersion" />
+                                </MultiBinding>
+                            </Button.IsVisible>
+                        </Button>
                     </Grid>
                 </DataTemplate>
             </sfListView:SfListView.GroupHeaderTemplate>

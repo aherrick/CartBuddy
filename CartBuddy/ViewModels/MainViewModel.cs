@@ -55,6 +55,9 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _allGroupsExpanded = true;
 
+    [ObservableProperty]
+    private int _groupStateVersion;
+
     public bool HasStore => PreferencesService.HasStore;
 
     public string StoreDisplay => HasStore ? PreferencesService.StoreName : "No store selected";
@@ -177,6 +180,7 @@ public partial class MainViewModel : ObservableObject
                 }
             }
 
+            SyncGroupSelections();
             AllGroupsExpanded = false;
 
             if (SearchGroups.Count > 0)
@@ -221,6 +225,7 @@ public partial class MainViewModel : ObservableObject
             {
                 AllProducts.Add(product);
             }
+            GroupStateVersion++;
         }
         catch (Exception ex)
         {
@@ -305,24 +310,24 @@ public partial class MainViewModel : ObservableObject
         if (existingLine is not null)
         {
             existingLine.Quantity++;
+            existingLine.SourceQueries.Add(match.Query);
         }
         else
         {
-            CartItems.Add(
-                new CartLine
-                {
-                    Upc = match.Upc,
-                    Description = match.Description,
-                    Brand = match.Brand,
-                    Size = match.Size,
-                    ImageUrl = match.ImageUrl,
-                    Price = match.Price,
-                    Quantity = 1,
-                }
-            );
+            var cartLine = new CartLine
+            {
+                Upc = match.Upc,
+                Description = match.Description,
+                Brand = match.Brand,
+                Size = match.Size,
+                ImageUrl = match.ImageUrl,
+                Price = match.Price,
+                Quantity = 1,
+            };
+            cartLine.SourceQueries.Add(match.Query);
+            CartItems.Add(cartLine);
         }
 
-        CompleteGroupAndAdvance(match);
         UpdateCartState();
         await ShowSnackbar("Added to cart");
     }
@@ -360,7 +365,6 @@ public partial class MainViewModel : ObservableObject
     private void ClearCart()
     {
         CartItems.Clear();
-        ResetGroupSelections();
         UpdateCartState();
     }
 
@@ -452,27 +456,21 @@ public partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(CanToggleItemsEditor));
     }
 
-    private void CompleteGroupAndAdvance(ProductMatch match)
-    {
-        var currentGroup = SearchGroups.FirstOrDefault(group => group.Query == match.Query);
-        if (currentGroup is null)
-        {
-            return;
-        }
-
-        currentGroup.IsCompleted = true;
-    }
-
-    private void ResetGroupSelections()
+    private void SyncGroupSelections()
     {
         for (var i = 0; i < SearchGroups.Count; i++)
         {
-            SearchGroups[i].IsCompleted = false;
+            var group = SearchGroups[i];
+            group.IsCompleted = CartItems.Any(item =>
+                item.Quantity > 0 && item.SourceQueries.Contains(group.Query)
+            );
         }
+        GroupStateVersion++;
     }
 
     private void UpdateCartState()
     {
+        SyncGroupSelections();
         OnPropertyChanged(nameof(HasCartItems));
         OnPropertyChanged(nameof(CartItemCount));
         OnPropertyChanged(nameof(CartTotal));

@@ -2,7 +2,6 @@
 using CartBuddy.Models;
 using CartBuddy.ViewModels;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using Syncfusion.Maui.DataSource;
 
 namespace CartBuddy;
@@ -10,19 +9,13 @@ namespace CartBuddy;
 public partial class MainPage : ContentPage
 {
     private readonly MainViewModel _viewModel;
-    private static readonly HashSet<string> GroupRefreshProperties =
-    [
-        nameof(SearchGroup.HasMore),
-        nameof(SearchGroup.IsCompleted),
-        nameof(SearchGroup.PageSummary),
-    ];
 
     public MainPage(MainViewModel viewModel)
     {
         InitializeComponent();
         BindingContext = _viewModel = viewModel;
 
-        // Wire the converter so it can look up SearchGroup metadata by query key
+        // Wire converter so it can look up SearchGroup metadata by query key
         if (Resources["GroupInfoConverter"] is GroupInfoConverter conv)
         {
             conv.ViewModel = viewModel;
@@ -38,41 +31,12 @@ public partial class MainPage : ContentPage
             PropertyName = "Query"
         });
 
-        // Refresh group headers whenever SearchGroup metadata changes (HasMore, IsCompleted, PageSummary)
         _viewModel.SearchGroups.CollectionChanged += OnSearchGroupsCollectionChanged;
     }
 
     private void OnSearchGroupsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
     {
-        if (e.OldItems is not null)
-        {
-            foreach (SearchGroup group in e.OldItems)
-            {
-                ((INotifyPropertyChanged)group).PropertyChanged -= OnSearchGroupPropertyChanged;
-            }
-        }
-
-        if (e.NewItems is not null)
-        {
-            foreach (SearchGroup group in e.NewItems)
-            {
-                ((INotifyPropertyChanged)group).PropertyChanged += OnSearchGroupPropertyChanged;
-            }
-        }
-
         SearchListView.DataSource?.Refresh();
-    }
-
-    private void OnSearchGroupPropertyChanged(object sender, PropertyChangedEventArgs e)
-    {
-        if (SearchListView.DataSource is null || !GroupRefreshProperties.Contains(e.PropertyName ?? string.Empty))
-        {
-            return;
-        }
-
-        // Refresh the visual container without rebuilding DataSource groups,
-        // which prevents collapse/re-open jitter while still updating headers.
-        SearchListView.RefreshView();
     }
 
     protected override void OnAppearing()
