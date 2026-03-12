@@ -12,6 +12,11 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
 {
     private static readonly Uri BaseUri = new("https://api.kroger.com/v1/");
 
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+    };
+
     private static readonly ResiliencePipeline<KrogerProductSearchPage> SearchProductsRetryPipeline =
         new ResiliencePipelineBuilder<KrogerProductSearchPage>()
             .AddRetry(
@@ -83,35 +88,31 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
             using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            using var response = await httpClient.SendAsync(request);
+            using var response = await httpClient.SendAsync(request, _);
             response.EnsureSuccessStatusCode();
 
             var payload = await response.Content.ReadAsStringAsync();
-            using var document = JsonDocument.Parse(payload);
+            var apiResponse = JsonSerializer.Deserialize<KrogerProductResponse>(
+                payload,
+                JsonOptions
+            );
 
             var page = new KrogerProductSearchPage
             {
-                Results = [],
                 RawRequest = requestUri.ToString(),
                 RawResponse = payload,
+                TotalCount = apiResponse?.Meta?.Pagination?.Total ?? 0,
+                Results = [],
             };
-            if (
-                document.RootElement.TryGetProperty("meta", out var meta)
-                && meta.TryGetProperty("pagination", out var pagination)
-                && pagination.TryGetProperty("total", out var totalElement)
-            )
-            {
-                page.TotalCount = totalElement.GetInt32();
-            }
 
-            if (!document.RootElement.TryGetProperty("data", out var data))
+            if (apiResponse?.Data is null)
             {
                 return page;
             }
 
-            foreach (var item in data.EnumerateArray())
+            foreach (var item in apiResponse.Data)
             {
-                if (TryCreateProduct(term, item, out var product))
+                if (MapProduct(term, item) is { } product)
                 {
                     page.Results.Add(product);
                 }
@@ -135,35 +136,29 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
         response.EnsureSuccessStatusCode();
 
         var payload = await response.Content.ReadAsStringAsync();
-        using var document = JsonDocument.Parse(payload);
+        var apiResponse = JsonSerializer.Deserialize<KrogerLocationResponse>(payload, JsonOptions);
 
-        List<KrogerLocation> locations = [];
-        if (!document.RootElement.TryGetProperty("data", out var data))
+        if (apiResponse?.Data is null)
         {
-            return locations;
+            return [];
         }
 
-        foreach (var location in data.EnumerateArray())
-        {
-            locations.Add(
-                new KrogerLocation
-                {
-                    LocationId = GetString(location, "locationId"),
-                    Name = GetString(location, "name"),
-                    Address = location.TryGetProperty("address", out var address)
-                        ? new KrogerAddress
-                        {
-                            AddressLine1 = GetString(address, "addressLine1"),
-                            City = GetString(address, "city"),
-                            State = GetString(address, "state"),
-                            ZipCode = GetString(address, "zipCode"),
-                        }
-                        : new KrogerAddress(),
-                }
-            );
-        }
-
-        return locations;
+        return apiResponse
+            .Data.Select(loc => new KrogerLocation
+            {
+                LocationId = loc.LocationId ?? string.Empty,
+                Name = loc.Name ?? string.Empty,
+                Address = loc.Address is not null
+                    ? new KrogerAddress
+                    {
+                        AddressLine1 = loc.Address.AddressLine1 ?? string.Empty,
+                        City = loc.Address.City ?? string.Empty,
+                        State = loc.Address.State ?? string.Empty,
+                        ZipCode = loc.Address.ZipCode ?? string.Empty,
+                    }
+                    : new KrogerAddress(),
+            })
+            .ToList();
     }
 
     public async Task AddToCart(string userToken, IEnumerable<KrogerCartItem> items)
@@ -270,73 +265,54 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
         return value;
     }
 
-    private static bool TryCreateProduct(string query, JsonElement item, out KrogerProduct product)
+    private static KrogerProduct MapProduct(string query, KrogerProductData item)
     {
-        product = null;
-
-        if (!item.TryGetProperty("items", out var items) || items.GetArrayLength() == 0)
+        if (item.Items is not { Count: > 0 })
         {
-            return false;
+            return null;
         }
 
-        var itemValue = items[0];
-        var priceValue = FindPrice(items);
-        JsonElement regularPriceElement = default;
-        JsonElement promoPriceElement = default;
-        var hasRegularPrice =
-            priceValue.HasValue
-            && priceValue.Value.TryGetProperty("regular", out regularPriceElement)
-            && regularPriceElement.ValueKind is JsonValueKind.Number;
-        var hasPromoPrice =
-            priceValue.HasValue
-            && priceValue.Value.TryGetProperty("promo", out promoPriceElement)
-            && promoPriceElement.ValueKind is JsonValueKind.Number;
+        // Find the first variant that has a price
+        var pricedVariant = item.Items.FirstOrDefault(v => v.Price is not null);
+        var firstVariant = item.Items[0];
 
-        var regularPrice =
-            hasRegularPrice ? regularPriceElement.GetDecimal()
-            : hasPromoPrice ? promoPriceElement.GetDecimal()
-            : 0m;
-        var hasPromo = hasPromoPrice;
+        var price = pricedVariant?.Price;
+        var regularPrice = price?.Regular ?? 0m;
+        var promoPrice = price?.Promo ?? 0m;
+        var hasPromo = promoPrice > 0m;
+        var displayPrice = hasPromo ? promoPrice : regularPrice;
 
-        var promoEndDate = string.Empty;
-        if (
-            hasPromo
-            && priceValue.HasValue
-            && priceValue.Value.TryGetProperty("expirationDate", out var expirationDateElement)
-            && expirationDateElement.TryGetProperty("value", out var expirationValueElement)
-            && expirationValueElement.ValueKind != JsonValueKind.Null
-        )
+        // Only include products with a price
+        if (displayPrice <= 0m)
         {
-            promoEndDate = expirationValueElement.GetString() ?? string.Empty;
+            return null;
         }
 
-        var upc = GetString(item, "upc");
+        var upc = item.Upc;
         if (string.IsNullOrWhiteSpace(upc))
         {
-            upc = GetString(itemValue, "upc");
+            upc = firstVariant.Upc;
         }
 
         if (string.IsNullOrWhiteSpace(upc))
         {
-            return false;
+            return null;
         }
 
-        product = new KrogerProduct
+        return new KrogerProduct
         {
             Query = query,
-            ProductId = GetString(item, "productId"),
+            ProductId = item.ProductId ?? string.Empty,
             Upc = upc,
-            Description = GetString(item, "description"),
-            Brand = GetString(item, "brand"),
-            Size = GetString(itemValue, "size"),
-            ImageUrl = GetImageUrl(item),
-            Price = hasPromo ? promoPriceElement.GetDecimal() : regularPrice,
+            Description = item.Description ?? string.Empty,
+            Brand = item.Brand ?? string.Empty,
+            Size = firstVariant.Size ?? string.Empty,
+            ImageUrl = GetImageUrl(item.Images),
+            Price = displayPrice,
             RegularPrice = regularPrice,
             HasPromo = hasPromo,
-            PromoEndDate = promoEndDate,
+            PromoEndDate = hasPromo ? price?.ExpirationDate?.Value ?? string.Empty : string.Empty,
         };
-
-        return true;
     }
 
     private static bool ShouldRetryForMissingPrice(KrogerProductSearchPage page)
@@ -346,81 +322,33 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
             return false;
         }
 
-        return page.TotalCount > 0
-            && page.Results.Count > 0
-            && page.Results.All(product => product.Price <= 0m);
+        // Retry when the API returned data but MapProduct filtered everything out (all priceless)
+        return page.TotalCount > 0 && page.Results.Count == 0;
     }
 
-    private static JsonElement? FindPrice(JsonElement items)
+    private static string GetImageUrl(List<KrogerImage> images)
     {
-        for (var i = 0; i < items.GetArrayLength(); i++)
-        {
-            var item = items[i];
-            if (
-                item.TryGetProperty("price", out var price)
-                && price.ValueKind == JsonValueKind.Object
-            )
-            {
-                return price;
-            }
-        }
-
-        return null;
-    }
-
-    private static string GetString(JsonElement element, string propertyName)
-    {
-        if (
-            element.TryGetProperty(propertyName, out var value)
-            && value.ValueKind != JsonValueKind.Null
-        )
-        {
-            return value.GetString() ?? string.Empty;
-        }
-
-        return string.Empty;
-    }
-
-    private static string GetImageUrl(JsonElement item)
-    {
-        if (!item.TryGetProperty("images", out var images) || images.GetArrayLength() == 0)
+        if (images is not { Count: > 0 })
         {
             return string.Empty;
         }
 
-        foreach (var image in images.EnumerateArray())
-        {
-            if (
-                image.TryGetProperty("perspective", out var perspective)
-                && perspective.GetString() == "front"
-            )
-            {
-                var imageUrl = GetPreferredImageUrl(image);
-                if (!string.IsNullOrEmpty(imageUrl))
-                {
-                    return imageUrl;
-                }
-            }
-        }
-
-        return GetPreferredImageUrl(images[0]);
+        var frontImage = images.FirstOrDefault(img =>
+            string.Equals(img.Perspective, "front", StringComparison.OrdinalIgnoreCase)
+        );
+        return GetPreferredSizeUrl(frontImage ?? images[0]);
     }
 
-    private static string GetPreferredImageUrl(JsonElement image)
+    private static string GetPreferredSizeUrl(KrogerImage image)
     {
-        if (!image.TryGetProperty("sizes", out var sizes) || sizes.GetArrayLength() == 0)
+        if (image?.Sizes is not { Count: > 0 })
         {
             return string.Empty;
         }
 
-        foreach (var size in sizes.EnumerateArray())
-        {
-            if (size.TryGetProperty("size", out var sizeName) && sizeName.GetString() == "medium")
-            {
-                return GetString(size, "url");
-            }
-        }
-
-        return GetString(sizes[0], "url");
+        var medium = image.Sizes.FirstOrDefault(s =>
+            string.Equals(s.Size, "medium", StringComparison.OrdinalIgnoreCase)
+        );
+        return (medium ?? image.Sizes[0]).Url ?? string.Empty;
     }
 }
