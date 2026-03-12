@@ -1,6 +1,8 @@
 ﻿using CartBuddy.Converters;
 using CartBuddy.Models;
 using CartBuddy.ViewModels;
+using CommunityToolkit.Maui;
+using CommunityToolkit.Maui.Extensions;
 using System.Collections.Specialized;
 using Syncfusion.Maui.DataSource;
 
@@ -9,6 +11,7 @@ namespace CartBuddy;
 public partial class MainPage : ContentPage
 {
     private readonly MainViewModel _viewModel;
+    private CartPopup _cartPopup;
 
     public MainPage(MainViewModel viewModel)
     {
@@ -33,6 +36,7 @@ public partial class MainPage : ContentPage
 
         _viewModel.SearchGroups.CollectionChanged += OnSearchGroupsCollectionChanged;
         _viewModel.ScrollToItem = item => SearchListView.ScrollTo(item, Microsoft.Maui.Controls.ScrollToPosition.End, true);
+        _viewModel.CloseCartRequested = () => _ = _cartPopup?.CloseAsync();
     }
 
     private void OnSearchGroupsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -48,15 +52,6 @@ public partial class MainPage : ContentPage
         if (!_viewModel.HasStore)
         {
             Dispatcher.DispatchAsync(() => _viewModel.GoToStorePickerCommand.ExecuteAsync(null));
-        }
-    }
-
-    protected override void OnNavigatingFrom(NavigatingFromEventArgs args)
-    {
-        base.OnNavigatingFrom(args);
-        if (_viewModel.IsCartOpen)
-        {
-            _viewModel.IsCartOpen = false;
         }
     }
 
@@ -118,9 +113,11 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private void OnCartClicked(object sender, EventArgs e)
+    private async void OnCartClicked(object sender, EventArgs e)
     {
-        _viewModel.ToggleCartCommand.Execute(null);
+        _cartPopup = new CartPopup(_viewModel);
+        await this.ShowPopupAsync(_cartPopup, new PopupOptions());
+        _cartPopup = null;
     }
 
     private async void OnSearchClicked(object sender, EventArgs e)
@@ -150,21 +147,5 @@ public partial class MainPage : ContentPage
         }
 
         _viewModel.ClearSearchCommand.Execute(null);
-    }
-
-    private async void OnClearCartClicked(object sender, EventArgs e)
-    {
-        var shouldClear = await DisplayAlertAsync(
-            "Clear cart?",
-            "This will remove all cart items and reset your selected matches.",
-            "Clear",
-            "Cancel"
-        );
-        if (!shouldClear)
-        {
-            return;
-        }
-
-        _viewModel.ClearCartCommand.Execute(null);
     }
 }

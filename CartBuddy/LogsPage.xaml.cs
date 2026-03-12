@@ -1,5 +1,7 @@
 using CartBuddy.Shared.Models;
 using CartBuddy.ViewModels;
+using CommunityToolkit.Maui;
+using CommunityToolkit.Maui.Extensions;
 
 namespace CartBuddy;
 
@@ -19,11 +21,10 @@ public partial class LogsPage : ContentPage
         _viewModel.LoadLogsCommand.ExecuteAsync(null);
     }
 
-    private void OnEntryTapped(object sender, Syncfusion.Maui.ListView.ItemTappedEventArgs e)
+    private async void OnEntryTapped(object sender, Syncfusion.Maui.ListView.ItemTappedEventArgs e)
     {
-        if (e.DataItem is ApiLogEntry entry)
-        {
-            _viewModel.SelectEntryCommand.Execute(entry);
-        }
+        if (e.DataItem is not ApiLogEntry entry) { return; }
+        _viewModel.SelectedEntry = entry;
+        await this.ShowPopupAsync(new LogDetailPopup(_viewModel), new PopupOptions());
     }
 }

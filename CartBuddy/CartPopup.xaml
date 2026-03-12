@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup
+    x:Class="CartBuddy.CartPopup"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:CartBuddy.Controls"
+    xmlns:models="clr-namespace:CartBuddy.Shared.Models;assembly=CartBuddy.Shared"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:vm="clr-namespace:CartBuddy.ViewModels"
+    x:DataType="vm:MainViewModel"
+    Background="Transparent"
+    CanBeDismissedByTappingOutsideOfPopup="True">
+    <Border
+        Padding="0"
+        BackgroundColor="{AppThemeBinding Light={StaticResource White},
+                                          Dark={StaticResource Gray900}}"
+        Stroke="Transparent"
+        StrokeShape="RoundRectangle 16"
+        WidthRequest="400">
+        <Grid
+            Padding="16,16,16,20"
+            RowDefinitions="Auto,Auto,*"
+            RowSpacing="0">
+
+            <!--  Header  -->
+            <VerticalStackLayout
+                Grid.Row="0"
+                Margin="0,0,0,12"
+                Spacing="2">
+                <Label
+                    FontAttributes="Bold"
+                    FontSize="22"
+                    Text="Cart" />
+                <Label
+                    FontSize="13"
+                    Text="{Binding CartSummary}"
+                    TextColor="{StaticResource Gray400}" />
+            </VerticalStackLayout>
+
+            <!--  Actions  -->
+            <Grid
+                Grid.Row="1"
+                Margin="0,0,0,12"
+                ColumnDefinitions="*,Auto"
+                ColumnSpacing="10"
+                IsVisible="{Binding HasCartItems}">
+                <Button Command="{Binding CheckoutCommand}" Text="Checkout" />
+                <Button
+                    Grid.Column="1"
+                    Padding="12,8"
+                    BackgroundColor="{StaticResource SaleRed}"
+                    Clicked="OnClearCartClicked"
+                    FontFamily="FaSolid"
+                    FontSize="14"
+                    SemanticProperties.Description="Clear cart"
+                    SemanticProperties.Hint="Removes all items from the cart"
+                    Text="&#xF1F8;"
+                    TextColor="{StaticResource White}"
+                    WidthRequest="48" />
+            </Grid>
+
+            <!--  Cart list  -->
+            <CollectionView
+                Grid.Row="2"
+                ItemsSource="{Binding CartItems}"
+                SelectionMode="None"
+                VerticalScrollBarVisibility="Never">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:CartLine">
+                        <controls:ProductListItemView
+                            Title="{Binding Description}"
+                            DecreaseCommand="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=DecreaseQuantityCommand}"
+                            Detail="{Binding DetailDisplay}"
+                            ImageUrl="{Binding ImageUrl}"
+                            IncreaseCommand="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=IncreaseQuantityCommand}"
+                            PriceColor="{AppThemeBinding Light={StaticResource Gray950},
+                                                         Dark={StaticResource Gray100}}"
+                            PriceText="{Binding LineTotal, StringFormat='${0:F2}'}"
+                            Quantity="{Binding Quantity}"
+                            QuantityCommandParameter="{Binding}"
+                            ShowQuantityControls="True"
+                            Subtitle="{Binding DisplayBrand}" />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+    </Border>
+</toolkit:Popup>

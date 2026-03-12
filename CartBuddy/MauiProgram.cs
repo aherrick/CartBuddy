@@ -3,7 +3,6 @@ using CartBuddy.ViewModels;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Plugin.Maui.BottomSheet.Hosting;
 using Refit;
 using Syncfusion.Maui.Core.Hosting;
 
@@ -19,7 +18,6 @@ public static class MauiProgram
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit(options => options.SetShouldEnableSnackbarOnWindows(true))
             .ConfigureSyncfusionCore()
-            .UseBottomSheet()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("fa-solid-900.ttf", "FaSolid");

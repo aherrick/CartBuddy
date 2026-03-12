@@ -17,9 +17,6 @@ public partial class LogsViewModel(ICartBuddyApi api) : ObservableObject
     [ObservableProperty]
     private ApiLogEntry _selectedEntry;
 
-    [ObservableProperty]
-    private bool _isDetailOpen;
-
     [RelayCommand]
     public async Task LoadLogs()
     {
@@ -53,7 +50,6 @@ public partial class LogsViewModel(ICartBuddyApi api) : ObservableObject
         }
 
         SelectedEntry = entry;
-        IsDetailOpen = true;
     }
 
     [RelayCommand]

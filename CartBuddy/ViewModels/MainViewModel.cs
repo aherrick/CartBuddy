@@ -32,13 +32,12 @@ public partial class MainViewModel : ObservableObject
     private bool _isDarkMode;
 
     [ObservableProperty]
-    private bool _isCartOpen;
-
-    [ObservableProperty]
     private bool _isItemsEditorVisible = true;
 
     [ObservableProperty]
     private bool _isAiCleanupEnabled;
+
+    public Action CloseCartRequested { get; set; }
 
     public Action<ProductMatch> ScrollToItem { get; set; }
 
@@ -292,7 +291,7 @@ public partial class MainViewModel : ObservableObject
             }
 
             ClearCart();
-            IsCartOpen = false;
+            CloseCartRequested?.Invoke();
             await ShowSnackbar($"Added {cartItems.Count} lines to your Kroger cart", NotificationPopupType.Success);
         }
         catch (TaskCanceledException)
@@ -377,24 +376,6 @@ public partial class MainViewModel : ObservableObject
     {
         CartItems.Clear();
         UpdateCartState();
-    }
-
-    [RelayCommand]
-    private void ToggleCart()
-    {
-        IsCartOpen = !IsCartOpen;
-    }
-
-    [RelayCommand]
-    private void OpenCart()
-    {
-        IsCartOpen = true;
-    }
-
-    [RelayCommand]
-    private void CloseCart()
-    {
-        IsCartOpen = false;
     }
 
     [RelayCommand]
