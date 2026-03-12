@@ -272,28 +272,24 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
             return null;
         }
 
-        // Find the first variant that has a price
-        var pricedVariant = item.Items.FirstOrDefault(v => v.Price is not null);
-        var firstVariant = item.Items[0];
+        // Pick ONE canonical variant that has a price
+        var variant = item.Items.FirstOrDefault(v => v.Price is not null);
+        if (variant is null)
+        {
+            return null;  // No priced variant = skip this product
+        }
 
-        var price = pricedVariant?.Price;
-        var regularPrice = price?.Regular ?? 0m;
-        var promoPrice = price?.Promo ?? 0m;
+        var regularPrice = variant.Price.Regular;
+        var promoPrice = variant.Price.Promo;
         var hasPromo = promoPrice > 0m;
         var displayPrice = hasPromo ? promoPrice : regularPrice;
 
-        // Only include products with a price
         if (displayPrice <= 0m)
         {
             return null;
         }
 
-        var upc = item.Upc;
-        if (string.IsNullOrWhiteSpace(upc))
-        {
-            upc = firstVariant.Upc;
-        }
-
+        var upc = item.Upc ?? variant.Upc;
         if (string.IsNullOrWhiteSpace(upc))
         {
             return null;
@@ -306,12 +302,12 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
             Upc = upc,
             Description = item.Description ?? string.Empty,
             Brand = item.Brand ?? string.Empty,
-            Size = firstVariant.Size ?? string.Empty,
+            Size = variant.Size ?? string.Empty,
             ImageUrl = GetImageUrl(item.Images),
             Price = displayPrice,
             RegularPrice = regularPrice,
             HasPromo = hasPromo,
-            PromoEndDate = hasPromo ? price?.ExpirationDate?.Value ?? string.Empty : string.Empty,
+            PromoEndDate = hasPromo ? variant.Price.ExpirationDate?.Value ?? string.Empty : string.Empty,
         };
     }
 
