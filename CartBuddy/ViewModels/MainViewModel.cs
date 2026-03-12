@@ -75,6 +75,8 @@ public partial class MainViewModel : ObservableObject
     public bool CanToggleItemsEditor => SearchGroups.Count > 0;
 
     public string ItemsEditorToggleText => IsItemsEditorVisible ? "Hide List" : "Edit List";
+    
+    public bool IsItemsEditorHidden => !IsItemsEditorVisible;
 
     public string ItemsSummary
     {

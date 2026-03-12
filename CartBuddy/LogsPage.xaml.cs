@@ -20,11 +20,4 @@ public partial class LogsPage : ContentPage
         base.OnAppearing();
         _viewModel.LoadLogsCommand.ExecuteAsync(null);
     }
-
-    private async void OnEntryTapped(object sender, Syncfusion.Maui.ListView.ItemTappedEventArgs e)
-    {
-        if (e.DataItem is not ApiLogEntry entry) { return; }
-        _viewModel.SelectedEntry = entry;
-        await this.ShowPopupAsync(new LogDetailPopup(_viewModel), new PopupOptions());
-    }
 }

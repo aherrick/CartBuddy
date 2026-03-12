@@ -4,10 +4,15 @@
              xmlns:vm="clr-namespace:CartBuddy.ViewModels"
              xmlns:shared="clr-namespace:CartBuddy.Shared.Models;assembly=CartBuddy.Shared"
              xmlns:sfListView="clr-namespace:Syncfusion.Maui.ListView;assembly=Syncfusion.Maui.ListView"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="CartBuddy.StorePickerPage"
              x:Name="ThisPage"
              Title="Select Store"
              BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+
+    <ContentPage.Behaviors>
+        <toolkit:StatusBarBehavior StatusBarColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}" StatusBarStyle="{AppThemeBinding Light=DarkContent, Dark=LightContent}" />
+    </ContentPage.Behaviors>
 
     <Grid RowDefinitions="Auto,*">
 
@@ -16,7 +21,7 @@
             <VerticalStackLayout Spacing="2">
                 <Label Text="Choose your Kroger store" FontSize="22" FontAttributes="Bold" />
                 <Label Text="We'll use this store for product search, pricing, and checkout."
-                       FontSize="12"
+                       FontSize="13"
                        TextColor="{StaticResource Gray400}" />
             </VerticalStackLayout>
 
@@ -53,7 +58,7 @@
                                        FontSize="15"
                                        FontAttributes="Bold" />
                                 <Label Text="{Binding Address}"
-                                       FontSize="12"
+                                       FontSize="13"
                                        TextColor="{StaticResource Gray400}"
                                        LineBreakMode="WordWrap"
                                        MaxLines="2" />

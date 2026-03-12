@@ -28,13 +28,13 @@
                        FontAttributes="Bold" />
                 <HorizontalStackLayout Spacing="8">
                     <Label Text="{Binding SelectedEntry.DirectionLabel}"
-                           FontSize="12"
+                           FontSize="13"
                            TextColor="{StaticResource Gray400}" />
                     <Label Text="•"
-                           FontSize="12"
+                           FontSize="13"
                            TextColor="{StaticResource Gray400}" />
                     <Label Text="{Binding SelectedEntry.Timestamp, StringFormat='{0:yyyy-MM-dd HH:mm:ss} UTC'}"
-                           FontSize="12"
+                           FontSize="13"
                            TextColor="{StaticResource Gray400}" />
                 </HorizontalStackLayout>
             </VerticalStackLayout>
@@ -43,7 +43,7 @@
                     Command="{Binding CopyEntryCommand}"
                     HorizontalOptions="Start"
                     Padding="12,8"
-                    FontSize="12"
+                    FontSize="13"
                     CornerRadius="8" />
 
             <ScrollView HeightRequest="380">

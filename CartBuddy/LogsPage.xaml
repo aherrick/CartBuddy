@@ -5,15 +5,21 @@
              xmlns:converters="clr-namespace:CartBuddy.Converters"
              xmlns:sfListView="clr-namespace:Syncfusion.Maui.ListView;assembly=Syncfusion.Maui.ListView"
              xmlns:data="clr-namespace:Syncfusion.Maui.DataSource;assembly=Syncfusion.Maui.DataSource"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="CartBuddy.LogsPage"
              x:Name="ThisPage"
              Title="API Logs"
              BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
 
+    <ContentPage.Behaviors>
+        <toolkit:StatusBarBehavior StatusBarColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}" StatusBarStyle="{AppThemeBinding Light=DarkContent, Dark=LightContent}" />
+    </ContentPage.Behaviors>
+
     <ContentPage.Resources>
         <converters:DirectionColorConverter x:Key="DirectionColorConverter" />
         <converters:DirectionGlyphConverter x:Key="DirectionGlyphConverter" />
         <converters:ApiLogGroupHeaderConverter x:Key="ApiLogGroupHeaderConverter" />
+        <converters:SyncfusionItemTappedEventArgsConverter x:Key="SyncfusionItemTappedEventArgsConverter" />
     </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,*">
@@ -24,14 +30,14 @@
                 <VerticalStackLayout Spacing="2" VerticalOptions="Center">
                     <Label Text="API Logs" FontSize="22" FontAttributes="Bold" />
                     <Label Text="{Binding TransactionCount, StringFormat='{0} transactions'}"
-                           FontSize="12"
+                           FontSize="13"
                            TextColor="{StaticResource Gray400}" />
                 </VerticalStackLayout>
                 <Button Grid.Column="1"
                         Text="Refresh"
                         Command="{Binding LoadLogsCommand}"
                         Padding="12,8"
-                        FontSize="12"
+                        FontSize="13"
                         CornerRadius="6"
                         VerticalOptions="Center" />
             </Grid>
@@ -47,8 +53,12 @@
                                AutoFitMode="Height"
                                GroupHeaderSize="58"
                                AllowGroupExpandCollapse="False"
-                               IsStickyGroupHeader="True"
-                               ItemTapped="OnEntryTapped">
+                               IsStickyGroupHeader="True">
+            <sfListView:SfListView.Behaviors>
+                <toolkit:EventToCommandBehavior EventName="ItemTapped"
+                                                Command="{Binding SelectEntryCommand}"
+                                                EventArgsConverter="{StaticResource SyncfusionItemTappedEventArgsConverter}" />
+            </sfListView:SfListView.Behaviors>
             <sfListView:SfListView.DataSource>
                 <data:DataSource AutoExpandGroups="True">
                     <data:DataSource.GroupDescriptors>
@@ -81,7 +91,7 @@
                         </VerticalStackLayout>
                         <VerticalStackLayout Grid.Column="1" Spacing="2" HorizontalOptions="End" VerticalOptions="Center">
                             <Label Text="{Binding ., Converter={StaticResource ApiLogGroupHeaderConverter}, ConverterParameter=EntryCountLabel}"
-                                   FontSize="12"
+                                   FontSize="13"
                                    HorizontalTextAlignment="End"
                                    TextColor="{StaticResource Gray400}" />
                             <Label Text="{Binding ., Converter={StaticResource ApiLogGroupHeaderConverter}, ConverterParameter=Timestamp}"
@@ -140,7 +150,7 @@
                         <Label Grid.Column="2"
                                Text="&#xF054;"
                                FontFamily="FaSolid"
-                               FontSize="12"
+                               FontSize="13"
                                TextColor="{StaticResource Gray400}"
                                VerticalOptions="Center" />
                     </Grid>

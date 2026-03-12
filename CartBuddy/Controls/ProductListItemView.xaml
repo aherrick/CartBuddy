@@ -27,11 +27,11 @@
                        LineBreakMode="TailTruncation"
                        MaxLines="2" />
                 <Label Text="{Binding Subtitle, Source={x:Reference ThisView}}"
-                       FontSize="12"
+                       FontSize="13"
                        TextColor="{StaticResource Gray400}"
                        IsVisible="{Binding HasSubtitle, Source={x:Reference ThisView}}" />
                 <Label Text="{Binding Detail, Source={x:Reference ThisView}}"
-                       FontSize="12"
+                       FontSize="13"
                        TextColor="{StaticResource Gray400}"
                        IsVisible="{Binding HasDetail, Source={x:Reference ThisView}}" />
             </VerticalStackLayout>
@@ -74,7 +74,7 @@
                             Command="{Binding DecreaseCommand, Source={x:Reference ThisView}}"
                             CommandParameter="{Binding QuantityCommandParameter, Source={x:Reference ThisView}}"
                             Padding="10,6"
-                            FontSize="12"
+                            FontSize="13"
                             WidthRequest="38"
                             TextColor="{StaticResource SaleRed}"
                             BackgroundColor="Transparent"
@@ -93,7 +93,7 @@
                             Command="{Binding IncreaseCommand, Source={x:Reference ThisView}}"
                             CommandParameter="{Binding QuantityCommandParameter, Source={x:Reference ThisView}}"
                             Padding="10,6"
-                            FontSize="12"
+                            FontSize="13"
                             WidthRequest="38"
                             TextColor="{StaticResource SaleGreen}"
                             BackgroundColor="Transparent"

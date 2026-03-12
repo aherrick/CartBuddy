@@ -4,10 +4,11 @@ using CartBuddy.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using CommunityToolkit.Maui.Extensions;
 
 namespace CartBuddy.ViewModels;
 
-public partial class LogsViewModel(ICartBuddyApi api) : ObservableObject
+public partial class LogsViewModel(ICartBuddyApi api, INotificationPopupService notifications) : ObservableObject
 {
     public ObservableCollection<ApiLogEntry> Logs { get; } = [];
     public ObservableCollection<LogTransactionGroup> TransactionGroups { get; } = [];
@@ -42,7 +43,7 @@ public partial class LogsViewModel(ICartBuddyApi api) : ObservableObject
     }
 
     [RelayCommand]
-    public void SelectEntry(ApiLogEntry entry)
+    public async Task SelectEntry(ApiLogEntry entry)
     {
         if (entry is null)
         {
@@ -50,6 +51,12 @@ public partial class LogsViewModel(ICartBuddyApi api) : ObservableObject
         }
 
         SelectedEntry = entry;
+        
+        var page = Shell.Current?.CurrentPage;
+        if (page is not null)
+        {
+            await page.ShowPopupAsync(new LogDetailPopup(this), new CommunityToolkit.Maui.PopupOptions());
+        }
     }
 
     [RelayCommand]
@@ -61,5 +68,6 @@ public partial class LogsViewModel(ICartBuddyApi api) : ObservableObject
         }
 
         await Clipboard.Default.SetTextAsync(SelectedEntry.Payload);
+        await notifications.Show("Copied payload to clipboard", NotificationPopupType.Success);
     }
 }
