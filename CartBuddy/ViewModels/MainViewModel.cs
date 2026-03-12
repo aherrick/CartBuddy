@@ -313,6 +313,8 @@ public partial class MainViewModel : ObservableObject
                 {
                     Upc = match.Upc,
                     Description = match.Description,
+                    Brand = match.Brand,
+                    Size = match.Size,
                     ImageUrl = match.ImageUrl,
                     Price = match.Price,
                     Quantity = 1,

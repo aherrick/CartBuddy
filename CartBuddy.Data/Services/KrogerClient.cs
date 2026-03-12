@@ -258,36 +258,29 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
             return false;
         }
 
-        var selectedItem = FindPricedItem(items, out var priceElement);
-        if (!selectedItem.HasValue || !priceElement.HasValue)
-        {
-            return false;
-        }
-
-        var itemValue = selectedItem.Value;
-        var priceValue = priceElement.Value;
-
+        var itemValue = items[0];
+        var priceValue = FindPrice(items);
         var hasRegularPrice =
-            priceValue.TryGetProperty("regular", out var regularPriceElement)
+            priceValue.HasValue
+            && priceValue.Value.TryGetProperty("regular", out var regularPriceElement)
             && regularPriceElement.ValueKind is JsonValueKind.Number;
         var hasPromoPrice =
-            priceValue.TryGetProperty("promo", out var promoPriceElement)
+            priceValue.HasValue
+            && priceValue.Value.TryGetProperty("promo", out var promoPriceElement)
             && promoPriceElement.ValueKind is JsonValueKind.Number;
-
-        if (!hasRegularPrice && !hasPromoPrice)
-        {
-            return false;
-        }
 
         var regularPrice = hasRegularPrice
             ? regularPriceElement.GetDecimal()
-            : promoPriceElement.GetDecimal();
+            : hasPromoPrice
+                ? promoPriceElement.GetDecimal()
+                : 0m;
         var hasPromo = hasPromoPrice;
 
         var promoEndDate = string.Empty;
         if (
             hasPromo
-            && priceValue.TryGetProperty("expirationDate", out var expirationDateElement)
+            && priceValue.HasValue
+            && priceValue.Value.TryGetProperty("expirationDate", out var expirationDateElement)
             && expirationDateElement.TryGetProperty("value", out var expirationValueElement)
             && expirationValueElement.ValueKind != JsonValueKind.Null
         )
@@ -324,19 +317,17 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
         return true;
     }
 
-    private static JsonElement? FindPricedItem(JsonElement items, out JsonElement? priceElement)
+    private static JsonElement? FindPrice(JsonElement items)
     {
         for (var i = 0; i < items.GetArrayLength(); i++)
         {
             var item = items[i];
             if (item.TryGetProperty("price", out var price) && price.ValueKind == JsonValueKind.Object)
             {
-                priceElement = price;
-                return item;
+                return price;
             }
         }
 
-        priceElement = null;
         return null;
     }
 

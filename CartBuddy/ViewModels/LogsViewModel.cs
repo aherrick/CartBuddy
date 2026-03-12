@@ -15,7 +15,7 @@ public partial class LogsViewModel(ICartBuddyApi api) : ObservableObject
     public int TransactionCount => TransactionGroups.Count;
 
     [ObservableProperty]
-    private LogTransactionGroup _selectedTransaction;
+    private ApiLogEntry _selectedEntry;
 
     [ObservableProperty]
     private bool _isDetailOpen;
@@ -47,24 +47,23 @@ public partial class LogsViewModel(ICartBuddyApi api) : ObservableObject
     [RelayCommand]
     public void SelectEntry(ApiLogEntry entry)
     {
-        var transaction = TransactionGroups.FirstOrDefault(group => group.Any(item => item.Id == entry.Id));
-        if (transaction is null)
+        if (entry is null)
         {
             return;
         }
 
-        SelectedTransaction = transaction;
+        SelectedEntry = entry;
         IsDetailOpen = true;
     }
 
     [RelayCommand]
-    public async Task CopyTransaction()
+    public async Task CopyEntry()
     {
-        if (SelectedTransaction is null)
+        if (SelectedEntry is null)
         {
             return;
         }
 
-        await Clipboard.Default.SetTextAsync(SelectedTransaction.CopyText());
+        await Clipboard.Default.SetTextAsync(SelectedEntry.Payload);
     }
 }

@@ -160,7 +160,7 @@
                     <controls:ProductListItemView
                         Margin="16,0"
                         Title="{Binding Description}"
-                        Subtitle="{Binding Brand}"
+                        Subtitle="{Binding DisplayBrand}"
                         Detail="{Binding Size}"
                         ImageUrl="{Binding ImageUrl}"
                         PriceText="{Binding Price, StringFormat='${0:F2}'}"
@@ -243,7 +243,8 @@
                                     <DataTemplate x:DataType="models:CartLine">
                                         <controls:ProductListItemView
                                             Title="{Binding Description}"
-                                            Subtitle="{Binding Price, StringFormat='${0:F2} each'}"
+                                            Subtitle="{Binding DisplayBrand}"
+                                            Detail="{Binding DetailDisplay}"
                                             ImageUrl="{Binding ImageUrl}"
                                             PriceText="{Binding LineTotal, StringFormat='${0:F2}'}"
                                             PriceColor="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}"

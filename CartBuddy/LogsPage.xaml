@@ -165,65 +165,58 @@
                     <DataTemplate>
                         <VerticalStackLayout Padding="16,12,16,16" Spacing="12">
                             <VerticalStackLayout Spacing="2">
-                                <Label Text="{Binding SelectedTransaction.MethodName}"
+                                <Label Text="{Binding SelectedEntry.MethodName}"
                                        FontSize="18"
                                        FontAttributes="Bold" />
                                 <HorizontalStackLayout Spacing="8">
-                                    <Label Text="{Binding SelectedTransaction.EntryCountLabel}"
+                                    <Label Text="{Binding SelectedEntry.DirectionLabel}"
                                            FontSize="12"
                                            TextColor="{StaticResource Gray400}" />
                                     <Label Text="•"
                                            FontSize="12"
                                            TextColor="{StaticResource Gray400}" />
-                                    <Label Text="{Binding SelectedTransaction.Timestamp, StringFormat='{0:yyyy-MM-dd HH:mm:ss} UTC'}"
+                                    <Label Text="{Binding SelectedEntry.Timestamp, StringFormat='{0:yyyy-MM-dd HH:mm:ss} UTC'}"
                                            FontSize="12"
                                            TextColor="{StaticResource Gray400}" />
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
 
-                            <Button Text="Copy Transaction"
-                                    Command="{Binding CopyTransactionCommand}"
+                            <Button Text="Copy Payload"
+                                    Command="{Binding CopyEntryCommand}"
                                     HorizontalOptions="Start"
                                     Padding="12,8"
                                     FontSize="12"
                                     CornerRadius="8" />
 
                             <ScrollView HeightRequest="380">
-                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding SelectedTransaction}"
-                                                     Spacing="12">
-                                    <BindableLayout.ItemTemplate>
-                                        <DataTemplate x:DataType="models:ApiLogEntry">
-                                            <Border StrokeThickness="0"
-                                                    Padding="12"
-                                                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}">
+                                <Border StrokeThickness="0"
+                                        Padding="12"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="12" />
+                                    </Border.StrokeShape>
+                                    <VerticalStackLayout Spacing="8">
+                                        <HorizontalStackLayout Spacing="8">
+                                            <Border Padding="8,4"
+                                                    StrokeThickness="0"
+                                                    BackgroundColor="{Binding SelectedEntry.Direction, Converter={StaticResource DirectionColorConverter}}">
                                                 <Border.StrokeShape>
-                                                    <RoundRectangle CornerRadius="12" />
+                                                    <RoundRectangle CornerRadius="999" />
                                                 </Border.StrokeShape>
-                                                <VerticalStackLayout Spacing="8">
-                                                    <HorizontalStackLayout Spacing="8">
-                                                        <Border Padding="8,4"
-                                                                StrokeThickness="0"
-                                                                BackgroundColor="{Binding Direction, Converter={StaticResource DirectionColorConverter}}">
-                                                            <Border.StrokeShape>
-                                                                <RoundRectangle CornerRadius="999" />
-                                                            </Border.StrokeShape>
-                                                            <Label Text="{Binding DirectionLabel}"
-                                                                   FontSize="11"
-                                                                   TextColor="White" />
-                                                        </Border>
-                                                        <Label Text="{Binding Timestamp, StringFormat='{0:HH:mm:ss} UTC'}"
-                                                               FontSize="11"
-                                                               TextColor="{StaticResource Gray400}"
-                                                               VerticalOptions="Center" />
-                                                    </HorizontalStackLayout>
-                                                    <Label Text="{Binding Payload}"
-                                                           FontSize="11"
-                                                           LineBreakMode="CharacterWrap" />
-                                                </VerticalStackLayout>
+                                                <Label Text="{Binding SelectedEntry.DirectionLabel}"
+                                                       FontSize="11"
+                                                       TextColor="White" />
                                             </Border>
-                                        </DataTemplate>
-                                    </BindableLayout.ItemTemplate>
-                                </VerticalStackLayout>
+                                            <Label Text="{Binding SelectedEntry.Timestamp, StringFormat='{0:HH:mm:ss} UTC'}"
+                                                   FontSize="11"
+                                                   TextColor="{StaticResource Gray400}"
+                                                   VerticalOptions="Center" />
+                                        </HorizontalStackLayout>
+                                        <Label Text="{Binding SelectedEntry.Payload}"
+                                               FontSize="11"
+                                               LineBreakMode="CharacterWrap" />
+                                    </VerticalStackLayout>
+                                </Border>
                             </ScrollView>
                         </VerticalStackLayout>
                     </DataTemplate>

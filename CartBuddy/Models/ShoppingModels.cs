@@ -13,9 +13,11 @@ public partial class ProductMatch : ObservableObject
     [ObservableProperty]
     private string _upc;
 
+    [NotifyPropertyChangedFor(nameof(DisplayBrand))]
     [ObservableProperty]
     private string _description;
 
+    [NotifyPropertyChangedFor(nameof(DisplayBrand))]
     [ObservableProperty]
     private string _brand;
 
@@ -25,19 +27,35 @@ public partial class ProductMatch : ObservableObject
     [ObservableProperty]
     private string _imageUrl;
 
+    [NotifyPropertyChangedFor(nameof(HasSale))]
+    [NotifyPropertyChangedFor(nameof(RegularPriceDisplay))]
+    [NotifyPropertyChangedFor(nameof(PromoEndDisplay))]
     [ObservableProperty]
     private decimal _price;
 
+    [NotifyPropertyChangedFor(nameof(HasSale))]
+    [NotifyPropertyChangedFor(nameof(RegularPriceDisplay))]
+    [NotifyPropertyChangedFor(nameof(PromoEndDisplay))]
     [ObservableProperty]
     private decimal _regularPrice;
 
+    [NotifyPropertyChangedFor(nameof(HasSale))]
+    [NotifyPropertyChangedFor(nameof(RegularPriceDisplay))]
+    [NotifyPropertyChangedFor(nameof(PromoEndDisplay))]
     [ObservableProperty]
     private bool _hasPromo;
 
+    [NotifyPropertyChangedFor(nameof(PromoEndDisplay))]
     [ObservableProperty]
     private string _promoEndDate;
 
     public bool HasSale => HasPromo && RegularPrice > Price;
+
+    public string DisplayBrand =>
+        string.IsNullOrWhiteSpace(Brand)
+        || Description.StartsWith(Brand, StringComparison.OrdinalIgnoreCase)
+            ? string.Empty
+            : Brand;
 
     public string RegularPriceDisplay => HasSale ? $"(Reg ${RegularPrice:F2})" : string.Empty;
 
@@ -56,32 +74,6 @@ public partial class ProductMatch : ObservableObject
         }
     }
 
-    partial void OnPriceChanged(decimal value)
-    {
-        OnPricingChanged();
-    }
-
-    partial void OnRegularPriceChanged(decimal value)
-    {
-        OnPricingChanged();
-    }
-
-    partial void OnHasPromoChanged(bool value)
-    {
-        OnPricingChanged();
-    }
-
-    partial void OnPromoEndDateChanged(string value)
-    {
-        OnPropertyChanged(nameof(PromoEndDisplay));
-    }
-
-    private void OnPricingChanged()
-    {
-        OnPropertyChanged(nameof(HasSale));
-        OnPropertyChanged(nameof(RegularPriceDisplay));
-        OnPropertyChanged(nameof(PromoEndDisplay));
-    }
 }
 
 public partial class CartLine : ObservableObject
@@ -89,24 +81,39 @@ public partial class CartLine : ObservableObject
     [ObservableProperty]
     private string _upc;
 
+    [NotifyPropertyChangedFor(nameof(DisplayBrand))]
     [ObservableProperty]
     private string _description;
+
+    [NotifyPropertyChangedFor(nameof(DisplayBrand))]
+    [ObservableProperty]
+    private string _brand;
+
+    [NotifyPropertyChangedFor(nameof(DetailDisplay))]
+    [ObservableProperty]
+    private string _size;
 
     [ObservableProperty]
     private string _imageUrl;
 
+    [NotifyPropertyChangedFor(nameof(LineTotal))]
     [ObservableProperty]
     private decimal _price;
 
+    [NotifyPropertyChangedFor(nameof(LineTotal))]
     [ObservableProperty]
     private int _quantity;
 
     public decimal LineTotal => Price * Quantity;
 
-    partial void OnQuantityChanged(int value)
-    {
-        OnPropertyChanged(nameof(LineTotal));
-    }
+    public string DisplayBrand =>
+        string.IsNullOrWhiteSpace(Brand)
+        || Description.StartsWith(Brand, StringComparison.OrdinalIgnoreCase)
+            ? string.Empty
+            : Brand;
+
+    public string DetailDisplay => Size;
+
 }
 
 public class SearchGroup(string query, int totalCount, int pageSize) : ObservableCollection<ProductMatch>
