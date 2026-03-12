@@ -258,24 +258,36 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
             return false;
         }
 
-        var firstItem = items[0];
-        if (
-            !firstItem.TryGetProperty("price", out var priceElement)
-            || !priceElement.TryGetProperty("regular", out var regularPriceElement)
-        )
+        var selectedItem = FindPricedItem(items, out var priceElement);
+        if (!selectedItem.HasValue || !priceElement.HasValue)
         {
             return false;
         }
 
-        var regularPrice = regularPriceElement.GetDecimal();
-        var hasPromo =
-            priceElement.TryGetProperty("promo", out var promoPriceElement)
-            && promoPriceElement.ValueKind != JsonValueKind.Null;
+        var itemValue = selectedItem.Value;
+        var priceValue = priceElement.Value;
+
+        var hasRegularPrice =
+            priceValue.TryGetProperty("regular", out var regularPriceElement)
+            && regularPriceElement.ValueKind is JsonValueKind.Number;
+        var hasPromoPrice =
+            priceValue.TryGetProperty("promo", out var promoPriceElement)
+            && promoPriceElement.ValueKind is JsonValueKind.Number;
+
+        if (!hasRegularPrice && !hasPromoPrice)
+        {
+            return false;
+        }
+
+        var regularPrice = hasRegularPrice
+            ? regularPriceElement.GetDecimal()
+            : promoPriceElement.GetDecimal();
+        var hasPromo = hasPromoPrice;
 
         var promoEndDate = string.Empty;
         if (
             hasPromo
-            && priceElement.TryGetProperty("expirationDate", out var expirationDateElement)
+            && priceValue.TryGetProperty("expirationDate", out var expirationDateElement)
             && expirationDateElement.TryGetProperty("value", out var expirationValueElement)
             && expirationValueElement.ValueKind != JsonValueKind.Null
         )
@@ -283,14 +295,25 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
             promoEndDate = expirationValueElement.GetString() ?? string.Empty;
         }
 
+        var upc = GetString(item, "upc");
+        if (string.IsNullOrWhiteSpace(upc))
+        {
+            upc = GetString(itemValue, "upc");
+        }
+
+        if (string.IsNullOrWhiteSpace(upc))
+        {
+            return false;
+        }
+
         product = new KrogerProduct
         {
             Query = query,
             ProductId = GetString(item, "productId"),
-            Upc = GetString(item, "upc"),
+            Upc = upc,
             Description = GetString(item, "description"),
             Brand = GetString(item, "brand"),
-            Size = GetString(firstItem, "size"),
+            Size = GetString(itemValue, "size"),
             ImageUrl = GetImageUrl(item),
             Price = hasPromo ? promoPriceElement.GetDecimal() : regularPrice,
             RegularPrice = regularPrice,
@@ -298,7 +321,23 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
             PromoEndDate = promoEndDate,
         };
 
-        return !string.IsNullOrWhiteSpace(product.Upc);
+        return true;
+    }
+
+    private static JsonElement? FindPricedItem(JsonElement items, out JsonElement? priceElement)
+    {
+        for (var i = 0; i < items.GetArrayLength(); i++)
+        {
+            var item = items[i];
+            if (item.TryGetProperty("price", out var price) && price.ValueKind == JsonValueKind.Object)
+            {
+                priceElement = price;
+                return item;
+            }
+        }
+
+        priceElement = null;
+        return null;
     }
 
     private static string GetString(JsonElement element, string propertyName)
