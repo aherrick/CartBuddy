@@ -32,6 +32,7 @@ public partial class MainPage : ContentPage
         });
 
         _viewModel.SearchGroups.CollectionChanged += OnSearchGroupsCollectionChanged;
+        _viewModel.ScrollToItem = item => SearchListView.ScrollTo(item, Microsoft.Maui.Controls.ScrollToPosition.End, true);
     }
 
     private void OnSearchGroupsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)

@@ -46,6 +46,8 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _isAiCleanupEnabled;
 
+    public Action<ProductMatch> ScrollToItem { get; set; }
+
     public ObservableCollection<SearchGroup> SearchGroups { get; } = [];
 
     public ObservableCollection<CartLine> CartItems { get; } = [];
@@ -221,11 +223,17 @@ public partial class MainViewModel : ObservableObject
                 group.PageSize
             );
             group.AddMatches(page.Results);
+            ProductMatch lastAdded = null;
             foreach (var product in page.Results)
             {
                 AllProducts.Add(product);
+                lastAdded = product;
             }
             GroupStateVersion++;
+            if (lastAdded is not null)
+            {
+                ScrollToItem?.Invoke(lastAdded);
+            }
         }
         catch (Exception ex)
         {
