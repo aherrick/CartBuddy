@@ -4,7 +4,6 @@ using CartBuddy.ViewModels;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using Syncfusion.Maui.DataSource;
-using Syncfusion.Maui.DataSource.Extensions;
 
 namespace CartBuddy;
 
@@ -71,29 +70,9 @@ public partial class MainPage : ContentPage
             return;
         }
 
-        SearchListView.CanMaintainScrollPosition = true;
-
-        // Since AutoExpandGroups is false, calling Refresh() will collapse everything.
-        // We capture the currently expanded groups first so we can restore them.
-        var expandedKeys = SearchListView.DataSource.Groups
-            .OfType<GroupResult>()
-            .Where(g => g.IsExpand)
-            .Select(g => g.Key)
-            .ToList();
-
-        // Refresh applies new data (like View More items)
-        SearchListView.DataSource.Refresh();
-
-        // Restore the expanded state of any groups that were already open
-        foreach (var group in SearchListView.DataSource.Groups.OfType<GroupResult>())
-        {
-            if (expandedKeys.Contains(group.Key))
-            {
-                SearchListView.ExpandGroup(group);
-            }
-        }
-
-        SearchListView.CanMaintainScrollPosition = false;
+        // Refresh the visual container without rebuilding DataSource groups,
+        // which prevents collapse/re-open jitter while still updating headers.
+        SearchListView.RefreshView();
     }
 
     protected override void OnAppearing()
