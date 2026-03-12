@@ -212,7 +212,7 @@
                                  IsVisible="{Binding IsCartOpen}"
                                  IsModal="True"
                                  IsCancelable="True"
-                                 IsDraggable="True"
+                                 IsDraggable="{OnPlatform Android=True, iOS=True, MacCatalyst=True, WinUI=False}"
                                  HasHandle="True"
                                  ShowHeader="False"
                                  States="Medium,Large"
@@ -220,16 +220,14 @@
             <bottomsheet:BottomSheetContent>
                 <bottomsheet:BottomSheetContent.ContentTemplate>
                     <DataTemplate>
-                        <Grid Padding="10,10,10,12"
-                              RowDefinitions="Auto,Auto,*"
-                              RowSpacing="12">
-                            <VerticalStackLayout Grid.Row="0" Spacing="2">
+                        <VerticalStackLayout Padding="10,10,10,12"
+                                             Spacing="12">
+                            <VerticalStackLayout Spacing="2">
                                 <Label Text="Cart" FontSize="22" FontAttributes="Bold" />
                                 <Label Text="{Binding CartSummary}" FontSize="13" TextColor="{StaticResource Gray400}" />
                             </VerticalStackLayout>
 
-                            <Grid Grid.Row="1"
-                                  ColumnDefinitions="*,Auto"
+                            <Grid ColumnDefinitions="*,Auto"
                                   ColumnSpacing="10"
                                   IsVisible="{Binding HasCartItems}">
                                 <Button Text="Checkout" Command="{Binding CheckoutCommand}" />
@@ -246,11 +244,12 @@
                                         TextColor="{StaticResource White}" />
                             </Grid>
 
-                            <CollectionView Grid.Row="2"
+                            <CollectionView
                                             ItemsSource="{Binding CartItems}"
                                             SelectionMode="None"
-                                            VerticalOptions="Fill"
-                                            VerticalScrollBarVisibility="Never">
+                                            HeightRequest="{OnPlatform Android=-1, iOS=-1, MacCatalyst=-1, WinUI=420}"
+                                            VerticalOptions="FillAndExpand"
+                                            VerticalScrollBarVisibility="Always">
                                 <CollectionView.EmptyView>
                                     <Label Text="Your cart is empty" FontSize="14" HorizontalOptions="Center"
                                            TextColor="{StaticResource Gray400}" />
@@ -272,7 +271,7 @@
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
-                        </Grid>
+                        </VerticalStackLayout>
                     </DataTemplate>
                 </bottomsheet:BottomSheetContent.ContentTemplate>
             </bottomsheet:BottomSheetContent>

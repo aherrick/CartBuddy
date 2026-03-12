@@ -1,5 +1,6 @@
 using CartBuddy.Services;
 using CartBuddy.ViewModels;
+using CommunityToolkit.Maui;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Plugin.Maui.BottomSheet.Hosting;
@@ -16,6 +17,7 @@ public static class MauiProgram
 
         builder
             .UseMauiApp<App>()
+            .UseMauiCommunityToolkit(options => options.SetShouldEnableSnackbarOnWindows(true))
             .ConfigureSyncfusionCore()
             .UseBottomSheet()
             .ConfigureFonts(fonts =>

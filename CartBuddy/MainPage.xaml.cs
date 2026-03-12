@@ -51,6 +51,15 @@ public partial class MainPage : ContentPage
         }
     }
 
+    protected override void OnNavigatingFrom(NavigatingFromEventArgs args)
+    {
+        base.OnNavigatingFrom(args);
+        if (_viewModel.IsCartOpen)
+        {
+            _viewModel.IsCartOpen = false;
+        }
+    }
+
     private void OnToggleExpandAll(object sender, EventArgs e)
     {
         if (_viewModel.AllGroupsExpanded)

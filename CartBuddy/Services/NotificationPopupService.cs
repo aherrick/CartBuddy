@@ -1,3 +1,6 @@
+using CommunityToolkit.Maui.Alerts;
+using CommunityToolkit.Maui.Core;
+
 namespace CartBuddy.Services;
 
 public enum NotificationPopupType
@@ -14,123 +17,35 @@ public interface INotificationPopupService
 
 public class NotificationPopupService : INotificationPopupService
 {
-    private View _currentToast;
-    private CancellationTokenSource _dismissTokenSource;
-
     public async Task Show(string message, NotificationPopupType type = NotificationPopupType.Info)
     {
-        await MainThread.InvokeOnMainThreadAsync(async () =>
+        var (bgColor, textColor) = type switch
         {
-            var page = Shell.Current?.CurrentPage as ContentPage;
-            if (page?.Content is not Layout layout)
-            {
-                return;
-            }
-
-            if (_currentToast is not null)
-            {
-                layout.Children.Remove(_currentToast);
-                _currentToast = null;
-            }
-
-            _dismissTokenSource?.Cancel();
-            _dismissTokenSource = new CancellationTokenSource();
-
-            var toast = CreateToast(message, type);
-            _currentToast = toast;
-            toast.Opacity = 0;
-            toast.TranslationY = -10;
-            toast.ZIndex = 1000;
-
-            layout.Children.Add(toast);
-
-            await Task.WhenAll(
-                toast.FadeToAsync(1, 160, Easing.CubicOut),
-                toast.TranslateToAsync(0, 0, 160, Easing.CubicOut)
-            );
-
-            try
-            {
-                await Task.Delay(2200, _dismissTokenSource.Token);
-            }
-            catch (TaskCanceledException)
-            {
-                return;
-            }
-
-            await Task.WhenAll(
-                toast.FadeToAsync(0, 140, Easing.CubicIn),
-                toast.TranslateToAsync(0, -10, 140, Easing.CubicIn)
-            );
-
-            if (_currentToast is not null)
-            {
-                layout.Children.Remove(_currentToast);
-                _currentToast = null;
-            }
-        });
-    }
-
-    private static Border CreateToast(string message, NotificationPopupType type)
-    {
-        var (icon, color, bgColor) = type switch
-        {
-            NotificationPopupType.Success => (
-                "\uF00C",
-                Color.FromArgb("#2e7d32"),
-                Color.FromArgb("#e8f5e9")
-            ),
-            NotificationPopupType.Error => (
-                "\uF071",
-                Color.FromArgb("#c62828"),
-                Color.FromArgb("#ffebee")
-            ),
-            _ => ("\uF05A", Color.FromArgb("#1565c0"), Color.FromArgb("#e3f2fd")),
+            NotificationPopupType.Success => (Color.FromArgb("#2e7d32"), Colors.White),
+            NotificationPopupType.Error => (Color.FromArgb("#c62828"), Colors.White),
+            _ => (Color.FromArgb("#1565c0"), Colors.White),
         };
 
-        var border = new Border
+        var options = new SnackbarOptions
         {
-            HorizontalOptions = LayoutOptions.Center,
-            VerticalOptions = LayoutOptions.Start,
-            Margin = new Thickness(16, 12, 16, 0),
-            Padding = new Thickness(16, 10),
             BackgroundColor = bgColor,
-            Stroke = color,
-            StrokeThickness = 1,
-            StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 8 },
-            InputTransparent = true,
-            Content = new Grid
-            {
-                ColumnDefinitions =
-                {
-                    new ColumnDefinition { Width = GridLength.Auto },
-                    new ColumnDefinition { Width = GridLength.Star },
-                },
-                ColumnSpacing = 10,
-            },
+            TextColor = textColor,
+            CornerRadius = new CornerRadius(8),
+            Font = Microsoft.Maui.Font.SystemFontOfSize(14),
         };
 
-        var grid = (Grid)border.Content;
-        var iconLabel = new Label
-        {
-            Text = icon,
-            FontFamily = "FaSolid",
-            FontSize = 14,
-            TextColor = color,
-            VerticalOptions = LayoutOptions.Center,
-        };
-        var messageLabel = new Label
-        {
-            Text = message,
-            TextColor = Color.FromArgb("#333333"),
-            FontSize = 14,
-            LineBreakMode = LineBreakMode.TailTruncation,
-            VerticalOptions = LayoutOptions.Center,
-        };
-        Grid.SetColumn(messageLabel, 1);
-        grid.Children.Add(iconLabel);
-        grid.Children.Add(messageLabel);
+        var page = Shell.Current?.CurrentPage as ContentPage;
 
-        return border;
+        // Prefer a named top anchor; fall back to the first child of the root layout,
+        // which is always the topmost visual element regardless of page type.
+        IView anchor = page?.FindByName<IView>("TopBar");
+        if (anchor is null && page?.Content is Layout root && root.Children.Count > 0)
+        {
+            anchor = root.Children[0];
+        }
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await Snackbar.Make(message, duration: TimeSpan.FromSeconds(2.5), visualOptions: options, anchor: anchor)
+            .Show(cts.Token);
     }
 }
