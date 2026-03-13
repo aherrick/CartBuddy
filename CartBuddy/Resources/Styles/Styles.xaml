@@ -21,8 +21,7 @@
     <Style x:Key="PopupSurfaceBorder" TargetType="Border">
         <Setter Property="Margin" Value="16" />
         <Setter Property="Padding" Value="0" />
-        <Setter Property="HorizontalOptions" Value="Center" />
-        <Setter Property="MaximumWidthRequest" Value="1120" />
+        <Setter Property="MaximumWidthRequest" Value="{OnPlatform WinUI=1120, iOS=10000, Android=10000, MacCatalyst=10000}" />
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}" />
         <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray500}}" />
         <Setter Property="StrokeThickness" Value="1" />
