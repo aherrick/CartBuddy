@@ -299,6 +299,7 @@ public partial class MainViewModel : ObservableObject
                 $"Added {cartItems.Count} lines to your Kroger cart",
                 NotificationPopupType.Success
             );
+            await Launcher.Default.OpenAsync("https://www.kroger.com/cart");
         }
         catch (TaskCanceledException)
         {
