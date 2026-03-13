@@ -12,12 +12,7 @@
     CanBeDismissedByTappingOutsideOfPopup="True">
     <Border
         x:Name="CartContainer"
-        Margin="16"
-        Padding="0"
-        BackgroundColor="{AppThemeBinding Light={StaticResource White},
-                                          Dark={StaticResource Gray900}}"
-        Stroke="Transparent"
-        StrokeShape="RoundRectangle 16">
+        Style="{StaticResource PopupSurfaceBorder}">
         <Grid
             Padding="16,16,16,20"
             RowDefinitions="Auto,Auto,*"

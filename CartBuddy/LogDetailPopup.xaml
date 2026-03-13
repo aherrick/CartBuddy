@@ -15,11 +15,7 @@
         <converters:DirectionColorConverter x:Key="DirectionColorConverter" />
     </toolkit:Popup.Resources>
 
-    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
-            Margin="16"
-            StrokeShape="RoundRectangle 16"
-            Stroke="Transparent"
-            Padding="0">
+    <Border Style="{StaticResource PopupSurfaceBorder}">
         <VerticalStackLayout Padding="16,12,16,32" Spacing="12">
 
             <!-- Title row -->
