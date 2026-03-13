@@ -3,7 +3,6 @@ using CartBuddy.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using CommunityToolkit.Maui.Extensions;
 
 namespace CartBuddy.ViewModels;
 
@@ -32,23 +31,6 @@ public partial class LogsViewModel(ICartBuddyApi api, INotificationPopupService 
         }
 
         OnPropertyChanged(nameof(TransactionCount));
-    }
-
-    [RelayCommand]
-    public async Task SelectEntry(ApiLogEntry entry)
-    {
-        if (entry is null)
-        {
-            return;
-        }
-
-        SelectedEntry = entry;
-        
-        var page = Shell.Current?.CurrentPage;
-        if (page is not null)
-        {
-            await page.ShowPopupAsync(new LogDetailPopup(this), null);
-        }
     }
 
     [RelayCommand]

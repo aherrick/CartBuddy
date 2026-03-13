@@ -35,7 +35,7 @@ public static class EndpointExtensions
             "/cleanup",
             async (CleanupRequest req, AiCleanupService aiCleanup) =>
             {
-                var cleanedItems = await aiCleanup.CleanupList(req.Items);
+                var cleanedItems = await aiCleanup.CleanupList(req.Items ?? []);
                 return Results.Ok(new CleanupResponse { CleanedItems = cleanedItems });
             }
         );

@@ -4,11 +4,11 @@ using OpenAI.Chat;
 
 namespace CartBuddy.Server;
 
-public class AiCleanupService
+public class AiCleanupService(IConfiguration config)
 {
-    private readonly ChatClient _chatClient;
+    private readonly ChatClient _chatClient = CreateChatClient(config);
 
-    public AiCleanupService(IConfiguration config)
+    private static ChatClient CreateChatClient(IConfiguration config)
     {
         var endpoint =
             config["AzureOpenAI:Endpoint"]
@@ -19,7 +19,7 @@ public class AiCleanupService
         var deploymentName = config["AzureOpenAI:DeploymentName"] ?? "gpt-4o";
 
         var client = new AzureOpenAIClient(new Uri(endpoint), new AzureKeyCredential(apiKey));
-        _chatClient = client.GetChatClient(deploymentName);
+        return client.GetChatClient(deploymentName);
     }
 
     public async Task<List<string>> CleanupList(List<string> rawItems)

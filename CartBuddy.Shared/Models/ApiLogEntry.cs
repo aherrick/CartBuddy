@@ -5,9 +5,9 @@ public class ApiLogEntry
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid TransactionId { get; set; }
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-    public string MethodName { get; set; } = string.Empty;
+    public string MethodName { get; set; }
     public ApiLogDirection Direction { get; set; }
-    public string Payload { get; set; } = string.Empty;
+    public string Payload { get; set; }
 
     public bool IsRawKroger => Direction is ApiLogDirection.KrogerRequest or ApiLogDirection.KrogerResponse;
 

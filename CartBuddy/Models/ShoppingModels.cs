@@ -179,9 +179,4 @@ public class SearchGroup(string query, int totalCount, int pageSize) : Observabl
     }
 }
 
-public class ProductSearchPage(List<ProductMatch> results, int totalCount)
-{
-    public List<ProductMatch> Results { get; } = results;
-
-    public int TotalCount { get; } = totalCount;
-}
+public record ProductSearchPage(List<ProductMatch> Results, int TotalCount);

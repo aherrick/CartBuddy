@@ -19,7 +19,6 @@
         <converters:DirectionColorConverter x:Key="DirectionColorConverter" />
         <converters:DirectionGlyphConverter x:Key="DirectionGlyphConverter" />
         <converters:ApiLogGroupHeaderConverter x:Key="ApiLogGroupHeaderConverter" />
-        <converters:SyncfusionItemTappedEventArgsConverter x:Key="SyncfusionItemTappedEventArgsConverter" />
     </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,*">
@@ -53,12 +52,8 @@
                                AutoFitMode="Height"
                                GroupHeaderSize="58"
                                AllowGroupExpandCollapse="False"
-                               IsStickyGroupHeader="True">
-            <sfListView:SfListView.Behaviors>
-                <toolkit:EventToCommandBehavior EventName="ItemTapped"
-                                                Command="{Binding SelectEntryCommand}"
-                                                EventArgsConverter="{StaticResource SyncfusionItemTappedEventArgsConverter}" />
-            </sfListView:SfListView.Behaviors>
+                               IsStickyGroupHeader="True"
+                               ItemTapped="OnItemTapped">
             <sfListView:SfListView.DataSource>
                 <data:DataSource AutoExpandGroups="True">
                     <data:DataSource.GroupDescriptors>
