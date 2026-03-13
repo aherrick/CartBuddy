@@ -6,13 +6,15 @@ public class AppPopup : Popup
 {
     private const string PopupSurfaceName = "PopupSurface";
     private const double WindowsPopupMaxWidth = 1120;
+    private const double IosPopupWidth = 380;
+    private const double PopupHorizontalMargin = 32;
 
     public AppPopup()
     {
-        Opened += (_, _) => ApplyWindowsLayout();
+        Opened += (_, _) => ApplyPlatformLayout();
     }
 
-    private void ApplyWindowsLayout()
+    private void ApplyPlatformLayout()
     {
         if (this.FindByName<View>(PopupSurfaceName) is not { } surface)
         {
@@ -20,14 +22,38 @@ public class AppPopup : Popup
         }
 
         HorizontalOptions = LayoutOptions.Fill;
-        surface.HorizontalOptions = LayoutOptions.Fill;
 
         if (DeviceInfo.Platform == DevicePlatform.WinUI)
         {
+            surface.HorizontalOptions = LayoutOptions.Fill;
+            surface.ClearValue(VisualElement.WidthRequestProperty);
             surface.MaximumWidthRequest = WindowsPopupMaxWidth;
             return;
         }
 
+        if (DeviceInfo.Platform == DevicePlatform.iOS)
+        {
+            surface.HorizontalOptions = LayoutOptions.Center;
+            surface.ClearValue(VisualElement.MaximumWidthRequestProperty);
+
+            var popupWindow = Window ?? Application.Current?.Windows.FirstOrDefault();
+            if (popupWindow?.Width > 0)
+            {
+                surface.WidthRequest = Math.Min(
+                    IosPopupWidth,
+                    Math.Max(0, popupWindow.Width - PopupHorizontalMargin)
+                );
+            }
+            else
+            {
+                surface.WidthRequest = IosPopupWidth;
+            }
+
+            return;
+        }
+
+        surface.HorizontalOptions = LayoutOptions.Fill;
+        surface.ClearValue(VisualElement.WidthRequestProperty);
         surface.ClearValue(VisualElement.MaximumWidthRequestProperty);
     }
 }
