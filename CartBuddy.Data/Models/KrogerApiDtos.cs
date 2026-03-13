@@ -2,6 +2,17 @@ using System.Text.Json.Serialization;
 
 namespace CartBuddy.Data.Models;
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum KrogerStockLevel
+{
+    [JsonStringEnumMemberName("HIGH")]
+    High,
+    [JsonStringEnumMemberName("LOW")]
+    Low,
+    [JsonStringEnumMemberName("TEMPORARILY_OUT_OF_STOCK")]
+    TemporarilyOutOfStock,
+}
+
 public class KrogerProductResponse
 {
     [JsonPropertyName("data")]
@@ -72,6 +83,16 @@ public class KrogerItemVariant
 
     [JsonPropertyName("price")]
     public KrogerPrice Price { get; set; }
+
+    [JsonPropertyName("inventory")]
+    public KrogerInventory Inventory { get; set; }
+}
+
+public class KrogerInventory
+{
+    [JsonPropertyName("stockLevel")]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public KrogerStockLevel StockLevel { get; set; }
 }
 
 public class KrogerPrice

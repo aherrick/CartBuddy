@@ -28,6 +28,6 @@ public partial class LogsPage : ContentPage
         }
 
         _viewModel.SelectedEntry = entry;
-        await this.ShowPopupAsync(new LogDetailPopup(_viewModel));
+        await this.ShowPopupAsync(new LogDetailPopup(_viewModel), null);
     }
 }

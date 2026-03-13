@@ -273,11 +273,14 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
             return null;
         }
 
-        // Pick ONE canonical variant that has a price
-        var variant = item.Items.FirstOrDefault(v => v.Price is not null);
+        // Pick ONE canonical variant that has a price and is in stock
+        var variant = item.Items.FirstOrDefault(v =>
+            v.Price is not null &&
+            v.Inventory?.StockLevel != KrogerStockLevel.TemporarilyOutOfStock
+        );
         if (variant is null)
         {
-            return null;  // No priced variant = skip this product
+            return null;  // No priced, in-stock variant = skip this product
         }
 
         var regularPrice = variant.Price.Regular;
