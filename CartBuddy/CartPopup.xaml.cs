@@ -15,7 +15,7 @@ public partial class CartPopup : Popup
 
     private async void OnClearCartClicked(object sender, EventArgs e)
     {
-        var shouldClear = await Shell.Current.CurrentPage.DisplayAlert(
+        var shouldClear = await Shell.Current.CurrentPage.DisplayAlertAsync(
             "Clear cart?",
             "This will remove all cart items and reset your selected matches.",
             "Clear",

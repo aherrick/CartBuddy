@@ -11,12 +11,12 @@
     Background="Transparent"
     CanBeDismissedByTappingOutsideOfPopup="True">
     <Border
+        Margin="16"
         Padding="0"
         BackgroundColor="{AppThemeBinding Light={StaticResource White},
                                           Dark={StaticResource Gray900}}"
         Stroke="Transparent"
-        StrokeShape="RoundRectangle 16"
-        WidthRequest="400">
+        StrokeShape="RoundRectangle 16">
         <Grid
             Padding="16,16,16,20"
             RowDefinitions="Auto,Auto,*"

@@ -16,7 +16,16 @@ public static class MauiProgram
 
         builder
             .UseMauiApp<App>()
-            .UseMauiCommunityToolkit(options => options.SetShouldEnableSnackbarOnWindows(true))
+            .UseMauiCommunityToolkit(options =>
+            {
+                options.SetShouldEnableSnackbarOnWindows(true);
+                options.SetPopupOptionsDefaults(new DefaultPopupOptionsSettings
+                {
+                    PageOverlayColor = Colors.Transparent,
+                    Shape = null,
+                    Shadow = null,
+                });
+            })
             .ConfigureSyncfusionCore()
             .ConfigureFonts(fonts =>
             {

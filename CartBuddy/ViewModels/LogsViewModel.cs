@@ -55,7 +55,7 @@ public partial class LogsViewModel(ICartBuddyApi api, INotificationPopupService 
         var page = Shell.Current?.CurrentPage;
         if (page is not null)
         {
-            await page.ShowPopupAsync(new LogDetailPopup(this), new CommunityToolkit.Maui.PopupOptions());
+            await page.ShowPopupAsync(new LogDetailPopup(this), null);
         }
     }
 

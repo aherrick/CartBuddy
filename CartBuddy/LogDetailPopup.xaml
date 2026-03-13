@@ -8,7 +8,7 @@
                x:DataType="vm:LogsViewModel"
                CanBeDismissedByTappingOutsideOfPopup="True"
                HorizontalOptions="Fill"
-               VerticalOptions="End"
+               VerticalOptions="End">
                Background="Transparent">
 
     <toolkit:Popup.Resources>
@@ -16,7 +16,8 @@
     </toolkit:Popup.Resources>
 
     <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
-            StrokeShape="RoundRectangle 16,16,0,0"
+            Margin="16"
+            StrokeShape="RoundRectangle 16"
             Stroke="Transparent"
             Padding="0">
         <VerticalStackLayout Padding="16,12,16,32" Spacing="12">

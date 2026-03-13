@@ -1,7 +1,6 @@
 ﻿using CartBuddy.Converters;
 using CartBuddy.Models;
 using CartBuddy.ViewModels;
-using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Extensions;
 using System.Collections.Specialized;
 using Syncfusion.Maui.DataSource;
@@ -116,7 +115,7 @@ public partial class MainPage : ContentPage
     private async void OnCartClicked(object sender, EventArgs e)
     {
         _cartPopup = new CartPopup(_viewModel);
-        await this.ShowPopupAsync(_cartPopup, new PopupOptions());
+        await this.ShowPopupAsync(_cartPopup, null);
         _cartPopup = null;
     }
 
