@@ -3,7 +3,7 @@ using CommunityToolkit.Maui.Views;
 
 namespace CartBuddy;
 
-public partial class CartPopup : Popup
+public partial class CartPopup : AppPopup
 {
     private readonly MainViewModel _viewModel;
 

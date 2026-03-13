@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<toolkit:Popup
+<local:AppPopup
     x:Class="CartBuddy.CartPopup"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:controls="clr-namespace:CartBuddy.Controls"
+    xmlns:local="clr-namespace:CartBuddy"
     xmlns:models="clr-namespace:CartBuddy.Models"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:vm="clr-namespace:CartBuddy.ViewModels"
@@ -11,7 +12,7 @@
     Background="Transparent"
     CanBeDismissedByTappingOutsideOfPopup="True">
     <Border
-        x:Name="CartContainer"
+        x:Name="PopupSurface"
         Style="{StaticResource PopupSurfaceBorder}">
         <Grid
             Padding="16,16,16,20"
@@ -81,4 +82,4 @@
             </CollectionView>
         </Grid>
     </Border>
-</toolkit:Popup>
+</local:AppPopup>
