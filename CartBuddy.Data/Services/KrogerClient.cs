@@ -80,9 +80,10 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
         await SearchProductsRetryPipeline.ExecuteAsync(async _ =>
         {
             var token = await GetClientToken();
+            // Kroger's Product API documents "ais" as the Available In Store fulfillment filter.
             var requestUri = new Uri(
                 BaseUri,
-                $"products?filter.term={Uri.EscapeDataString(term)}&filter.locationId={Uri.EscapeDataString(locationId)}&filter.limit={limit}&filter.start={start + 1}"
+                $"products?filter.term={Uri.EscapeDataString(term)}&filter.locationId={Uri.EscapeDataString(locationId)}&filter.fulfillment=ais&filter.limit={limit}&filter.start={start + 1}"
             );
 
             using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
