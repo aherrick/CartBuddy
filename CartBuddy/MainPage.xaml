@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:CartBuddy.Models"
              xmlns:vm="clr-namespace:CartBuddy.ViewModels"
+             xmlns:local="clr-namespace:CartBuddy"
              xmlns:controls="clr-namespace:CartBuddy.Controls"
              xmlns:converters="clr-namespace:CartBuddy.Converters"
              xmlns:sfListView="clr-namespace:Syncfusion.Maui.ListView;assembly=Syncfusion.Maui.ListView"
@@ -96,7 +97,7 @@
                     </Border>
 
                     <Button Text="Search"
-                            Clicked="OnSearchClicked"
+                            Command="{Binding SearchCommand}"
                             HorizontalOptions="Start"
                             CornerRadius="6" />
                 </VerticalStackLayout>
@@ -146,6 +147,7 @@
                                 <Label.IsVisible>
                                     <MultiBinding Converter="{StaticResource GroupInfoConverter}" ConverterParameter="IsCompleted">
                                         <Binding Path="Key" />
+                                        <Binding Source="{x:Reference ThisPage}" Path="BindingContext.SearchGroups" />
                                         <Binding Source="{x:Reference ThisPage}" Path="BindingContext.GroupStateVersion" />
                                     </MultiBinding>
                                 </Label.IsVisible>
@@ -158,25 +160,28 @@
                             <Label.Text>
                                 <MultiBinding Converter="{StaticResource GroupInfoConverter}" ConverterParameter="PageSummary">
                                     <Binding Path="Key" />
+                                    <Binding Source="{x:Reference ThisPage}" Path="BindingContext.SearchGroups" />
                                     <Binding Source="{x:Reference ThisPage}" Path="BindingContext.GroupStateVersion" />
                                 </MultiBinding>
                             </Label.Text>
                         </Label>
                         <Button Grid.Column="3"
                                 Text="View More"
-                                Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.ViewMoreCommand}"
+                                Command="{Binding Source={x:Reference ThisPage}, Path=ViewMoreCommand}"
                                 Padding="12,6"
                                 FontSize="13"
                                 CornerRadius="6">
                             <Button.CommandParameter>
                                 <MultiBinding Converter="{StaticResource GroupInfoConverter}" ConverterParameter="Group">
                                     <Binding Path="Key" />
+                                    <Binding Source="{x:Reference ThisPage}" Path="BindingContext.SearchGroups" />
                                     <Binding Source="{x:Reference ThisPage}" Path="BindingContext.GroupStateVersion" />
                                 </MultiBinding>
                             </Button.CommandParameter>
                             <Button.IsVisible>
                                 <MultiBinding Converter="{StaticResource GroupInfoConverter}" ConverterParameter="HasMore">
                                     <Binding Path="Key" />
+                                    <Binding Source="{x:Reference ThisPage}" Path="BindingContext.SearchGroups" />
                                     <Binding Source="{x:Reference ThisPage}" Path="BindingContext.GroupStateVersion" />
                                 </MultiBinding>
                             </Button.IsVisible>
@@ -198,7 +203,7 @@
                         AccentColor="{StaticResource SaleRed}"
                         ShowPriceBadge="{Binding HasSale}"
                         PriceBadgeColor="{StaticResource SaleGreen}"
-                        ItemCommand="{Binding Source={x:Reference ThisPage}, Path=BindingContext.AddToCartCommand}"
+                        ItemCommand="{Binding AddToCartCommand, Source={RelativeSource AncestorType={x:Type local:MainPage}}}"
                         ItemCommandParameter="{Binding}"
                         PriceColor="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}" />
                 </DataTemplate>

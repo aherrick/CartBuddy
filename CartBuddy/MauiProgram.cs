@@ -1,7 +1,7 @@
 using CartBuddy.Services;
 using CartBuddy.ViewModels;
 using CommunityToolkit.Maui;
-using Microsoft.Extensions.Configuration;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using Refit;
 using Syncfusion.Maui.Core.Hosting;
@@ -39,6 +39,7 @@ public static class MauiProgram
             {
                 httpClient.BaseAddress = new Uri(Constants.CartBuddyServerBaseUrl);
             });
+        builder.Services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
         builder.Services.AddSingleton<INotificationPopupService, NotificationPopupService>();
 
         // ViewModels

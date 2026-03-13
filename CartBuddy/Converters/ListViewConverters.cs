@@ -1,7 +1,6 @@
-using System.Globalization;
+﻿using System.Globalization;
 using CartBuddy.Models;
 using CartBuddy.Shared.Models;
-using CartBuddy.ViewModels;
 using Syncfusion.Maui.DataSource.Extensions;
 
 namespace CartBuddy.Converters;
@@ -24,19 +23,30 @@ public class ExpandAllTextConverter : IValueConverter
         throw new NotImplementedException();
 }
 
+public class HasTextConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        value is string text && !string.IsNullOrWhiteSpace(text);
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+        throw new NotImplementedException();
+}
+
 public class GroupInfoConverter : IMultiValueConverter
 {
-    public MainViewModel ViewModel { get; set; }
-
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
         var param = parameter as string;
-        if (values[0] is not string query || ViewModel is null)
+        if (
+            values.Length < 2
+            || values[0] is not string query
+            || values[1] is not IEnumerable<SearchGroup> groups
+        )
         {
             return GetDefault(param);
         }
 
-        var group = ViewModel.SearchGroups.FirstOrDefault(g => g.Query == query);
+        var group = groups.FirstOrDefault(g => g.Query == query);
         if (group is null)
         {
             return GetDefault(param);
@@ -134,7 +144,7 @@ public class ApiLogGroupHeaderConverter : IValueConverter
             "MethodName" => latestEntry.MethodName,
             "EntryCountLabel" => entries.Count == 1 ? "1 entry" : $"{entries.Count} entries",
             "Timestamp" => latestEntry.Timestamp.ToString("MM/dd HH:mm:ss", culture),
-            "DirectionSummary" => string.Join(" • ", entries.Select(entry => entry.DirectionLabel)),
+            "DirectionSummary" => string.Join(" | ", entries.Select(entry => entry.DirectionLabel)),
             "TransactionId" => firstEntry.TransactionId.ToString(),
             _ => string.Empty
         };

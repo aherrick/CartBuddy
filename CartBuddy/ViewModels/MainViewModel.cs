@@ -4,6 +4,8 @@ using CartBuddy.Services;
 using CartBuddy.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CartBuddy.Messages;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace CartBuddy.ViewModels;
 
@@ -12,12 +14,18 @@ public partial class MainViewModel : ObservableObject
     private const int PageSize = 10;
 
     private readonly ICartBuddyApi _api;
+    private readonly IMessenger _messenger;
     private readonly INotificationPopupService _notifications;
 
-    public MainViewModel(ICartBuddyApi api, INotificationPopupService notifications)
+    public MainViewModel(
+        ICartBuddyApi api,
+        INotificationPopupService notifications,
+        IMessenger messenger
+    )
     {
         _api = api;
         _notifications = notifications;
+        _messenger = messenger;
         SearchGroups.CollectionChanged += (_, _) => UpdateSearchState();
         CartItems.CollectionChanged += (_, _) => UpdateCartState();
     }
@@ -36,10 +44,6 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isAiCleanupEnabled;
-
-    public Action CloseCartRequested { get; set; }
-
-    public Action<ProductMatch> ScrollToItem { get; set; }
 
     public ObservableCollection<SearchGroup> SearchGroups { get; } = [];
 
@@ -99,7 +103,6 @@ public partial class MainViewModel : ObservableObject
         {
             ClearSearch();
             CartItems.Clear();
-            UpdateCartState();
         }
         _lastKnownStoreId = currentStoreId;
 
@@ -194,7 +197,7 @@ public partial class MainViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            _ = ShowSnackbar($"Search failed: {ex.Message}", NotificationPopupType.Error);
+            await ShowSnackbar($"Search failed: {ex.Message}", NotificationPopupType.Error);
         }
         finally
         {
@@ -234,7 +237,7 @@ public partial class MainViewModel : ObservableObject
             GroupStateVersion++;
             if (lastAdded is not null)
             {
-                ScrollToItem?.Invoke(lastAdded);
+                _messenger.Send(new ScrollToProductMessage(lastAdded));
             }
         }
         catch (Exception ex)
@@ -291,7 +294,7 @@ public partial class MainViewModel : ObservableObject
             }
 
             ClearCart();
-            CloseCartRequested?.Invoke();
+            _messenger.Send(new CloseCartRequestedMessage());
             await ShowSnackbar(
                 $"Added {cartItems.Count} lines to your Kroger cart",
                 NotificationPopupType.Success
@@ -324,6 +327,7 @@ public partial class MainViewModel : ObservableObject
         {
             existingLine.Quantity++;
             existingLine.SourceQueries.Add(match.Query);
+            UpdateCartState();
         }
         else
         {
@@ -340,8 +344,6 @@ public partial class MainViewModel : ObservableObject
             cartLine.SourceQueries.Add(match.Query);
             CartItems.Add(cartLine);
         }
-
-        UpdateCartState();
         await ShowSnackbar("Added to cart", NotificationPopupType.Success);
     }
 
@@ -369,6 +371,7 @@ public partial class MainViewModel : ObservableObject
         if (item.Quantity <= 0)
         {
             CartItems.Remove(item);
+            return;
         }
 
         UpdateCartState();
@@ -378,7 +381,6 @@ public partial class MainViewModel : ObservableObject
     private void ClearCart()
     {
         CartItems.Clear();
-        UpdateCartState();
     }
 
     [RelayCommand]
@@ -388,7 +390,6 @@ public partial class MainViewModel : ObservableObject
         AllProducts.Clear();
         RawItemsText = string.Empty;
         IsItemsEditorVisible = true;
-        UpdateSearchState();
     }
 
     [RelayCommand]

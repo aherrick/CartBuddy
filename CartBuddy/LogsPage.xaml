@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:CartBuddy.Shared.Models;assembly=CartBuddy.Shared"
@@ -67,7 +67,7 @@
                 </data:DataSource>
             </sfListView:SfListView.DataSource>
             <sfListView:SfListView.EmptyView>
-                <Label Text="No logs yet — make some API calls and refresh"
+                <Label Text="No logs yet - make some API calls and refresh"
                        FontSize="14"
                        HorizontalOptions="Center"
                        VerticalOptions="Center"

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
                xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
@@ -8,7 +8,7 @@
                x:DataType="vm:LogsViewModel"
                CanBeDismissedByTappingOutsideOfPopup="True"
                HorizontalOptions="Fill"
-               VerticalOptions="End">
+               VerticalOptions="End"
                Background="Transparent">
 
     <toolkit:Popup.Resources>
@@ -31,7 +31,7 @@
                     <Label Text="{Binding SelectedEntry.DirectionLabel}"
                            FontSize="13"
                            TextColor="{StaticResource Gray400}" />
-                    <Label Text="•"
+                    <Label Text="|"
                            FontSize="13"
                            TextColor="{StaticResource Gray400}" />
                     <Label Text="{Binding SelectedEntry.Timestamp, StringFormat='{0:yyyy-MM-dd HH:mm:ss} UTC'}"

@@ -1,7 +1,9 @@
-﻿using CartBuddy.Converters;
+﻿using CartBuddy.Messages;
 using CartBuddy.Models;
 using CartBuddy.ViewModels;
 using CommunityToolkit.Maui.Extensions;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.Specialized;
 using Syncfusion.Maui.DataSource;
 
@@ -12,31 +14,38 @@ public partial class MainPage : ContentPage
     private readonly MainViewModel _viewModel;
     private CartPopup _cartPopup;
 
-    public MainPage(MainViewModel viewModel)
+    public MainPage(MainViewModel viewModel, IMessenger messenger)
     {
         InitializeComponent();
         BindingContext = _viewModel = viewModel;
 
-        // Wire converter so it can look up SearchGroup metadata by query key
-        if (Resources["GroupInfoConverter"] is GroupInfoConverter conv)
-        {
-            conv.ViewModel = viewModel;
-        }
-
         // Keep search groups collapsed natively to prevent an open-to-close layout jolt
-        // upon initial population of the shopping list
+        // upon initial population of the shopping list.
         SearchListView.DataSource.AutoExpandGroups = false;
 
-        // Group the flat AllProducts list by Query term
-        SearchListView.DataSource.GroupDescriptors.Add(new Syncfusion.Maui.DataSource.GroupDescriptor
-        {
-            PropertyName = "Query"
-        });
+        // Group the flat AllProducts list by query term.
+        SearchListView.DataSource.GroupDescriptors.Add(new GroupDescriptor { PropertyName = "Query" });
 
         _viewModel.SearchGroups.CollectionChanged += OnSearchGroupsCollectionChanged;
-        _viewModel.ScrollToItem = item => SearchListView.ScrollTo(item, Microsoft.Maui.Controls.ScrollToPosition.End, true);
-        _viewModel.CloseCartRequested = () => _ = _cartPopup?.CloseAsync();
+
+        messenger.Register<ScrollToProductMessage>(this, static (recipient, message) =>
+        {
+            var page = (MainPage)recipient;
+            page.SearchListView.ScrollTo(message.Item, ScrollToPosition.End, true);
+        });
+        messenger.Register<CloseCartRequestedMessage>(this, static (recipient, message) =>
+        {
+            var page = (MainPage)recipient;
+            if (page._cartPopup is not null)
+            {
+                _ = page._cartPopup.CloseAsync();
+            }
+        });
     }
+
+    public IAsyncRelayCommand<SearchGroup> ViewMoreCommand => _viewModel.ViewMoreCommand;
+
+    public IAsyncRelayCommand<ProductMatch> AddToCartCommand => _viewModel.AddToCartCommand;
 
     private void OnSearchGroupsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
     {
@@ -117,19 +126,6 @@ public partial class MainPage : ContentPage
         _cartPopup = new CartPopup(_viewModel);
         await this.ShowPopupAsync(_cartPopup, null);
         _cartPopup = null;
-    }
-
-    private async void OnSearchClicked(object sender, EventArgs e)
-    {
-        RawItemsEditor.Unfocus();
-        await _viewModel.SearchCommand.ExecuteAsync(null);
-
-        if (_viewModel.HasResults)
-        {
-            // Syncfusion automatically renders new groups collapsed (via AutoExpandGroups = false)
-            // We just ensure the expand/collapse toggle button state resets properly.
-            _viewModel.AllGroupsExpanded = false;
-        }
     }
 
     private async void OnClearSearchClicked(object sender, EventArgs e)

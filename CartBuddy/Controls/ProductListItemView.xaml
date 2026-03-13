@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CartBuddy.Converters"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="CartBuddy.Controls.ProductListItemView"
              x:Name="ThisView">
+    <ContentView.Resources>
+        <converters:HasTextConverter x:Key="HasTextConverter" />
+        <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+    </ContentView.Resources>
+
     <ContentView.GestureRecognizers>
         <TapGestureRecognizer Command="{Binding ItemCommand, Source={x:Reference ThisView}}"
                               CommandParameter="{Binding ItemCommandParameter, Source={x:Reference ThisView}}" />
@@ -29,11 +36,11 @@
                 <Label Text="{Binding Subtitle, Source={x:Reference ThisView}}"
                        FontSize="13"
                        TextColor="{StaticResource Gray400}"
-                       IsVisible="{Binding HasSubtitle, Source={x:Reference ThisView}}" />
+                       IsVisible="{Binding Subtitle, Source={x:Reference ThisView}, Converter={StaticResource HasTextConverter}}" />
                 <Label Text="{Binding Detail, Source={x:Reference ThisView}}"
                        FontSize="13"
                        TextColor="{StaticResource Gray400}"
-                       IsVisible="{Binding HasDetail, Source={x:Reference ThisView}}" />
+                       IsVisible="{Binding Detail, Source={x:Reference ThisView}, Converter={StaticResource HasTextConverter}}" />
             </VerticalStackLayout>
 
             <VerticalStackLayout Grid.Column="2" Spacing="2" HorizontalOptions="End" VerticalOptions="Center">
@@ -54,18 +61,18 @@
                        FontAttributes="Bold"
                        HorizontalTextAlignment="End"
                        TextColor="{Binding PriceColor, Source={x:Reference ThisView}}"
-                       IsVisible="{Binding ShowPlainPrice, Source={x:Reference ThisView}}" />
+                       IsVisible="{Binding ShowPriceBadge, Source={x:Reference ThisView}, Converter={StaticResource InvertedBoolConverter}}" />
                 <Label Text="{Binding SecondaryPriceText, Source={x:Reference ThisView}}"
                        FontSize="11"
                        HorizontalTextAlignment="End"
                        TextColor="{StaticResource Gray400}"
                        TextDecorations="Strikethrough"
-                       IsVisible="{Binding HasSecondaryPriceText, Source={x:Reference ThisView}}" />
+                       IsVisible="{Binding SecondaryPriceText, Source={x:Reference ThisView}, Converter={StaticResource HasTextConverter}}" />
                 <Label Text="{Binding AccentText, Source={x:Reference ThisView}}"
                        FontSize="11"
                        HorizontalTextAlignment="End"
                        TextColor="{Binding AccentColor, Source={x:Reference ThisView}}"
-                       IsVisible="{Binding HasAccentText, Source={x:Reference ThisView}}" />
+                       IsVisible="{Binding AccentText, Source={x:Reference ThisView}, Converter={StaticResource HasTextConverter}}" />
 
                 <HorizontalStackLayout Spacing="4"
                                        HorizontalOptions="End"
@@ -84,7 +91,7 @@
                             StrokeThickness="0"
                             StrokeShape="RoundRectangle 6"
                             BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray900}}">
-                        <Label Text="{Binding QuantityText, Source={x:Reference ThisView}}"
+                        <Label Text="{Binding Quantity, Source={x:Reference ThisView}}"
                                WidthRequest="18"
                                HorizontalTextAlignment="Center"
                                VerticalTextAlignment="Center" />

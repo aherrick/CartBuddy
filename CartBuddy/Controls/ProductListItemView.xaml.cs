@@ -1,4 +1,4 @@
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
 namespace CartBuddy.Controls;
 
@@ -8,10 +8,10 @@ public partial class ProductListItemView : ContentView
         BindableProperty.Create(nameof(Title), typeof(string), typeof(ProductListItemView), string.Empty);
 
     public static readonly BindableProperty SubtitleProperty =
-        BindableProperty.Create(nameof(Subtitle), typeof(string), typeof(ProductListItemView), string.Empty, propertyChanged: OnTextChanged);
+        BindableProperty.Create(nameof(Subtitle), typeof(string), typeof(ProductListItemView), string.Empty);
 
     public static readonly BindableProperty DetailProperty =
-        BindableProperty.Create(nameof(Detail), typeof(string), typeof(ProductListItemView), string.Empty, propertyChanged: OnTextChanged);
+        BindableProperty.Create(nameof(Detail), typeof(string), typeof(ProductListItemView), string.Empty);
 
     public static readonly BindableProperty ImageUrlProperty =
         BindableProperty.Create(nameof(ImageUrl), typeof(string), typeof(ProductListItemView), string.Empty);
@@ -20,10 +20,10 @@ public partial class ProductListItemView : ContentView
         BindableProperty.Create(nameof(PriceText), typeof(string), typeof(ProductListItemView), string.Empty);
 
     public static readonly BindableProperty SecondaryPriceTextProperty =
-        BindableProperty.Create(nameof(SecondaryPriceText), typeof(string), typeof(ProductListItemView), string.Empty, propertyChanged: OnTextChanged);
+        BindableProperty.Create(nameof(SecondaryPriceText), typeof(string), typeof(ProductListItemView), string.Empty);
 
     public static readonly BindableProperty AccentTextProperty =
-        BindableProperty.Create(nameof(AccentText), typeof(string), typeof(ProductListItemView), string.Empty, propertyChanged: OnTextChanged);
+        BindableProperty.Create(nameof(AccentText), typeof(string), typeof(ProductListItemView), string.Empty);
 
     public static readonly BindableProperty PriceColorProperty =
         BindableProperty.Create(nameof(PriceColor), typeof(Color), typeof(ProductListItemView), Colors.Black);
@@ -32,13 +32,7 @@ public partial class ProductListItemView : ContentView
         BindableProperty.Create(nameof(AccentColor), typeof(Color), typeof(ProductListItemView), Colors.Black);
 
     public static readonly BindableProperty ShowPriceBadgeProperty =
-        BindableProperty.Create(
-            nameof(ShowPriceBadge),
-            typeof(bool),
-            typeof(ProductListItemView),
-            false,
-            propertyChanged: OnPriceBadgeChanged
-        );
+        BindableProperty.Create(nameof(ShowPriceBadge), typeof(bool), typeof(ProductListItemView), false);
 
     public static readonly BindableProperty PriceBadgeColorProperty =
         BindableProperty.Create(nameof(PriceBadgeColor), typeof(Color), typeof(ProductListItemView), Colors.Transparent);
@@ -53,7 +47,7 @@ public partial class ProductListItemView : ContentView
         BindableProperty.Create(nameof(ShowQuantityControls), typeof(bool), typeof(ProductListItemView), false);
 
     public static readonly BindableProperty QuantityProperty =
-        BindableProperty.Create(nameof(Quantity), typeof(int), typeof(ProductListItemView), 0, propertyChanged: OnQuantityChanged);
+        BindableProperty.Create(nameof(Quantity), typeof(int), typeof(ProductListItemView), 0);
 
     public static readonly BindableProperty IncreaseCommandProperty =
         BindableProperty.Create(nameof(IncreaseCommand), typeof(ICommand), typeof(ProductListItemView));
@@ -67,8 +61,6 @@ public partial class ProductListItemView : ContentView
     public ProductListItemView()
     {
         InitializeComponent();
-        UpdateTextFlags();
-        UpdateQuantityText();
     }
 
     public string Title
@@ -177,46 +169,5 @@ public partial class ProductListItemView : ContentView
     {
         get => GetValue(QuantityCommandParameterProperty);
         set => SetValue(QuantityCommandParameterProperty, value);
-    }
-
-    public bool HasSubtitle => !string.IsNullOrWhiteSpace(Subtitle);
-
-    public bool HasDetail => !string.IsNullOrWhiteSpace(Detail);
-
-    public bool HasSecondaryPriceText => !string.IsNullOrWhiteSpace(SecondaryPriceText);
-
-    public bool HasAccentText => !string.IsNullOrWhiteSpace(AccentText);
-
-    public bool ShowPlainPrice => !ShowPriceBadge;
-
-    public string QuantityText { get; private set; }
-
-    private static void OnTextChanged(BindableObject bindable, object oldValue, object newValue)
-    {
-        ((ProductListItemView)bindable).UpdateTextFlags();
-    }
-
-    private static void OnQuantityChanged(BindableObject bindable, object oldValue, object newValue)
-    {
-        ((ProductListItemView)bindable).UpdateQuantityText();
-    }
-
-    private static void OnPriceBadgeChanged(BindableObject bindable, object oldValue, object newValue)
-    {
-        ((ProductListItemView)bindable).OnPropertyChanged(nameof(ShowPlainPrice));
-    }
-
-    private void UpdateTextFlags()
-    {
-        OnPropertyChanged(nameof(HasSubtitle));
-        OnPropertyChanged(nameof(HasDetail));
-        OnPropertyChanged(nameof(HasSecondaryPriceText));
-        OnPropertyChanged(nameof(HasAccentText));
-    }
-
-    private void UpdateQuantityText()
-    {
-        QuantityText = Quantity.ToString();
-        OnPropertyChanged(nameof(QuantityText));
     }
 }

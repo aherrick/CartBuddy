@@ -1,4 +1,4 @@
-using Blazored.LocalStorage;
+﻿using Blazored.LocalStorage;
 using Blazored.Toast.Services;
 using CartBuddy.Client.Services;
 using CartBuddy.Shared.Models;
@@ -82,7 +82,7 @@ public partial class Index
                         Icon = SweetAlertIcon.Success,
                         Text = "Your items were added to your Kroger cart.",
                         ShowCancelButton = true,
-                        ConfirmButtonText = "🛒 View on Kroger.com",
+                        ConfirmButtonText = "View on Kroger.com",
                         CancelButtonText = "Continue shopping",
                         ConfirmButtonColor = "#0033A0",
                         CancelButtonColor = "#6c757d",

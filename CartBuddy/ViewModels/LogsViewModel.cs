@@ -1,5 +1,4 @@
 using CartBuddy.Services;
-using CartBuddy.Models;
 using CartBuddy.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -11,9 +10,12 @@ namespace CartBuddy.ViewModels;
 public partial class LogsViewModel(ICartBuddyApi api, INotificationPopupService notifications) : ObservableObject
 {
     public ObservableCollection<ApiLogEntry> Logs { get; } = [];
-    public ObservableCollection<LogTransactionGroup> TransactionGroups { get; } = [];
 
-    public int TransactionCount => TransactionGroups.Count;
+    public int TransactionCount =>
+        Logs
+            .Select(entry => entry.TransactionId == Guid.Empty ? entry.Id : entry.TransactionId)
+            .Distinct()
+            .Count();
 
     [ObservableProperty]
     private ApiLogEntry _selectedEntry;
@@ -22,21 +24,11 @@ public partial class LogsViewModel(ICartBuddyApi api, INotificationPopupService 
     public async Task LoadLogs()
     {
         var entries = await api.GetLogs();
-        var groups = entries
-            .GroupBy(entry => entry.TransactionId == Guid.Empty ? entry.Id : entry.TransactionId)
-            .OrderByDescending(group => group.Max(entry => entry.Timestamp))
-            .Select(group => new LogTransactionGroup(group.Key, group));
 
         Logs.Clear();
         foreach (var entry in entries)
         {
             Logs.Add(entry);
-        }
-
-        TransactionGroups.Clear();
-        foreach (var group in groups)
-        {
-            TransactionGroups.Add(group);
         }
 
         OnPropertyChanged(nameof(TransactionCount));
