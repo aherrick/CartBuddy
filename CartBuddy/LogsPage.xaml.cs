@@ -28,8 +28,7 @@ public partial class LogsPage : ContentPage
             return;
         }
 
-        _viewModel.SelectedEntry = entry;
-        _logDetailPopup = new LogDetailPopup(_viewModel);
+        _logDetailPopup = new LogDetailPopup(entry);
         await this.ShowPopupAsync(_logDetailPopup, null);
         _logDetailPopup = null;
     }
