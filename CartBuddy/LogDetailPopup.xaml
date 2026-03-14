@@ -18,9 +18,16 @@
                    TextColor="{StaticResource Gray400}" />
 
             <ScrollView HeightRequest="320">
-                <Label x:Name="PayloadLabel"
-                       FontSize="12"
-                       LineBreakMode="CharacterWrap" />
+                <Border Padding="12"
+                        StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <Label x:Name="PayloadLabel"
+                           FontSize="12"
+                           LineBreakMode="CharacterWrap" />
+                </Border>
             </ScrollView>
         </VerticalStackLayout>
     </Border>

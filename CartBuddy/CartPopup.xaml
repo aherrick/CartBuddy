@@ -13,7 +13,6 @@
     CanBeDismissedByTappingOutsideOfPopup="True">
     <Border
         x:Name="PopupSurface"
-        MinimumHeightRequest="400"
         Style="{StaticResource PopupSurfaceBorder}">
         <Grid
             Padding="16,16,16,20"
@@ -62,10 +61,13 @@
                 Grid.Row="2"
                 ItemsSource="{Binding CartItems}"
                 SelectionMode="None"
+                HorizontalScrollBarVisibility="Never"
                 VerticalScrollBarVisibility="Never">
                 <CollectionView.EmptyView>
-                    <VerticalStackLayout Padding="0,8,0,0"
-                                         Spacing="6">
+                    <VerticalStackLayout HeightRequest="120"
+                                         Padding="0,8,0,0"
+                                         Spacing="6"
+                                         VerticalOptions="Center">
                         <Label Text="Your cart is empty"
                                FontSize="14"
                                FontAttributes="Bold" />
