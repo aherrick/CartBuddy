@@ -31,6 +31,7 @@
                     Text="Cart" />
                 <Label
                     FontSize="13"
+                    IsVisible="{Binding HasCartItems}"
                     Text="{Binding CartSummary}"
                     TextColor="{StaticResource Gray400}" />
             </VerticalStackLayout>
@@ -87,8 +88,12 @@
             <VerticalStackLayout
                 Grid.Row="2"
                 Padding="0,8,0,0"
-                Spacing="6"
+                  Spacing="8"
                 IsVisible="{Binding IsCartEmpty}">
+                  <Label Text="&#xF07A;"
+                      FontFamily="FaSolid"
+                      FontSize="28"
+                      TextColor="{StaticResource Gray400}" />
                 <Label Text="Your cart is empty"
                        FontSize="14"
                        FontAttributes="Bold" />
