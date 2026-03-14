@@ -13,6 +13,8 @@
     CanBeDismissedByTappingOutsideOfPopup="True">
     <Border
         x:Name="PopupSurface"
+        WidthRequest="{OnPlatform iOS=360}"
+        MinimumHeightRequest="320"
         VerticalOptions="Start"
         Style="{StaticResource PopupSurfaceBorder}">
         <Grid

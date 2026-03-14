@@ -17,6 +17,10 @@
                    FontSize="13"
                    TextColor="{StaticResource Gray400}" />
 
+                 <Label x:Name="DirectionLabel"
+                     FontSize="12"
+                     TextColor="{StaticResource Gray400}" />
+
                  <Button Text="Copy Payload"
                       Clicked="OnCopyPayloadClicked"
                       HorizontalOptions="Start"
