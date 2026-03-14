@@ -8,16 +8,13 @@
                 x:Class="CartBuddy.LogDetailPopup"
                 x:DataType="vm:LogsViewModel"
                 CanBeDismissedByTappingOutsideOfPopup="True"
-                HorizontalOptions="Fill"
-                VerticalOptions="End"
                 Background="Transparent">
-
-    <toolkit:Popup.Resources>
-        <converters:DirectionColorConverter x:Key="DirectionColorConverter" />
-    </toolkit:Popup.Resources>
 
     <Border x:Name="PopupSurface"
             Style="{StaticResource PopupSurfaceBorder}">
+        <Border.Resources>
+            <converters:DirectionColorConverter x:Key="DirectionColorConverter" />
+        </Border.Resources>
         <VerticalStackLayout Padding="16,12,16,32" Spacing="12">
 
             <!-- Title row -->

@@ -25,9 +25,16 @@ public class AppPopup : Popup
 
         if (DeviceInfo.Platform == DevicePlatform.WinUI)
         {
-            surface.HorizontalOptions = LayoutOptions.Fill;
-            surface.ClearValue(VisualElement.WidthRequestProperty);
-            surface.MaximumWidthRequest = WindowsPopupMaxWidth;
+            var popupWindow = Window ?? Application.Current?.Windows.FirstOrDefault();
+            var surfaceWidth = WindowsPopupMaxWidth;
+            if (popupWindow is { Width: > 0 })
+            {
+                surfaceWidth = Math.Min(WindowsPopupMaxWidth, Math.Max(0, popupWindow.Width - PopupHorizontalMargin));
+            }
+
+            surface.HorizontalOptions = LayoutOptions.Center;
+            surface.WidthRequest = surfaceWidth;
+            surface.ClearValue(VisualElement.MaximumWidthRequestProperty);
             return;
         }
 

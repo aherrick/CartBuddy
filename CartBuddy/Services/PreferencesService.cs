@@ -35,7 +35,7 @@ public static class PreferencesService
     }
 
     public static bool HasStore => !string.IsNullOrEmpty(StoreId);
-
+    
     public static bool UseAiCleanup
     {
         get => Preferences.Default.Get(nameof(UseAiCleanup), false);
@@ -51,11 +51,10 @@ public static class PreferencesService
             {
                 return [];
             }
-            return JsonSerializer.Deserialize<List<CartLine>>(json);
+            return JsonSerializer.Deserialize<List<CartLine>>(json) ?? [];
         }
         set => Preferences.Default.Set(nameof(Cart), JsonSerializer.Serialize(value));
     }
 
-    public static void ApplyTheme() =>
-        MainThread.BeginInvokeOnMainThread(() => Application.Current?.UserAppTheme = Theme);
+    public static void ApplyTheme() => MainThread.BeginInvokeOnMainThread(() => Application.Current?.UserAppTheme = Theme);
 }
