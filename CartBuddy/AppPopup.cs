@@ -119,8 +119,8 @@ public class AppPopup : Popup
         };
 
         surface.Content = null;
-        chromeGrid.Children.Add(closeButton);
         chromeGrid.Children.Add(existingContent);
+        chromeGrid.Children.Add(closeButton);
         surface.Content = chromeGrid;
     }
 }
