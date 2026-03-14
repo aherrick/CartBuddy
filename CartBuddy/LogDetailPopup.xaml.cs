@@ -16,6 +16,7 @@ public partial class LogDetailPopup : AppPopup
         MethodNameLabel.Text = entry.MethodName;
         MetadataLabel.Text = $"{entry.Timestamp:yyyy-MM-dd HH:mm:ss} UTC";
         DirectionLabel.Text = entry.DirectionLabel;
+        EntryTypeLabel.Text = entry.EntryTypeLabel;
         PayloadLabel.Text = string.IsNullOrWhiteSpace(_payload) ? "No payload" : _payload;
     }
 

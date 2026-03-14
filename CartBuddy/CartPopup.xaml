@@ -13,13 +13,12 @@
     CanBeDismissedByTappingOutsideOfPopup="True">
     <Border
         x:Name="PopupSurface"
-        WidthRequest="{OnPlatform iOS=360}"
-        MinimumHeightRequest="260"
+        MinimumHeightRequest="220"
         VerticalOptions="Start"
         Style="{StaticResource PopupSurfaceBorder}">
         <Grid
             Padding="16,16,16,20"
-            RowDefinitions="Auto,Auto,Auto"
+            RowDefinitions="Auto,Auto,*"
             RowSpacing="0">
 
             <!--  Header  -->
@@ -88,14 +87,14 @@
 
             <VerticalStackLayout
                 Grid.Row="2"
-                Padding="0,8,0,0"
-                  Spacing="8"
-                  HorizontalOptions="Center"
+                                Spacing="8"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center"
                 IsVisible="{Binding IsCartEmpty}">
-                  <Label Text="&#xF291;"
-                      FontFamily="FaSolid"
-                      FontSize="34"
-                      TextColor="{StaticResource Gray500}" />
+                                <Label Text="&#xF291;"
+                                             FontFamily="FaSolid"
+                                             FontSize="42"
+                                             TextColor="{StaticResource Gray500}" />
             </VerticalStackLayout>
         </Grid>
     </Border>

@@ -1,4 +1,5 @@
 using CommunityToolkit.Maui.Views;
+using System.ComponentModel;
 
 namespace CartBuddy;
 
@@ -6,12 +7,22 @@ public class AppPopup : Popup
 {
     private const string PopupSurfaceName = "PopupSurface";
     private const double WindowsPopupMaxWidth = 1120;
-    private const double IosPopupWidth = 380;
+    private const double IosPopupWidth = 360;
     private const double PopupHorizontalMargin = 32;
 
     public AppPopup()
     {
+        PropertyChanged += OnPopupPropertyChanged;
         Opened += (_, _) => ApplyPlatformLayout();
+    }
+
+    private void OnPopupPropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(Content) or nameof(Window))
+        {
+            // Apply an early size hint before open to reduce first-frame width jumps on iOS.
+            ApplyPlatformLayout();
+        }
     }
 
     private void ApplyPlatformLayout()
