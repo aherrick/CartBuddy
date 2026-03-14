@@ -17,6 +17,13 @@
                    FontSize="13"
                    TextColor="{StaticResource Gray400}" />
 
+                 <Button Text="Copy Payload"
+                      Clicked="OnCopyPayloadClicked"
+                      HorizontalOptions="Start"
+                      Padding="12,8"
+                      FontSize="13"
+                      CornerRadius="8" />
+
             <ScrollView HeightRequest="320">
                 <Label x:Name="PayloadLabel"
                        FontSize="12"
