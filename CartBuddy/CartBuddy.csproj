@@ -66,6 +66,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<!-- CommunityToolkit.Maui Popups don't support XAML SourceGen on iOS; force runtime inflation -->
+		<MauiXaml Update="CartPopup.xaml" Inflator="Runtime" />
+		<MauiXaml Update="LogDetailPopup.xaml" Inflator="Runtime" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="14.0.1" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.5" />
