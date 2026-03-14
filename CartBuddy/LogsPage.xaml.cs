@@ -21,6 +21,17 @@ public partial class LogsPage : ContentPage
         _viewModel.LoadLogsCommand.ExecuteAsync(null);
     }
 
+    private async void OnRefreshLogs(object sender, EventArgs e)
+    {
+        if (sender is not RefreshView refreshView)
+        {
+            return;
+        }
+
+        await _viewModel.LoadLogsCommand.ExecuteAsync(null);
+        refreshView.IsRefreshing = false;
+    }
+
     private async void OnItemTapped(object sender, Syncfusion.Maui.ListView.ItemTappedEventArgs e)
     {
         if (e.DataItem is not ApiLogEntry entry)

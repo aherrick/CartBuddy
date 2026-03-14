@@ -19,39 +19,18 @@
         <converters:ApiLogGroupHeaderConverter x:Key="ApiLogGroupHeaderConverter" />
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="*">
 
-        <!-- Header -->
-        <VerticalStackLayout Padding="16,14,16,14" Spacing="14">
-            <Grid ColumnDefinitions="*,Auto">
-                <VerticalStackLayout Spacing="2" VerticalOptions="Center">
-                    <Label Text="API Logs" FontSize="22" FontAttributes="Bold" />
-                    <Label Text="{Binding TransactionCount, StringFormat='{0} transactions'}"
-                           FontSize="13"
-                           TextColor="{StaticResource Gray400}" />
-                </VerticalStackLayout>
-                <Button Grid.Column="1"
-                        Text="Refresh"
-                        Command="{Binding LoadLogsCommand}"
-                        Padding="12,8"
-                        FontSize="13"
-                        CornerRadius="6"
-                        VerticalOptions="Center" />
-            </Grid>
-
-            <BoxView HeightRequest="1"
-                     BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
-        </VerticalStackLayout>
-
-        <!-- Log list -->
-        <sfListView:SfListView Grid.Row="1"
-                               ItemsSource="{Binding Logs}"
-                               SelectionMode="None"
-                               AutoFitMode="Height"
-                               GroupHeaderSize="58"
-                               AllowGroupExpandCollapse="False"
-                               IsStickyGroupHeader="True"
-                               ItemTapped="OnItemTapped">
+        <RefreshView Grid.Row="0"
+                     Refreshing="OnRefreshLogs">
+            <!-- Log list -->
+            <sfListView:SfListView ItemsSource="{Binding Logs}"
+                                   SelectionMode="None"
+                                   AutoFitMode="Height"
+                                   GroupHeaderSize="58"
+                                   AllowGroupExpandCollapse="False"
+                                   IsStickyGroupHeader="True"
+                                   ItemTapped="OnItemTapped">
             <sfListView:SfListView.DataSource>
                 <data:DataSource AutoExpandGroups="True">
                     <data:DataSource.GroupDescriptors>
@@ -60,7 +39,7 @@
                 </data:DataSource>
             </sfListView:SfListView.DataSource>
             <sfListView:SfListView.EmptyView>
-                <Label Text="No logs yet - make some API calls and refresh"
+                <Label Text="No logs yet - pull to refresh after making API calls"
                        FontSize="14"
                        HorizontalOptions="Center"
                        VerticalOptions="Center"
@@ -149,7 +128,8 @@
                     </Grid>
                 </DataTemplate>
             </sfListView:SfListView.ItemTemplate>
-        </sfListView:SfListView>
+            </sfListView:SfListView>
+        </RefreshView>
 
     </Grid>
 
