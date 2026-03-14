@@ -1,3 +1,7 @@
+using System.Collections.Generic;
+using System.Text.Json;
+using CartBuddy.Models;
+
 namespace CartBuddy.Services;
 
 public static class PreferencesService
@@ -31,12 +35,27 @@ public static class PreferencesService
     }
 
     public static bool HasStore => !string.IsNullOrEmpty(StoreId);
-    
+
     public static bool UseAiCleanup
     {
         get => Preferences.Default.Get(nameof(UseAiCleanup), false);
         set => Preferences.Default.Set(nameof(UseAiCleanup), value);
     }
 
-    public static void ApplyTheme() => MainThread.BeginInvokeOnMainThread(() => Application.Current?.UserAppTheme = Theme);
+    public static List<CartLine> Cart
+    {
+        get
+        {
+            var json = Preferences.Default.Get(nameof(Cart), "");
+            if (string.IsNullOrEmpty(json))
+            {
+                return [];
+            }
+            return JsonSerializer.Deserialize<List<CartLine>>(json);
+        }
+        set => Preferences.Default.Set(nameof(Cart), JsonSerializer.Serialize(value));
+    }
+
+    public static void ApplyTheme() =>
+        MainThread.BeginInvokeOnMainThread(() => Application.Current?.UserAppTheme = Theme);
 }

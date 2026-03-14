@@ -59,6 +59,7 @@ public partial class MainViewModel : ObservableObject
     private int _groupStateVersion;
 
     private string _lastKnownStoreId;
+    private bool _cartLoaded;
 
     public bool HasStore => PreferencesService.HasStore;
 
@@ -69,6 +70,13 @@ public partial class MainViewModel : ObservableObject
     public bool HasItemsText => !string.IsNullOrWhiteSpace(RawItemsText);
 
     public bool HasCartItems => CartItems.Count > 0;
+
+    public Color CartIconColor =>
+        HasCartItems
+            ? (Color)Application.Current.Resources["Primary"]
+            : Application.Current?.RequestedTheme == AppTheme.Dark
+                ? (Color)Application.Current.Resources["Gray100"]
+                : (Color)Application.Current.Resources["Gray950"];
 
     public int CartItemCount => CartItems.Sum(item => item.Quantity);
 
@@ -106,6 +114,12 @@ public partial class MainViewModel : ObservableObject
             CartItems.Clear();
         }
         _lastKnownStoreId = currentStoreId;
+
+        if (!_cartLoaded)
+        {
+            _cartLoaded = true;
+            LoadCart();
+        }
 
         OnPropertyChanged(nameof(HasStore));
         OnPropertyChanged(nameof(StoreDisplay));
@@ -465,9 +479,24 @@ public partial class MainViewModel : ObservableObject
     {
         SyncGroupSelections();
         OnPropertyChanged(nameof(HasCartItems));
+        OnPropertyChanged(nameof(CartIconColor));
         OnPropertyChanged(nameof(CartItemCount));
         OnPropertyChanged(nameof(CartTotal));
         OnPropertyChanged(nameof(CartSummary));
+        SaveCart();
+    }
+
+    private void SaveCart()
+    {
+        PreferencesService.Cart = [.. CartItems];
+    }
+
+    private void LoadCart()
+    {
+        foreach (var item in PreferencesService.Cart)
+        {
+            CartItems.Add(item);
+        }
     }
 
     private async Task<ProductSearchPage> SearchProducts(

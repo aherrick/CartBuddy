@@ -30,7 +30,7 @@
                 <FontImageSource FontFamily="FaSolid"
                                  Glyph="&#xF07A;"
                                  Size="18"
-                                 Color="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}" />
+                                 Color="{Binding CartIconColor}" />
             </ToolbarItem.IconImageSource>
         </ToolbarItem>
         <ToolbarItem Clicked="OnMenuClicked" Order="Primary" Priority="1">
