@@ -49,6 +49,8 @@ public partial class ProductMatch : ObservableObject
     [ObservableProperty]
     private string _promoEndDate;
 
+    public bool IsNoResult { get; set; }
+
     public bool HasSale => HasPromo && RegularPrice > Price;
 
     public string DisplayBrand =>

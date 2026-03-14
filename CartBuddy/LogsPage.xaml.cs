@@ -7,6 +7,7 @@ namespace CartBuddy;
 public partial class LogsPage : ContentPage
 {
     private readonly LogsViewModel _viewModel;
+    private LogDetailPopup _logDetailPopup;
 
     public LogsPage(LogsViewModel viewModel)
     {
@@ -28,6 +29,8 @@ public partial class LogsPage : ContentPage
         }
 
         _viewModel.SelectedEntry = entry;
-        await this.ShowPopupAsync(new LogDetailPopup(_viewModel), null);
+        _logDetailPopup = new LogDetailPopup(_viewModel);
+        await this.ShowPopupAsync(_logDetailPopup, null);
+        _logDetailPopup = null;
     }
 }

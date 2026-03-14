@@ -27,6 +27,7 @@ public partial class MainViewModel : ObservableObject
         _notifications = notifications;
         _messenger = messenger;
         SearchGroups.CollectionChanged += (_, _) => UpdateSearchState();
+        AllProducts.CollectionChanged += (_, _) => UpdateSearchState();
         CartItems.CollectionChanged += (_, _) => UpdateCartState();
     }
 
@@ -63,7 +64,7 @@ public partial class MainViewModel : ObservableObject
 
     public string StoreDisplay => HasStore ? PreferencesService.StoreName : "No store selected";
 
-    public bool HasResults => SearchGroups.Count > 0;
+    public bool HasResults => AllProducts.Count > 0;
 
     public bool HasItemsText => !string.IsNullOrWhiteSpace(RawItemsText);
 
@@ -181,9 +182,16 @@ public partial class MainViewModel : ObservableObject
                 var group = new SearchGroup(term, page.TotalCount, PageSize);
                 group.AddMatches(page.Results);
                 SearchGroups.Add(group);
-                foreach (var product in page.Results)
+                if (page.Results.Count > 0)
                 {
-                    AllProducts.Add(product);
+                    foreach (var product in page.Results)
+                    {
+                        AllProducts.Add(product);
+                    }
+                }
+                else
+                {
+                    AllProducts.Add(new ProductMatch { Query = term, IsNoResult = true });
                 }
             }
 

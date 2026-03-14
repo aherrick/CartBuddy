@@ -191,21 +191,29 @@
             </sfListView:SfListView.GroupHeaderTemplate>
             <sfListView:SfListView.ItemTemplate>
                 <DataTemplate x:DataType="models:ProductMatch">
-                    <controls:ProductListItemView
-                        Margin="16,0"
-                        Title="{Binding Description}"
-                        Subtitle="{Binding DisplayBrand}"
-                        Detail="{Binding Size}"
-                        ImageUrl="{Binding ImageUrl}"
-                        PriceText="{Binding Price, StringFormat='${0:F2}'}"
-                        SecondaryPriceText="{Binding RegularPriceDisplay}"
-                        AccentText="{Binding PromoEndDisplay}"
-                        AccentColor="{StaticResource SaleRed}"
-                        ShowPriceBadge="{Binding HasSale}"
-                        PriceBadgeColor="{StaticResource SaleGreen}"
-                        ItemCommand="{Binding AddToCartCommand, Source={RelativeSource AncestorType={x:Type local:MainPage}}}"
-                        ItemCommandParameter="{Binding}"
-                        PriceColor="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}" />
+                    <Grid>
+                        <controls:ProductListItemView
+                            IsVisible="{Binding IsNoResult, Converter={StaticResource InvertedBoolConverter}}"
+                            Margin="16,0"
+                            Title="{Binding Description}"
+                            Subtitle="{Binding DisplayBrand}"
+                            Detail="{Binding Size}"
+                            ImageUrl="{Binding ImageUrl}"
+                            PriceText="{Binding Price, StringFormat='${0:F2}'}"
+                            SecondaryPriceText="{Binding RegularPriceDisplay}"
+                            AccentText="{Binding PromoEndDisplay}"
+                            AccentColor="{StaticResource SaleRed}"
+                            ShowPriceBadge="{Binding HasSale}"
+                            PriceBadgeColor="{StaticResource SaleGreen}"
+                            ItemCommand="{Binding AddToCartCommand, Source={RelativeSource AncestorType={x:Type local:MainPage}}}"
+                            ItemCommandParameter="{Binding}"
+                            PriceColor="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}" />
+                        <Label IsVisible="{Binding IsNoResult}"
+                               Text="No matches"
+                               Margin="16,12"
+                               FontSize="14"
+                               TextColor="{StaticResource Gray400}" />
+                    </Grid>
                 </DataTemplate>
             </sfListView:SfListView.ItemTemplate>
         </sfListView:SfListView>
