@@ -6,6 +6,7 @@ namespace CartBuddy;
 public class AppPopup : Popup
 {
     private const string PopupSurfaceName = "PopupSurface";
+    private const string PopupChromeGridId = "PopupChromeGrid";
     private const double WindowsPopupMaxWidth = 1120;
     private const double IosPopupWidth = 360;
     private const double PopupHorizontalMargin = 32;
@@ -30,6 +31,11 @@ public class AppPopup : Popup
         if (this.FindByName<View>(PopupSurfaceName) is not { } surface)
         {
             return;
+        }
+
+        if (surface is Border border)
+        {
+            EnsureCloseButton(border);
         }
 
         HorizontalOptions = LayoutOptions.Fill;
@@ -73,5 +79,55 @@ public class AppPopup : Popup
         surface.HorizontalOptions = LayoutOptions.Fill;
         surface.ClearValue(VisualElement.WidthRequestProperty);
         surface.ClearValue(VisualElement.MaximumWidthRequestProperty);
+    }
+
+    private void EnsureCloseButton(Border surface)
+    {
+        if (surface.Content is not { } existingContent)
+        {
+            return;
+        }
+
+        if (existingContent is Grid existingGrid && existingGrid.AutomationId == PopupChromeGridId)
+        {
+            return;
+        }
+
+        var closeButton = new Button
+        {
+            Text = "\uF00D",
+            FontFamily = "FaSolid",
+            FontSize = 14,
+            BackgroundColor = Colors.Transparent,
+            BorderWidth = 0,
+            CornerRadius = 18,
+            Padding = new Thickness(8, 6),
+            HorizontalOptions = LayoutOptions.End,
+            VerticalOptions = LayoutOptions.Start,
+            MinimumWidthRequest = 0,
+            MinimumHeightRequest = 0,
+            Margin = new Thickness(0, 6, 6, 0),
+        };
+        closeButton.SetDynamicResource(Button.TextColorProperty, "Gray400");
+        SemanticProperties.SetDescription(closeButton, "Close");
+        SemanticProperties.SetHint(closeButton, "Closes this popup");
+        closeButton.Clicked += async (_, _) => await CloseAsync();
+
+        var chromeGrid = new Grid
+        {
+            AutomationId = PopupChromeGridId,
+            RowDefinitions = new RowDefinitionCollection
+            {
+                new(GridLength.Auto),
+                new(GridLength.Star),
+            },
+        };
+
+        surface.Content = null;
+        Grid.SetRow(closeButton, 0);
+        Grid.SetRow(existingContent, 1);
+        chromeGrid.Children.Add(closeButton);
+        chromeGrid.Children.Add(existingContent);
+        surface.Content = chromeGrid;
     }
 }

@@ -1,3 +1,4 @@
+using CartBuddy.Services;
 using CartBuddy.Shared.Models;
 using CommunityToolkit.Maui.Views;
 
@@ -28,5 +29,6 @@ public partial class LogDetailPopup : AppPopup
         }
 
         await Clipboard.Default.SetTextAsync(_payload);
+        await NotificationPopupService.Show("Copied payload to clipboard", NotificationPopupType.Success);
     }
 }

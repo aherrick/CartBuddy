@@ -1,4 +1,5 @@
 using CartBuddy.Shared.Models;
+using CartBuddy.Services;
 using CartBuddy.ViewModels;
 using CommunityToolkit.Maui.Extensions;
 

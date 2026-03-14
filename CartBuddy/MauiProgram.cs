@@ -40,7 +40,6 @@ public static class MauiProgram
                 httpClient.BaseAddress = new Uri(Constants.CartBuddyServerBaseUrl);
             });
         builder.Services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
-        builder.Services.AddSingleton<INotificationPopupService, NotificationPopupService>();
 
         // ViewModels
         builder.Services.AddTransient<MainViewModel>();

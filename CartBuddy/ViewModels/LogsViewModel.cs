@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 
 namespace CartBuddy.ViewModels;
 
-public partial class LogsViewModel(ICartBuddyApi api, INotificationPopupService notifications) : ObservableObject
+public partial class LogsViewModel(ICartBuddyApi api) : ObservableObject
 {
     public ObservableCollection<ApiLogEntry> Logs { get; } = [];
 
@@ -42,6 +42,6 @@ public partial class LogsViewModel(ICartBuddyApi api, INotificationPopupService 
         }
 
         await Clipboard.Default.SetTextAsync(SelectedEntry.Payload);
-        await notifications.Show("Copied payload to clipboard", NotificationPopupType.Success);
+        await NotificationPopupService.Show("Copied payload to clipboard", NotificationPopupType.Success);
     }
 }

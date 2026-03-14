@@ -10,14 +10,9 @@ public enum NotificationPopupType
     Error,
 }
 
-public interface INotificationPopupService
+public static class NotificationPopupService
 {
-    Task Show(string message, NotificationPopupType type = NotificationPopupType.Info);
-}
-
-public class NotificationPopupService : INotificationPopupService
-{
-    public async Task Show(string message, NotificationPopupType type = NotificationPopupType.Info)
+    public static async Task Show(string message, NotificationPopupType type = NotificationPopupType.Info)
     {
         var (bgColor, textColor) = type switch
         {

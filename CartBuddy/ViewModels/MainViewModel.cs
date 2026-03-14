@@ -15,16 +15,10 @@ public partial class MainViewModel : ObservableObject
 
     private readonly ICartBuddyApi _api;
     private readonly IMessenger _messenger;
-    private readonly INotificationPopupService _notifications;
 
-    public MainViewModel(
-        ICartBuddyApi api,
-        INotificationPopupService notifications,
-        IMessenger messenger
-    )
+    public MainViewModel(ICartBuddyApi api, IMessenger messenger)
     {
         _api = api;
-        _notifications = notifications;
         _messenger = messenger;
         SearchGroups.CollectionChanged += (_, _) => UpdateSearchState();
         AllProducts.CollectionChanged += (_, _) => UpdateSearchState();
@@ -538,6 +532,6 @@ public partial class MainViewModel : ObservableObject
         NotificationPopupType type = NotificationPopupType.Info
     )
     {
-        await _notifications.Show(message, type);
+        await NotificationPopupService.Show(message, type);
     }
 }
