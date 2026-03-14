@@ -16,8 +16,6 @@
     </ContentPage.Behaviors>
 
     <ContentPage.Resources>
-        <converters:DirectionColorConverter x:Key="DirectionColorConverter" />
-        <converters:DirectionGlyphConverter x:Key="DirectionGlyphConverter" />
         <converters:ApiLogGroupHeaderConverter x:Key="ApiLogGroupHeaderConverter" />
     </ContentPage.Resources>
 
