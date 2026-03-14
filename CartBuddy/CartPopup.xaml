@@ -13,6 +13,7 @@
     CanBeDismissedByTappingOutsideOfPopup="True">
     <Border
         x:Name="PopupSurface"
+        VerticalOptions="Start"
         Style="{StaticResource PopupSurfaceBorder}">
         <Grid
             Padding="16,16,16,20"
@@ -60,22 +61,10 @@
             <CollectionView
                 Grid.Row="2"
                 ItemsSource="{Binding CartItems}"
+                IsVisible="{Binding HasCartItems}"
                 SelectionMode="None"
                 HorizontalScrollBarVisibility="Never"
                 VerticalScrollBarVisibility="Never">
-                <CollectionView.EmptyView>
-                    <VerticalStackLayout HeightRequest="120"
-                                         Padding="0,8,0,0"
-                                         Spacing="6"
-                                         VerticalOptions="Center">
-                        <Label Text="Your cart is empty"
-                               FontSize="14"
-                               FontAttributes="Bold" />
-                        <Label Text="Add an item from the list to see it here."
-                               FontSize="13"
-                               TextColor="{StaticResource Gray400}" />
-                    </VerticalStackLayout>
-                </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:CartLine">
                         <controls:ProductListItemView
@@ -94,6 +83,19 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
+
+            <VerticalStackLayout
+                Grid.Row="2"
+                Padding="0,8,0,0"
+                Spacing="6"
+                IsVisible="{Binding IsCartEmpty}">
+                <Label Text="Your cart is empty"
+                       FontSize="14"
+                       FontAttributes="Bold" />
+                <Label Text="Add an item from the list to see it here."
+                       FontSize="13"
+                       TextColor="{StaticResource Gray400}" />
+            </VerticalStackLayout>
         </Grid>
     </Border>
 </local:AppPopup>

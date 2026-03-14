@@ -71,6 +71,8 @@ public partial class MainViewModel : ObservableObject
 
     public bool HasCartItems => CartItems.Count > 0;
 
+    public bool IsCartEmpty => !HasCartItems;
+
     public Color CartIconColor =>
         HasCartItems
             ? (Color)Application.Current.Resources["Primary"]
@@ -479,6 +481,7 @@ public partial class MainViewModel : ObservableObject
     {
         SyncGroupSelections();
         OnPropertyChanged(nameof(HasCartItems));
+        OnPropertyChanged(nameof(IsCartEmpty));
         OnPropertyChanged(nameof(CartIconColor));
         OnPropertyChanged(nameof(CartItemCount));
         OnPropertyChanged(nameof(CartTotal));
