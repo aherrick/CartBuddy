@@ -97,15 +97,15 @@ public class AppPopup : Popup
         {
             Text = "\uF00D",
             FontFamily = "FaSolid",
-            FontSize = 14,
+            FontSize = 16,
             BackgroundColor = Colors.Transparent,
             BorderWidth = 0,
-            CornerRadius = 18,
-            Padding = new Thickness(8, 6),
+            CornerRadius = 20,
+            Padding = new Thickness(10, 8),
             HorizontalOptions = LayoutOptions.End,
             VerticalOptions = LayoutOptions.Start,
-            MinimumWidthRequest = 0,
-            MinimumHeightRequest = 0,
+            MinimumWidthRequest = 40,
+            MinimumHeightRequest = 40,
             Margin = new Thickness(0, 6, 6, 0),
         };
         closeButton.SetDynamicResource(Button.TextColorProperty, "Gray400");
@@ -116,16 +116,9 @@ public class AppPopup : Popup
         var chromeGrid = new Grid
         {
             AutomationId = PopupChromeGridId,
-            RowDefinitions = new RowDefinitionCollection
-            {
-                new(GridLength.Auto),
-                new(GridLength.Star),
-            },
         };
 
         surface.Content = null;
-        Grid.SetRow(closeButton, 0);
-        Grid.SetRow(existingContent, 1);
         chromeGrid.Children.Add(closeButton);
         chromeGrid.Children.Add(existingContent);
         surface.Content = chromeGrid;
