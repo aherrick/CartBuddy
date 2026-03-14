@@ -17,37 +17,10 @@
                    FontSize="13"
                    TextColor="{StaticResource Gray400}" />
 
-            <HorizontalStackLayout Spacing="10">
-                <Border x:Name="DirectionBadge"
-                        Padding="8,4"
-                        StrokeThickness="0">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="999" />
-                    </Border.StrokeShape>
-                    <Label x:Name="DirectionLabel"
-                           FontSize="11"
-                           TextColor="White" />
-                </Border>
-
-                <Button Text="Copy Payload"
-                        Clicked="OnCopyPayloadClicked"
-                        HorizontalOptions="Start"
-                        Padding="12,8"
-                        FontSize="13"
-                        CornerRadius="8" />
-            </HorizontalStackLayout>
-
             <ScrollView HeightRequest="320">
-                <Border Padding="12"
-                        StrokeThickness="0"
-                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="12" />
-                    </Border.StrokeShape>
-                    <Label x:Name="PayloadLabel"
-                           FontSize="12"
-                           LineBreakMode="CharacterWrap" />
-                </Border>
+                <Label x:Name="PayloadLabel"
+                       FontSize="12"
+                       LineBreakMode="CharacterWrap" />
             </ScrollView>
         </VerticalStackLayout>
     </Border>

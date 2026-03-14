@@ -13,10 +13,11 @@
     CanBeDismissedByTappingOutsideOfPopup="True">
     <Border
         x:Name="PopupSurface"
+        MinimumHeightRequest="400"
         Style="{StaticResource PopupSurfaceBorder}">
         <Grid
             Padding="16,16,16,20"
-            RowDefinitions="Auto,Auto,*"
+            RowDefinitions="Auto,Auto,Auto"
             RowSpacing="0">
 
             <!--  Header  -->
@@ -62,6 +63,17 @@
                 ItemsSource="{Binding CartItems}"
                 SelectionMode="None"
                 VerticalScrollBarVisibility="Never">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Padding="0,8,0,0"
+                                         Spacing="6">
+                        <Label Text="Your cart is empty"
+                               FontSize="14"
+                               FontAttributes="Bold" />
+                        <Label Text="Add an item from the list to see it here."
+                               FontSize="13"
+                               TextColor="{StaticResource Gray400}" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:CartLine">
                         <controls:ProductListItemView
