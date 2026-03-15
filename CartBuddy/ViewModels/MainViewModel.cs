@@ -119,8 +119,6 @@ public partial class MainViewModel : ObservableObject
 
         OnPropertyChanged(nameof(HasStore));
         OnPropertyChanged(nameof(StoreDisplay));
-        OnPropertyChanged(nameof(ThemeActionText));
-        OnPropertyChanged(nameof(AiActionText));
         UpdateSearchState();
         UpdateCartState();
     }

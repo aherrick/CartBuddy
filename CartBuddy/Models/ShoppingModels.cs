@@ -5,6 +5,11 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CartBuddy.Models;
 
+public static class ShoppingText
+{
+    public const string NoMatchesFromKroger = "No matches from Kroger";
+}
+
 public partial class ProductMatch : ObservableObject
 {
     [ObservableProperty]
@@ -50,6 +55,8 @@ public partial class ProductMatch : ObservableObject
     private string _promoEndDate;
 
     public bool IsNoResult { get; set; }
+
+    public string NoResultMessage => ShoppingText.NoMatchesFromKroger;
 
     public bool HasSale => HasPromo && RegularPrice > Price;
 
@@ -150,7 +157,7 @@ public class SearchGroup(string query, int totalCount, int pageSize) : Observabl
 
     public bool HasMore => LoadedCount < TotalCount;
 
-    public string PageSummary => TotalCount == 0 ? "No matches" : $"{LoadedCount}/{TotalCount}";
+    public string PageSummary => TotalCount == 0 ? ShoppingText.NoMatchesFromKroger : $"{LoadedCount}/{TotalCount}";
 
     public void AddMatches(IEnumerable<ProductMatch> matches)
     {

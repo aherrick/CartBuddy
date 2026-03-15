@@ -16,9 +16,6 @@ public partial class LogsViewModel(ICartBuddyApi api) : ObservableObject
             .Distinct()
             .Count();
 
-    [ObservableProperty]
-    private ApiLogEntry _selectedEntry;
-
     [RelayCommand]
     public async Task LoadLogs()
     {
@@ -30,18 +27,11 @@ public partial class LogsViewModel(ICartBuddyApi api) : ObservableObject
             Logs.Add(entry);
         }
 
-        OnPropertyChanged(nameof(TransactionCount));
+        NotifyLogStateChanged();
     }
 
-    [RelayCommand]
-    public async Task CopyEntry()
+    private void NotifyLogStateChanged()
     {
-        if (SelectedEntry is null)
-        {
-            return;
-        }
-
-        await Clipboard.Default.SetTextAsync(SelectedEntry.Payload);
-        await NotificationPopupService.Show("Copied payload to clipboard", NotificationPopupType.Success);
+        OnPropertyChanged(nameof(TransactionCount));
     }
 }

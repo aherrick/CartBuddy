@@ -209,7 +209,7 @@
                             ItemCommandParameter="{Binding}"
                             PriceColor="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray100}}" />
                         <Label IsVisible="{Binding IsNoResult}"
-                               Text="No matches"
+                               Text="{Binding NoResultMessage}"
                                Margin="16,12"
                                FontSize="14"
                                TextColor="{StaticResource Gray400}" />

@@ -6,8 +6,15 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CartBuddy.ViewModels;
 
-public partial class StorePickerViewModel(ICartBuddyApi api) : ObservableObject
+public partial class StorePickerViewModel : ObservableObject
 {
+    private readonly ICartBuddyApi _api;
+
+    public StorePickerViewModel(ICartBuddyApi api)
+    {
+        _api = api;
+    }
+
     [ObservableProperty]
     private string _zipCode;
 
@@ -42,14 +49,14 @@ public partial class StorePickerViewModel(ICartBuddyApi api) : ObservableObject
         }
 
         IsBusy = true;
+        NotifyStoreStateChanged();
         StatusMessage = "Searching stores...";
         Stores.Clear();
-        OnPropertyChanged(nameof(HasStores));
-        OnPropertyChanged(nameof(IsIdle));
+        NotifyStoreStateChanged();
 
         try
         {
-            var response = await api.SearchLocations(ZipCode);
+            var response = await _api.SearchLocations(ZipCode);
             var locations = response.Locations ?? [];
             foreach (var location in locations)
             {
@@ -58,6 +65,7 @@ public partial class StorePickerViewModel(ICartBuddyApi api) : ObservableObject
 
             PreferencesService.ZipCode = ZipCode;
             StatusMessage = $"Found {locations.Count} stores";
+            NotifyStoreStateChanged();
         }
         catch (Exception ex)
         {
@@ -66,8 +74,7 @@ public partial class StorePickerViewModel(ICartBuddyApi api) : ObservableObject
         finally
         {
             IsBusy = false;
-            OnPropertyChanged(nameof(HasStores));
-            OnPropertyChanged(nameof(IsIdle));
+            NotifyStoreStateChanged();
         }
     }
 
@@ -80,5 +87,11 @@ public partial class StorePickerViewModel(ICartBuddyApi api) : ObservableObject
             : $"{store.Name} - {store.Address}";
         OnPropertyChanged(nameof(CanNavigateBack));
         await Shell.Current.GoToAsync("..");
+    }
+
+    private void NotifyStoreStateChanged()
+    {
+        OnPropertyChanged(nameof(HasStores));
+        OnPropertyChanged(nameof(IsIdle));
     }
 }
