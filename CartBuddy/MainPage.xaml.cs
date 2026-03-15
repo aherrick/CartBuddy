@@ -6,12 +6,14 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.Specialized;
 using Syncfusion.Maui.DataSource;
+using Syncfusion.Maui.DataSource.Extensions;
 
 namespace CartBuddy;
 
 public partial class MainPage : ContentPage
 {
     private readonly MainViewModel _viewModel;
+    private readonly IAsyncRelayCommand<ProductMatch> _addToCartAndCollapseCommand;
     private CartPopup _cartPopup;
 
     public MainPage(MainViewModel viewModel, IMessenger messenger)
@@ -27,6 +29,7 @@ public partial class MainPage : ContentPage
         SearchListView.DataSource.GroupDescriptors.Add(new GroupDescriptor { PropertyName = "Query" });
 
         _viewModel.SearchGroups.CollectionChanged += OnSearchGroupsCollectionChanged;
+        _addToCartAndCollapseCommand = new AsyncRelayCommand<ProductMatch>(AddToCartAndCollapse);
 
         messenger.Register<ScrollToProductMessage>(this, static (recipient, message) =>
         {
@@ -45,7 +48,28 @@ public partial class MainPage : ContentPage
 
     public IAsyncRelayCommand<SearchGroup> ViewMoreCommand => _viewModel.ViewMoreCommand;
 
-    public IAsyncRelayCommand<ProductMatch> AddToCartCommand => _viewModel.AddToCartCommand;
+    public IAsyncRelayCommand<ProductMatch> AddToCartCommand => _addToCartAndCollapseCommand;
+
+    private async Task AddToCartAndCollapse(ProductMatch match)
+    {
+        if (match is null)
+        {
+            return;
+        }
+
+        await _viewModel.AddToCartCommand.ExecuteAsync(match);
+
+        var group = SearchListView.DataSource?.Groups
+            ?.OfType<GroupResult>()
+            .FirstOrDefault(g => string.Equals(g.Key as string, match.Query, StringComparison.OrdinalIgnoreCase));
+
+        if (group is not null)
+        {
+            group.IsExpand = false;
+            SearchListView.DataSource.Refresh();
+            _viewModel.AllGroupsExpanded = false;
+        }
+    }
 
     private void OnSearchGroupsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
     {
