@@ -503,7 +503,9 @@ public partial class MainViewModel : ObservableObject
         int limit
     )
     {
-        var page = await _api.SearchProducts(locationId, term, start, limit);
+        var page = await PollyHelper.ExecuteSearchRetry(() =>
+            _api.SearchProducts(locationId, term, start, limit)
+        );
         return new ProductSearchPage(
             [.. page.Results.Select(result => MapProductMatch(result, term))],
             page.Total
