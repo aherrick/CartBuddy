@@ -6,15 +6,8 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CartBuddy.ViewModels;
 
-public partial class StorePickerViewModel : ObservableObject
+public partial class StorePickerViewModel(ICartBuddyApi api) : ObservableObject
 {
-    private readonly ICartBuddyApi _api;
-
-    public StorePickerViewModel(ICartBuddyApi api)
-    {
-        _api = api;
-    }
-
     [ObservableProperty]
     private string _zipCode;
 
@@ -56,7 +49,7 @@ public partial class StorePickerViewModel : ObservableObject
 
         try
         {
-            var response = await _api.SearchLocations(ZipCode);
+            var response = await api.SearchLocations(ZipCode);
             var locations = response.Locations ?? [];
             foreach (var location in locations)
             {
