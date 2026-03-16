@@ -132,20 +132,6 @@
 
                     <HorizontalStackLayout Spacing="10">
                         <Button
-                            Command="{Binding RunAiCleanupCommand}"
-                            CornerRadius="6"
-                            HorizontalOptions="Start"
-                            SemanticProperties.Description="Run AI cleanup"
-                            SemanticProperties.Hint="Cleans the shopping list before search"
-                            Text="Cleanup">
-                            <Button.ImageSource>
-                                <FontImageSource
-                                    FontFamily="FaSolid"
-                                    Glyph="&#xF0D0;"
-                                    Size="14" />
-                            </Button.ImageSource>
-                        </Button>
-                        <Button
                             Command="{Binding SearchCommand}"
                             CornerRadius="6"
                             HorizontalOptions="Start"

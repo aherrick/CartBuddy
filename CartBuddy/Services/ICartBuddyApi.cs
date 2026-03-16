@@ -9,7 +9,13 @@ public interface ICartBuddyApi
     Task<LocationResponse> SearchLocations(string zipCode);
 
     [Get("/api/search")]
-    Task<ProductSearchResponse> SearchProducts(string locationId, string term, int start = 0, int limit = 10);
+    Task<ProductSearchResponse> SearchProducts(
+        string locationId,
+        string term,
+        int start = 0,
+        int limit = 10,
+        bool isProduceCategory = false
+    );
 
     [Post("/api/cleanup")]
     Task<CleanupResponse> CleanupList([Body] CleanupRequest request);

@@ -152,14 +152,48 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            var searchTerms = ParseTerms(RawItemsText);
+            var rawTerms = ParseTerms(RawItemsText);
+            var cleanupResponse = await _api.CleanupList(new CleanupRequest { Items = rawTerms });
+
+            var classifiedItems = cleanupResponse.ClassifiedItems;
+            if (classifiedItems is not { Count: > 0 })
+            {
+                classifiedItems =
+                [
+                    .. rawTerms.Select(item => new CleanupItem
+                    {
+                        Item = item,
+                        Category = "other",
+                    }),
+                ];
+            }
+
+            RawItemsText = string.Join(Environment.NewLine, classifiedItems.Select(item => item.Item));
 
             SearchGroups.Clear();
             AllProducts.Clear();
-            foreach (var term in searchTerms)
+            foreach (var searchItem in classifiedItems)
             {
-                var page = await SearchProducts(term, PreferencesService.StoreId, 0, SearchConstants.PageSize);
-                var group = new SearchGroup(term, page.TotalCount, SearchConstants.PageSize);
+                var term = searchItem.Item;
+                var isProduceCategory = string.Equals(
+                    searchItem.Category,
+                    "produce",
+                    StringComparison.OrdinalIgnoreCase
+                );
+
+                var page = await SearchProducts(
+                    term,
+                    PreferencesService.StoreId,
+                    0,
+                    SearchConstants.PageSize,
+                    isProduceCategory
+                );
+                var group = new SearchGroup(
+                    term,
+                    page.TotalCount,
+                    SearchConstants.PageSize,
+                    isProduceCategory
+                );
                 group.AddMatches(page.Results);
                 SearchGroups.Add(group);
                 if (page.Results.Count > 0)
@@ -194,40 +228,6 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task RunAiCleanup()
-    {
-        if (string.IsNullOrWhiteSpace(RawItemsText))
-        {
-            await NotificationPopupService.Show("Paste a list first", NotificationPopupType.Info);
-            return;
-        }
-
-        IsBusy = true;
-
-        try
-        {
-            var rawTerms = ParseTerms(RawItemsText);
-            var cleanupResponse = await _api.CleanupList(new CleanupRequest { Items = rawTerms });
-            if (cleanupResponse.CleanedItems is not { Count: > 0 })
-            {
-                await NotificationPopupService.Show("AI didn't return any updates", NotificationPopupType.Info);
-                return;
-            }
-
-            RawItemsText = string.Join(Environment.NewLine, cleanupResponse.CleanedItems);
-            await NotificationPopupService.Show("List cleaned with AI", NotificationPopupType.Success);
-        }
-        catch (Exception ex)
-        {
-            await NotificationPopupService.Show($"AI cleanup failed: {ex.Message}", NotificationPopupType.Error);
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-    }
-
-    [RelayCommand]
     private async Task ViewMore(SearchGroup group)
     {
         if (
@@ -247,7 +247,8 @@ public partial class MainViewModel : ObservableObject
                 group.Query,
                 PreferencesService.StoreId,
                 group.LoadedCount,
-                group.PageSize
+                group.PageSize,
+                group.IsProduceCategory
             );
             group.AddMatches(page.Results);
             ProductMatch lastAdded = null;
@@ -498,11 +499,12 @@ public partial class MainViewModel : ObservableObject
         string term,
         string locationId,
         int start,
-        int limit
+        int limit,
+        bool isProduceCategory = false
     )
     {
         var page = await PollyHelper.ExecuteSearchRetry(() =>
-            _api.SearchProducts(locationId, term, start, limit)
+            _api.SearchProducts(locationId, term, start, limit, isProduceCategory)
         );
         return new ProductSearchPage(
             [.. page.Results.Select(result => MapProductMatch(result, term))],

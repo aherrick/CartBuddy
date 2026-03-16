@@ -20,18 +20,59 @@ public class KrogerService(KrogerClient krogerClient, ApiLogger apiLogger)
         string locationId,
         string term,
         int start = 0,
-        int limit = 10
+        int limit = 10,
+        bool isProduceCategory = false
     )
     {
         var transactionId = Guid.NewGuid();
-        var page = await krogerClient.SearchProducts(term, locationId, start, limit);
-        apiLogger.Log(nameof(SearchProducts), ApiLogDirection.KrogerRequest, page.RawRequest, transactionId);
-        apiLogger.Log(nameof(SearchProducts), ApiLogDirection.KrogerResponse, page.RawResponse, transactionId);
+        var primaryPage = await krogerClient.SearchProducts(term, locationId, start, limit);
+
+        List<KrogerProduct> results;
+        var total = primaryPage.TotalCount;
+
+        if (isProduceCategory)
+        {
+            var produceTerm = $"produce {term}";
+            var producePage = await krogerClient.SearchProducts(produceTerm, locationId, start, limit);
+
+            apiLogger.Log(
+                nameof(SearchProducts),
+                ApiLogDirection.KrogerRequest,
+                new { primary = primaryPage.RawRequest, produce = producePage.RawRequest },
+                transactionId
+            );
+            apiLogger.Log(
+                nameof(SearchProducts),
+                ApiLogDirection.KrogerResponse,
+                new { primary = primaryPage.RawResponse, produce = producePage.RawResponse },
+                transactionId
+            );
+
+            results = MergeProducts(primaryPage.Results, producePage.Results);
+            total = Math.Max(primaryPage.TotalCount, producePage.TotalCount);
+        }
+        else
+        {
+            apiLogger.Log(
+                nameof(SearchProducts),
+                ApiLogDirection.KrogerRequest,
+                primaryPage.RawRequest,
+                transactionId
+            );
+            apiLogger.Log(
+                nameof(SearchProducts),
+                ApiLogDirection.KrogerResponse,
+                primaryPage.RawResponse,
+                transactionId
+            );
+
+            results = primaryPage.Results;
+        }
 
         var response = new ProductSearchResponse
         {
-            Results = [.. page.Results.Select(MapProductSearchResult)],
-            Total = page.TotalCount,
+            Results = [.. results.Select(MapProductSearchResult)],
+            Total = total,
         };
         apiLogger.Log(nameof(SearchProducts), ApiLogDirection.Response, response, transactionId);
         return response;
@@ -97,4 +138,7 @@ public class KrogerService(KrogerClient krogerClient, ApiLogger apiLogger)
             AverageWeightPerUnit = product.AverageWeightPerUnit,
         };
     }
+
+    private static List<KrogerProduct> MergeProducts(List<KrogerProduct> primary, List<KrogerProduct> produce)
+        => [.. primary.Concat(produce).DistinctBy(p => p.Upc ?? p.ProductId ?? p.Description, StringComparer.OrdinalIgnoreCase)];
 }

@@ -24,9 +24,22 @@ public static class EndpointExtensions
 
         apiGroup.MapGet(
             "/search",
-            async (string locationId, string term, KrogerService kroger, int start = 0, int limit = 10) =>
+            async (
+                string locationId,
+                string term,
+                KrogerService kroger,
+                bool isProduceCategory = false,
+                int start = 0,
+                int limit = 10
+            ) =>
             {
-                var response = await kroger.SearchProducts(locationId, term, start, limit);
+                var response = await kroger.SearchProducts(
+                    locationId,
+                    term,
+                    start,
+                    limit,
+                    isProduceCategory
+                );
                 return Results.Ok(response);
             }
         );
@@ -35,8 +48,14 @@ public static class EndpointExtensions
             "/cleanup",
             async (CleanupRequest req, AiCleanupService aiCleanup) =>
             {
-                var cleanedItems = await aiCleanup.CleanupList(req.Items ?? []);
-                return Results.Ok(new CleanupResponse { CleanedItems = cleanedItems });
+                var classifiedItems = await aiCleanup.CleanupList(req.Items ?? []);
+                return Results.Ok(
+                    new CleanupResponse
+                    {
+                        CleanedItems = [.. classifiedItems.Select(item => item.Item)],
+                        ClassifiedItems = classifiedItems,
+                    }
+                );
             }
         );
 

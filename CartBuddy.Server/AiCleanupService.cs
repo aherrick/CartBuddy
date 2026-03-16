@@ -1,12 +1,19 @@
 using Azure;
 using Azure.AI.OpenAI;
+using CartBuddy.Shared.Models;
 using OpenAI.Chat;
+using System.Text.Json;
 
 namespace CartBuddy.Server;
 
 public class AiCleanupService(IConfiguration config)
 {
     private readonly ChatClient _chatClient = CreateChatClient(config);
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+    };
 
     private static ChatClient CreateChatClient(IConfiguration config)
     {
@@ -22,7 +29,7 @@ public class AiCleanupService(IConfiguration config)
         return client.GetChatClient(deploymentName);
     }
 
-    public async Task<List<string>> CleanupList(List<string> rawItems)
+    public async Task<List<CleanupItem>> CleanupList(List<string> rawItems)
     {
         if (rawItems.Count == 0)
         {
@@ -35,25 +42,18 @@ public class AiCleanupService(IConfiguration config)
             [
                 new SystemChatMessage(
                     """
-                    You are a grocery list assistant. Clean up and normalize the following grocery items into short grocery-store search terms.
-                    Fix spelling, remove extra words, and use common product names that would work well as search terms on a grocery store website.
-                    When it clearly improves grocery search results, add a small amount of helpful context such as a department or product form.
-                    For fresh produce items, only add a 'produce' prefix when the item name is ambiguous and could reasonably refer to either fresh produce or a packaged product.
-                    If the item is ambiguous and you are not sure, default to the fresh produce interpretation and add the 'produce' prefix.
-                    Do not add a 'produce' prefix when the item is already clearly a fresh produce search term, for example 'green onions', 'bananas', 'avocados', or 'romaine lettuce'.
-                    For deli counter meats or cheeses, prefer a 'deli' prefix, for example 'deli turkey' or 'deli American cheese'.
-                    Do not add department prefixes for ordinary pantry or packaged items unless the department is truly important for search.
-                    Keep each result concise and practical for store search.
-                    Examples:
-                    jalepenos -> produce jalapeno
-                    jalapeno peppers -> produce jalapeno
-                    serrano peppers -> produce serrano pepper
-                    bananas ripe -> bananas
-                    deli turkey for sandwiches -> deli turkey
-                    romaine for salad -> romaine lettuce
-                    avacados -> avocados
-                    green onions / scallions -> green onions
-                    Return ONLY the cleaned items, one per line, no numbering, no extra text.
+                    You are a grocery list assistant.
+                    For each input line:
+                    - normalize spelling and wording into a short store-search term
+                    - infer a category (produce, dairy, meat, seafood, bakery, frozen, pantry, beverage, household, other)
+                    - do NOT prepend category words like "produce" to the cleaned term
+
+                    Return ONLY valid JSON as an array of objects with this exact schema:
+                    [
+                      { "item": "jalapeno", "category": "produce" }
+                    ]
+
+                    Keep category lowercase. Keep one output object per input item in the same order.
                     """
                 ),
                 new UserChatMessage(itemList),
@@ -61,12 +61,6 @@ public class AiCleanupService(IConfiguration config)
         );
 
         var result = completion.Value.Content[0].Text;
-        return
-        [
-            .. result.Split(
-                '\n',
-                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
-            ),
-        ];
+        return JsonSerializer.Deserialize<List<CleanupItem>>(result.Trim(), JsonOptions);
     }
 }
