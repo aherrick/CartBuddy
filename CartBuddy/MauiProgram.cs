@@ -16,6 +16,12 @@ public static class MauiProgram
 
         builder
             .UseMauiApp<App>()
+            .ConfigureMauiHandlers(handlers =>
+            {
+#if IOS
+                handlers.AddHandler<Entry, CartBuddy.Platforms.iOS.NoBorderEntryHandler>();
+#endif
+            })
             .UseMauiCommunityToolkit(options =>
             {
                 options.SetShouldEnableSnackbarOnWindows(true);

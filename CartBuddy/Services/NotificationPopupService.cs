@@ -30,7 +30,7 @@ public static class NotificationPopupService
         };
 
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        await Snackbar.Make(message, duration: TimeSpan.FromSeconds(2.5), visualOptions: options, anchor: Shell.Current)
+        await Snackbar.Make(message, duration: TimeSpan.FromSeconds(2.5), visualOptions: options)
             .Show(cts.Token);
     }
 }
