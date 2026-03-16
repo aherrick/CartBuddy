@@ -340,6 +340,8 @@ public partial class MainViewModel : ObservableObject
                 Size = match.Size,
                 ImageUrl = match.ImageUrl,
                 Price = match.Price,
+                SoldByWeight = match.SoldByWeight,
+                AverageWeightPerUnit = match.AverageWeightPerUnit,
                 Quantity = 1,
             };
             cartLine.SourceQueries.Add(match.Query);

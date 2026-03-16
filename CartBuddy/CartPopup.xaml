@@ -76,7 +76,7 @@
                             IncreaseCommand="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=IncreaseQuantityCommand}"
                             PriceColor="{AppThemeBinding Light={StaticResource Gray950},
                                                          Dark={StaticResource Gray100}}"
-                            PriceText="{Binding LineTotal, StringFormat='${0:F2}'}"
+                            PriceText="{Binding LineTotalDisplay}"
                             Quantity="{Binding Quantity}"
                             QuantityCommandParameter="{Binding}"
                             ShowQuantityControls="True"

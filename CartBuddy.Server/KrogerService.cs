@@ -130,5 +130,5 @@ public class KrogerService(KrogerClient krogerClient, ApiLogger apiLogger)
     }
 
     private static List<KrogerProduct> MergeProducts(List<KrogerProduct> produce, List<KrogerProduct> primary)
-        => [.. primary.Concat(produce).DistinctBy(p => p.Upc ?? p.ProductId ?? p.Description, StringComparer.OrdinalIgnoreCase)];
+        => [.. produce.Concat(primary).DistinctBy(p => p.Upc ?? p.ProductId ?? p.Description, StringComparer.OrdinalIgnoreCase)];
 }

@@ -126,14 +126,32 @@ public partial class CartLine : ObservableObject
     private string _imageUrl;
 
     [NotifyPropertyChangedFor(nameof(LineTotal))]
+    [NotifyPropertyChangedFor(nameof(LineTotalDisplay))]
     [ObservableProperty]
     private decimal _price;
 
     [NotifyPropertyChangedFor(nameof(LineTotal))]
+    [NotifyPropertyChangedFor(nameof(LineTotalDisplay))]
     [ObservableProperty]
     private int _quantity;
 
-    public decimal LineTotal => Price * Quantity;
+    [NotifyPropertyChangedFor(nameof(LineTotal))]
+    [NotifyPropertyChangedFor(nameof(LineTotalDisplay))]
+    [ObservableProperty]
+    private bool _soldByWeight;
+
+    [NotifyPropertyChangedFor(nameof(LineTotal))]
+    [NotifyPropertyChangedFor(nameof(LineTotalDisplay))]
+    [ObservableProperty]
+    private decimal _averageWeightPerUnit;
+
+    public decimal LineTotal => SoldByWeight && AverageWeightPerUnit > 0m
+        ? Price * AverageWeightPerUnit * Quantity
+        : Price * Quantity;
+
+    public string LineTotalDisplay => SoldByWeight && AverageWeightPerUnit > 0m
+        ? $"~${LineTotal:F2}"
+        : $"${LineTotal:F2}";
 
     public HashSet<string> SourceQueries { get; } = new(StringComparer.OrdinalIgnoreCase);
 
