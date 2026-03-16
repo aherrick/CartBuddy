@@ -65,8 +65,7 @@ public partial class MainPage : ContentPage
 
         if (group is not null)
         {
-            group.IsExpand = false;
-            SearchListView.DataSource.Refresh();
+            SearchListView.CollapseAll();
             _viewModel.AllGroupsExpanded = false;
         }
     }

@@ -288,11 +288,6 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
         var hasPromo = promoPrice > 0m;
         var displayPrice = hasPromo ? promoPrice : regularPrice;
 
-        if (displayPrice <= 0m)
-        {
-            return null;
-        }
-
         var upc = item.Upc ?? variant.Upc;
         if (string.IsNullOrWhiteSpace(upc))
         {
