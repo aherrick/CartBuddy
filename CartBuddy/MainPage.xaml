@@ -58,7 +58,7 @@
         <BoxView
             x:Name="SnackbarAnchor"
             Grid.Row="0"
-            Margin="0,100,0,0"
+            Margin="0,58,0,0"
             HeightRequest="1"
             Opacity="0"
             VerticalOptions="Start" />
