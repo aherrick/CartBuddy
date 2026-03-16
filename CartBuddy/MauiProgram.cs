@@ -16,22 +16,17 @@ public static class MauiProgram
 
         builder
             .UseMauiApp<App>()
-            .ConfigureMauiHandlers(handlers =>
-            {
-#if IOS
-                handlers.AddHandler<Entry, CartBuddy.Platforms.iOS.NoBorderEntryHandler>();
-                handlers.AddHandler<Editor, CartBuddy.Platforms.iOS.NoAccessoryEditorHandler>();
-#endif
-            })
             .UseMauiCommunityToolkit(options =>
             {
                 options.SetShouldEnableSnackbarOnWindows(true);
-                options.SetPopupOptionsDefaults(new DefaultPopupOptionsSettings
-                {
-                    PageOverlayColor = Colors.Transparent,
-                    Shape = null,
-                    Shadow = null,
-                });
+                options.SetPopupOptionsDefaults(
+                    new DefaultPopupOptionsSettings
+                    {
+                        PageOverlayColor = Colors.Transparent,
+                        Shape = null,
+                        Shadow = null,
+                    }
+                );
             })
             .ConfigureSyncfusionCore()
             .ConfigureFonts(fonts =>
