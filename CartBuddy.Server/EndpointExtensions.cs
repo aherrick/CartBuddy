@@ -12,10 +12,7 @@ public static class EndpointExtensions
         apiGroup.MapGet(
             "/location/{zipCode}",
             async (string zipCode, KrogerService kroger) =>
-            {
-                var locations = await kroger.GetLocationsByZip(zipCode);
-                return Results.Ok(new LocationResponse { Locations = locations });
-            }
+                Results.Ok(new LocationResponse { Locations = await kroger.GetLocationsByZip(zipCode) })
         );
 
         apiGroup.MapGet("/health", () => Results.Ok());

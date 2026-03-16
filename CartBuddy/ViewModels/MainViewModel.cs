@@ -230,16 +230,14 @@ public partial class MainViewModel : ObservableObject
                 group.PageSize
             );
             group.AddMatches(page.Results);
-            ProductMatch lastAdded = null;
             foreach (var product in page.Results)
             {
                 AllProducts.Add(product);
-                lastAdded = product;
             }
             GroupStateVersion++;
-            if (lastAdded is not null)
+            if (page.Results.Count > 0)
             {
-                _messenger.Send(new ScrollToProductMessage(lastAdded));
+                _messenger.Send(new ScrollToProductMessage(page.Results[^1]));
             }
         }
         catch (Exception ex)

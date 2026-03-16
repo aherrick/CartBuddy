@@ -11,7 +11,7 @@ public class KrogerService(KrogerClient krogerClient, ApiLogger apiLogger)
         var transactionId = Guid.NewGuid();
         apiLogger.Log(nameof(GetLocationsByZip), ApiLogDirection.Request, new { zipCode }, transactionId);
         var locations = await krogerClient.SearchLocations(zipCode, 5);
-        var result = locations.Select(MapLocationInfo).ToList();
+        List<LocationInfo> result = [.. locations.Select(MapLocationInfo)];
         apiLogger.Log(nameof(GetLocationsByZip), ApiLogDirection.Response, result, transactionId);
         return result;
     }
@@ -83,11 +83,6 @@ public class KrogerService(KrogerClient krogerClient, ApiLogger apiLogger)
     public string CreateAuthorizationUrl(string redirectUri, string scopes, string state)
         => krogerClient.CreateAuthorizationUrl(redirectUri, scopes, state);
 
-    /// <summary>
-    /// Adds items to the authenticated user's Kroger cart using the Cart API.
-    /// Requires a user access token with the cart.basic:write scope.
-    /// Uses PUT /v1/cart/add (the public Cart API endpoint).
-    /// </summary>
     public async Task<string> CreateCart(string userToken, List<CartItem> items)
     {
         var transactionId = Guid.NewGuid();
