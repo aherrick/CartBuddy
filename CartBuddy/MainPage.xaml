@@ -10,7 +10,6 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="CartBuddy.MainPage"
              x:Name="ThisPage"
-             x:DataType="vm:MainViewModel"
              Title="Cart Buddy"
              BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
 
@@ -51,7 +50,7 @@
                  Margin="0,52,0,0"
                  VerticalOptions="Start"
                  Opacity="0" />
-        <VerticalStackLayout Grid.Row="0" Padding="16,14,16,14" Spacing="14">
+        <VerticalStackLayout Grid.Row="0" x:DataType="vm:MainViewModel" Padding="16,14,16,14" Spacing="14">
             <VerticalStackLayout Spacing="10">
                 <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
                     <VerticalStackLayout Spacing="2" VerticalOptions="Center">
@@ -151,7 +150,7 @@
                                IsStickyGroupHeader="True"
                                IsVisible="{Binding HasResults}">
             <sfListView:SfListView.GroupHeaderTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="{x:Null}">
                     <Grid BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}"
                           Padding="16,10,16,10"
                           ColumnDefinitions="Auto,*,Auto,Auto"
