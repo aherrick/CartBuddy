@@ -14,7 +14,7 @@ public static class NotificationPopupService
 {
     public static async Task Show(string message, NotificationPopupType type = NotificationPopupType.Info)
     {
-        var anchor = Shell.Current?.CurrentPage?.FindByName<IView>("SnackbarAnchor");
+        var anchor = (Shell.Current?.CurrentPage as ContentPage)?.Content as IView;
         var (bgColor, textColor) = type switch
         {
             NotificationPopupType.Success => (Color.FromArgb("#2e7d32"), Colors.White),
