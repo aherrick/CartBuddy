@@ -77,49 +77,17 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
         int start = 0,
         int limit = 10
     ) =>
-        await SearchProductsRetryPipeline.ExecuteAsync(async _ =>
+        await SearchProductsRetryPipeline.ExecuteAsync(async cancellationToken =>
         {
             var token = await GetClientToken();
-            // Kroger's Product API documents "ais" as the Available In Store fulfillment filter.
-            var requestUri = new Uri(
-                BaseUri,
-                $"products?filter.term={Uri.EscapeDataString(term)}&filter.locationId={Uri.EscapeDataString(locationId)}&filter.fulfillment=ais&filter.limit={limit}&filter.start={start + 1}"
+            return await SearchProductsPage(
+                term,
+                locationId,
+                start,
+                limit,
+                token,
+                cancellationToken
             );
-
-            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-            using var response = await httpClient.SendAsync(request, _);
-            response.EnsureSuccessStatusCode();
-
-            var payload = await response.Content.ReadAsStringAsync();
-            var apiResponse = JsonSerializer.Deserialize<KrogerProductResponse>(
-                payload,
-                JsonOptions
-            );
-
-            var page = new KrogerProductSearchPage
-            {
-                RawRequest = requestUri.ToString(),
-                RawResponse = payload,
-                TotalCount = apiResponse?.Meta?.Pagination?.Total ?? 0,
-                Results = [],
-            };
-
-            if (apiResponse?.Data is null)
-            {
-                return page;
-            }
-
-            foreach (var item in apiResponse.Data)
-            {
-                if (MapProduct(term, item) is { } product)
-                {
-                    page.Results.Add(product);
-                }
-            }
-
-            return page;
         });
 
     public async Task<List<KrogerLocation>> SearchLocations(string zipCode, int limit = 10)
@@ -264,6 +232,54 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
         }
 
         return value;
+    }
+
+    private async Task<KrogerProductSearchPage> SearchProductsPage(
+        string term,
+        string locationId,
+        int start,
+        int limit,
+        string token,
+        CancellationToken cancellationToken
+    )
+    {
+        // Kroger's Product API documents "ais" as the Available In Store fulfillment filter.
+        var requestUri = new Uri(
+            BaseUri,
+            $"products?filter.term={Uri.EscapeDataString(term)}&filter.locationId={Uri.EscapeDataString(locationId)}&filter.fulfillment=ais&filter.limit={limit}&filter.start={start + 1}"
+        );
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        using var response = await httpClient.SendAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        var payload = await response.Content.ReadAsStringAsync(cancellationToken);
+        var apiResponse = JsonSerializer.Deserialize<KrogerProductResponse>(payload, JsonOptions);
+
+        var page = new KrogerProductSearchPage
+        {
+            RawRequest = requestUri.ToString(),
+            RawResponse = payload,
+            TotalCount = apiResponse?.Meta?.Pagination?.Total ?? 0,
+            Results = [],
+        };
+
+        if (apiResponse?.Data is null)
+        {
+            return page;
+        }
+
+        foreach (var item in apiResponse.Data)
+        {
+            if (MapProduct(term, item) is { } product)
+            {
+                page.Results.Add(product);
+            }
+        }
+
+        return page;
     }
 
     private static KrogerProduct MapProduct(string query, KrogerProductData item)

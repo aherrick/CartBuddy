@@ -96,10 +96,21 @@
                                 AutoSize="Disabled" />
                     </Border>
 
-                    <Button Text="Search"
-                            Command="{Binding SearchCommand}"
-                            HorizontalOptions="Start"
-                            CornerRadius="6" />
+                                <HorizontalStackLayout Spacing="10">
+                                <Button Text="&#xF0D0;"
+                                    Command="{Binding RunAiCleanupCommand}"
+                                    WidthRequest="48"
+                                    FontFamily="FaSolid"
+                                    FontSize="14"
+                                    HorizontalOptions="Start"
+                                    CornerRadius="6"
+                                    SemanticProperties.Description="Run AI cleanup"
+                                    SemanticProperties.Hint="Cleans the shopping list before search" />
+                            <Button Text="Search"
+                                Command="{Binding SearchCommand}"
+                                HorizontalOptions="Start"
+                                CornerRadius="6" />
+                            </HorizontalStackLayout>
                 </VerticalStackLayout>
             </VerticalStackLayout>
 

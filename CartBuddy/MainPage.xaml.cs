@@ -107,7 +107,7 @@ public partial class MainPage : ContentPage
             title,
             "Cancel",
             null,
-            "Select Store", _viewModel.ThemeActionText, _viewModel.AiActionText, "View Logs"
+            "Select Store", _viewModel.ThemeActionText, "View Logs"
         );
         switch (selectedAction)
         {
@@ -131,11 +131,6 @@ public partial class MainPage : ContentPage
             case "Use Light Mode":
             case "Use Dark Mode":
                 _viewModel.ToggleThemeCommand.Execute(null);
-                break;
-
-            case "Enable AI Cleanup":
-            case "Disable AI Cleanup":
-                _viewModel.ToggleAiCleanupCommand.Execute(null);
                 break;
 
             case "View Logs":

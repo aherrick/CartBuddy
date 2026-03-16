@@ -35,12 +35,6 @@ public static class PreferencesService
     }
 
     public static bool HasStore => !string.IsNullOrEmpty(StoreId);
-    
-    public static bool UseAiCleanup
-    {
-        get => Preferences.Default.Get(nameof(UseAiCleanup), false);
-        set => Preferences.Default.Set(nameof(UseAiCleanup), value);
-    }
 
     public static List<CartLine> Cart
     {

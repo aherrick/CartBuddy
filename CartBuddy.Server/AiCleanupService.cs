@@ -34,9 +34,13 @@ public class AiCleanupService(IConfiguration config)
         var completion = await _chatClient.CompleteChatAsync(
             [
                 new SystemChatMessage(
-                    "You are a grocery list assistant. Clean up and standardize the following grocery items. "
-                        + "Fix spelling, use common product names that would work well as search terms on a grocery store website. "
-                        + "Return ONLY the cleaned items, one per line, no numbering, no extra text."
+                    """
+                    You are a grocery list assistant. Clean up and normalize the following grocery items into short grocery-store search terms.
+                    Fix spelling, remove extra words, and use common product names that would work well as search terms on a grocery store website.
+                    When it clearly improves grocery search results, you may add a small amount of helpful context such as a department or product form, for example 'produce jalapeno' or 'deli turkey'.
+                    Keep each result concise and practical for store search.
+                    Return ONLY the cleaned items, one per line, no numbering, no extra text.
+                    """
                 ),
                 new UserChatMessage(itemList),
             ]

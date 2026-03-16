@@ -11,8 +11,6 @@ namespace CartBuddy.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
-    private const int PageSize = 10;
-
     private readonly ICartBuddyApi _api;
     private readonly IMessenger _messenger;
 
@@ -36,9 +34,6 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isItemsEditorVisible = true;
-
-    [ObservableProperty]
-    private bool _isAiCleanupEnabled;
 
     public ObservableCollection<SearchGroup> SearchGroups { get; } = [];
 
@@ -96,12 +91,9 @@ public partial class MainViewModel : ObservableObject
 
     public string ThemeActionText => IsDarkMode ? "Use Light Mode" : "Use Dark Mode";
 
-    public string AiActionText => IsAiCleanupEnabled ? "Disable AI Cleanup" : "Enable AI Cleanup";
-
     public void LoadSettings()
     {
         IsDarkMode = PreferencesService.Theme == AppTheme.Dark;
-        IsAiCleanupEnabled = PreferencesService.UseAiCleanup;
 
         var currentStoreId = PreferencesService.StoreId;
         if (_lastKnownStoreId is not null && _lastKnownStoreId != currentStoreId)
@@ -127,12 +119,6 @@ public partial class MainViewModel : ObservableObject
     {
         PreferencesService.Theme = value ? AppTheme.Dark : AppTheme.Light;
         OnPropertyChanged(nameof(ThemeActionText));
-    }
-
-    partial void OnIsAiCleanupEnabledChanged(bool value)
-    {
-        PreferencesService.UseAiCleanup = value;
-        OnPropertyChanged(nameof(AiActionText));
     }
 
     partial void OnIsItemsEditorVisibleChanged(bool value)
@@ -166,28 +152,14 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            var rawTerms = ParseTerms(RawItemsText);
-            var searchTerms = rawTerms;
-
-            if (IsAiCleanupEnabled)
-            {
-                // Clean up list with AI so you don't have to worry about strange pasted text
-                var cleanupResponse = await _api.CleanupList(
-                    new CleanupRequest { Items = rawTerms }
-                );
-                if (cleanupResponse.CleanedItems is { Count: > 0 })
-                {
-                    searchTerms = cleanupResponse.CleanedItems;
-                    RawItemsText = string.Join(Environment.NewLine, cleanupResponse.CleanedItems);
-                }
-            }
+            var searchTerms = ParseTerms(RawItemsText);
 
             SearchGroups.Clear();
             AllProducts.Clear();
             foreach (var term in searchTerms)
             {
-                var page = await SearchProducts(term, PreferencesService.StoreId, 0, PageSize);
-                var group = new SearchGroup(term, page.TotalCount, PageSize);
+                var page = await SearchProducts(term, PreferencesService.StoreId, 0, SearchConstants.PageSize);
+                var group = new SearchGroup(term, page.TotalCount, SearchConstants.PageSize);
                 group.AddMatches(page.Results);
                 SearchGroups.Add(group);
                 if (page.Results.Count > 0)
@@ -214,6 +186,40 @@ public partial class MainViewModel : ObservableObject
         catch (Exception ex)
         {
             await ShowSnackbar($"Search failed: {ex.Message}", NotificationPopupType.Error);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task RunAiCleanup()
+    {
+        if (string.IsNullOrWhiteSpace(RawItemsText))
+        {
+            await ShowSnackbar("Paste a list first", NotificationPopupType.Info);
+            return;
+        }
+
+        IsBusy = true;
+
+        try
+        {
+            var rawTerms = ParseTerms(RawItemsText);
+            var cleanupResponse = await _api.CleanupList(new CleanupRequest { Items = rawTerms });
+            if (cleanupResponse.CleanedItems is not { Count: > 0 })
+            {
+                await ShowSnackbar("AI didn't return any updates", NotificationPopupType.Info);
+                return;
+            }
+
+            RawItemsText = string.Join(Environment.NewLine, cleanupResponse.CleanedItems);
+            await ShowSnackbar("List cleaned with AI", NotificationPopupType.Success);
+        }
+        catch (Exception ex)
+        {
+            await ShowSnackbar($"AI cleanup failed: {ex.Message}", NotificationPopupType.Error);
         }
         finally
         {
@@ -425,12 +431,6 @@ public partial class MainViewModel : ObservableObject
     private void ToggleTheme()
     {
         IsDarkMode = !IsDarkMode;
-    }
-
-    [RelayCommand]
-    private void ToggleAiCleanup()
-    {
-        IsAiCleanupEnabled = !IsAiCleanupEnabled;
     }
 
     private static List<string> ParseTerms(string input)
