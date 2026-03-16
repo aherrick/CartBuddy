@@ -129,7 +129,7 @@
                                             }
                                             else
                                             {
-                                                <div class="text-success fw-bold" style="font-size:1.1rem;">$@product.Price.ToString("F2")</div>
+                                                <div class="text-success fw-bold" style="font-size:1.1rem;">@(product.SoldByWeight ? "by wt." : $"${product.Price:F2}")</div>
                                             }
                                         </div>
                                     </div>

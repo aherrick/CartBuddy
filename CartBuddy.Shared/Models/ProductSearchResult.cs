@@ -12,4 +12,5 @@ public class ProductSearchResult
     public bool HasPromo { get; set; }
     public string PromoEndDate { get; set; }
     public string ImageUrl { get; set; }
+    public bool SoldByWeight { get; set; }
 }

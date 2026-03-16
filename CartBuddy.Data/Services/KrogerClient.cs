@@ -273,9 +273,9 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
             return null;
         }
 
-        // Pick ONE canonical variant that has a price and is in stock
+        // Pick ONE canonical variant that has a price (or is sold by weight) and is in stock
         var variant = item.Items.FirstOrDefault(v =>
-            v.Price is not null &&
+            (v.Price is not null || string.Equals(v.SoldBy, "WEIGHT", StringComparison.OrdinalIgnoreCase)) &&
             v.Inventory?.StockLevel != KrogerStockLevel.TemporarilyOutOfStock
         );
         if (variant is null)
@@ -283,9 +283,10 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
             return null;  // No priced, in-stock variant = skip this product
         }
 
-        var regularPrice = variant.Price.Regular;
-        var promoPrice = variant.Price.Promo;
-        var hasPromo = promoPrice > 0m;
+        var soldByWeight = string.Equals(variant.SoldBy, "WEIGHT", StringComparison.OrdinalIgnoreCase);
+        var regularPrice = variant.Price?.Regular ?? 0m;
+        var promoPrice = variant.Price?.Promo ?? 0m;
+        var hasPromo = !soldByWeight && promoPrice > 0m;
         var displayPrice = hasPromo ? promoPrice : regularPrice;
 
         var upc = item.Upc ?? variant.Upc;
@@ -307,6 +308,7 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
             RegularPrice = regularPrice,
             HasPromo = hasPromo,
             PromoEndDate = hasPromo ? variant.Price.ExpirationDate?.Value ?? string.Empty : string.Empty,
+            SoldByWeight = soldByWeight,
         };
     }
 

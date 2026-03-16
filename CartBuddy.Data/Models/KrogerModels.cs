@@ -13,6 +13,7 @@ public class KrogerProduct
     public decimal RegularPrice { get; set; }
     public bool HasPromo { get; set; }
     public string PromoEndDate { get; set; }
+    public bool SoldByWeight { get; set; }
 }
 
 public class KrogerProductSearchPage

@@ -5,7 +5,7 @@ public partial class App : Application
     public App()
     {
         Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
-            "Ngo9BigBOggjHTQxAR8/V1JGaF5cXGpCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdlWXxfcXRcQ2VcVkRxWEpWYEs="
+            "Ngo9BigBOggjHTQxAR8/V1JHaF5cWWdCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdlWXxfdnRdQmBYVEFzWkZWYEo="
         );
 
         InitializeComponent();

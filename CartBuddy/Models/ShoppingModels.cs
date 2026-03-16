@@ -35,6 +35,7 @@ public partial class ProductMatch : ObservableObject
     [NotifyPropertyChangedFor(nameof(HasSale))]
     [NotifyPropertyChangedFor(nameof(RegularPriceDisplay))]
     [NotifyPropertyChangedFor(nameof(PromoEndDisplay))]
+    [NotifyPropertyChangedFor(nameof(PriceDisplay))]
     [ObservableProperty]
     private decimal _price;
 
@@ -54,6 +55,10 @@ public partial class ProductMatch : ObservableObject
     [ObservableProperty]
     private string _promoEndDate;
 
+    [NotifyPropertyChangedFor(nameof(PriceDisplay))]
+    [ObservableProperty]
+    private bool _soldByWeight;
+
     public bool IsNoResult { get; set; }
 
     public string NoResultMessage => ShoppingText.NoMatchesFromKroger;
@@ -67,6 +72,8 @@ public partial class ProductMatch : ObservableObject
             : Brand;
 
     public string RegularPriceDisplay => HasSale ? $"(Reg ${RegularPrice:F2})" : string.Empty;
+
+    public string PriceDisplay => SoldByWeight ? "by wt." : $"${Price:F2}";
 
     public string PromoEndDisplay
     {

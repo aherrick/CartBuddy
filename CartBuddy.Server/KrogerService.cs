@@ -93,6 +93,7 @@ public class KrogerService(KrogerClient krogerClient, ApiLogger apiLogger)
             HasPromo = product.HasPromo,
             PromoEndDate = product.PromoEndDate,
             ImageUrl = product.ImageUrl,
+            SoldByWeight = product.SoldByWeight,
         };
     }
 }

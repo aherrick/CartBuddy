@@ -81,6 +81,9 @@ public class KrogerItemVariant
     [JsonPropertyName("size")]
     public string Size { get; set; }
 
+    [JsonPropertyName("soldBy")]
+    public string SoldBy { get; set; }
+
     [JsonPropertyName("price")]
     public KrogerPrice Price { get; set; }
 

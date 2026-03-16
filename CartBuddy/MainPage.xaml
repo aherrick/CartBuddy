@@ -199,7 +199,7 @@
                             Subtitle="{Binding DisplayBrand}"
                             Detail="{Binding Size}"
                             ImageUrl="{Binding ImageUrl}"
-                            PriceText="{Binding Price, StringFormat='${0:F2}'}"
+                            PriceText="{Binding PriceDisplay}"
                             SecondaryPriceText="{Binding RegularPriceDisplay}"
                             AccentText="{Binding PromoEndDisplay}"
                             AccentColor="{StaticResource SaleRed}"

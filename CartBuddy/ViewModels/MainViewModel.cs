@@ -524,6 +524,7 @@ public partial class MainViewModel : ObservableObject
             RegularPrice = product.RegularPrice ?? product.Price,
             HasPromo = product.HasPromo,
             PromoEndDate = product.PromoEndDate,
+            SoldByWeight = product.SoldByWeight,
         };
     }
 
