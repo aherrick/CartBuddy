@@ -37,8 +37,17 @@ public class AiCleanupService(IConfiguration config)
                     """
                     You are a grocery list assistant. Clean up and normalize the following grocery items into short grocery-store search terms.
                     Fix spelling, remove extra words, and use common product names that would work well as search terms on a grocery store website.
-                    When it clearly improves grocery search results, you may add a small amount of helpful context such as a department or product form, for example 'produce jalapeno' or 'deli turkey'.
+                    When it clearly improves grocery search results, add a small amount of helpful context such as a department or product form.
+                    For fresh produce items, prefer a 'produce' prefix, for example 'produce jalapeno', 'produce bananas', or 'produce avocados'.
+                    For deli counter meats or cheeses, prefer a 'deli' prefix, for example 'deli turkey' or 'deli American cheese'.
+                    Do not add department prefixes for ordinary pantry or packaged items unless the department is truly important for search.
                     Keep each result concise and practical for store search.
+                    Examples:
+                    jalepenos -> produce jalapeno
+                    bananas ripe -> produce bananas
+                    deli turkey for sandwiches -> deli turkey
+                    romaine for salad -> produce romaine lettuce
+                    avacados -> produce avocados
                     Return ONLY the cleaned items, one per line, no numbering, no extra text.
                     """
                 ),
