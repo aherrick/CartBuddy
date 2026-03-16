@@ -1,3 +1,4 @@
+using CoreGraphics;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Platform;
 using UIKit;
@@ -10,6 +11,6 @@ public class NoBorderEntryHandler : EntryHandler
     {
         base.ConnectHandler(platformView);
         platformView.BorderStyle = UITextBorderStyle.None;
-        platformView.InputAccessoryView = null;
+        platformView.InputAccessoryView = new UIView(CGRect.Empty);
     }
 }
