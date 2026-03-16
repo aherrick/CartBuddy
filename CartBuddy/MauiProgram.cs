@@ -20,6 +20,7 @@ public static class MauiProgram
             {
 #if IOS
                 handlers.AddHandler<Entry, CartBuddy.Platforms.iOS.NoBorderEntryHandler>();
+                handlers.AddHandler<Editor, CartBuddy.Platforms.iOS.NoAccessoryEditorHandler>();
 #endif
             })
             .UseMauiCommunityToolkit(options =>
