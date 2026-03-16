@@ -29,18 +29,8 @@ public static class NotificationPopupService
             Font = Microsoft.Maui.Font.SystemFontOfSize(14),
         };
 
-        var page = Shell.Current?.CurrentPage as ContentPage;
-
-        // Prefer a named top anchor; fall back to the first child of the root layout,
-        // which is always the topmost visual element regardless of page type.
-        IView anchor = page?.FindByName<IView>("TopBar");
-        if (anchor is null && page?.Content is Layout root && root.Children.Count > 0)
-        {
-            anchor = root.Children[0];
-        }
-
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        await Snackbar.Make(message, duration: TimeSpan.FromSeconds(2.5), visualOptions: options, anchor: anchor)
+        await Snackbar.Make(message, duration: TimeSpan.FromSeconds(2.5), visualOptions: options, anchor: Shell.Current)
             .Show(cts.Token);
     }
 }

@@ -138,13 +138,13 @@ public partial class MainViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(RawItemsText))
         {
-            await ShowSnackbar("Paste a list first", NotificationPopupType.Info);
+            await NotificationPopupService.Show("Paste a list first", NotificationPopupType.Info);
             return;
         }
 
         if (!HasStore)
         {
-            await ShowSnackbar("Select a store first", NotificationPopupType.Info);
+            await NotificationPopupService.Show("Select a store first", NotificationPopupType.Info);
             return;
         }
 
@@ -185,7 +185,7 @@ public partial class MainViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            await ShowSnackbar($"Search failed: {ex.Message}", NotificationPopupType.Error);
+            await NotificationPopupService.Show($"Search failed: {ex.Message}", NotificationPopupType.Error);
         }
         finally
         {
@@ -198,7 +198,7 @@ public partial class MainViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(RawItemsText))
         {
-            await ShowSnackbar("Paste a list first", NotificationPopupType.Info);
+            await NotificationPopupService.Show("Paste a list first", NotificationPopupType.Info);
             return;
         }
 
@@ -210,16 +210,16 @@ public partial class MainViewModel : ObservableObject
             var cleanupResponse = await _api.CleanupList(new CleanupRequest { Items = rawTerms });
             if (cleanupResponse.CleanedItems is not { Count: > 0 })
             {
-                await ShowSnackbar("AI didn't return any updates", NotificationPopupType.Info);
+                await NotificationPopupService.Show("AI didn't return any updates", NotificationPopupType.Info);
                 return;
             }
 
             RawItemsText = string.Join(Environment.NewLine, cleanupResponse.CleanedItems);
-            await ShowSnackbar("List cleaned with AI", NotificationPopupType.Success);
+            await NotificationPopupService.Show("List cleaned with AI", NotificationPopupType.Success);
         }
         catch (Exception ex)
         {
-            await ShowSnackbar($"AI cleanup failed: {ex.Message}", NotificationPopupType.Error);
+            await NotificationPopupService.Show($"AI cleanup failed: {ex.Message}", NotificationPopupType.Error);
         }
         finally
         {
@@ -264,7 +264,7 @@ public partial class MainViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            await ShowSnackbar($"Couldn't load more: {ex.Message}", NotificationPopupType.Error);
+            await NotificationPopupService.Show($"Couldn't load more: {ex.Message}", NotificationPopupType.Error);
         }
         finally
         {
@@ -278,7 +278,7 @@ public partial class MainViewModel : ObservableObject
         var cartItems = CartItems.Where(item => item.Quantity > 0).ToList();
         if (cartItems.Count == 0)
         {
-            await ShowSnackbar("Add items to the cart first", NotificationPopupType.Info);
+            await NotificationPopupService.Show("Add items to the cart first", NotificationPopupType.Info);
             return;
         }
 
@@ -317,7 +317,7 @@ public partial class MainViewModel : ObservableObject
 
             ClearCart();
             _messenger.Send(new CloseCartRequestedMessage());
-            await ShowSnackbar(
+            await NotificationPopupService.Show(
                 $"Added {cartItems.Count} lines to your Kroger cart",
                 NotificationPopupType.Success
             );
@@ -325,11 +325,11 @@ public partial class MainViewModel : ObservableObject
         }
         catch (TaskCanceledException)
         {
-            await ShowSnackbar("Sign-in cancelled", NotificationPopupType.Info);
+            await NotificationPopupService.Show("Sign-in cancelled", NotificationPopupType.Info);
         }
         catch (Exception ex)
         {
-            await ShowSnackbar($"Checkout failed: {ex.Message}", NotificationPopupType.Error);
+            await NotificationPopupService.Show($"Checkout failed: {ex.Message}", NotificationPopupType.Error);
         }
         finally
         {
@@ -367,7 +367,7 @@ public partial class MainViewModel : ObservableObject
             cartLine.SourceQueries.Add(match.Query);
             CartItems.Add(cartLine);
         }
-        await ShowSnackbar("Added to cart", NotificationPopupType.Success);
+        await NotificationPopupService.Show("Added to cart", NotificationPopupType.Success);
     }
 
     [RelayCommand]
@@ -529,11 +529,4 @@ public partial class MainViewModel : ObservableObject
         };
     }
 
-    private async Task ShowSnackbar(
-        string message,
-        NotificationPopupType type = NotificationPopupType.Info
-    )
-    {
-        await NotificationPopupService.Show(message, type);
-    }
 }
