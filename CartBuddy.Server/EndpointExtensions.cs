@@ -22,41 +22,16 @@ public static class EndpointExtensions
 
         apiGroup.MapGet("/logs", (ApiLogger logger) => Results.Ok(logger.GetAll()));
 
-        apiGroup.MapGet(
+        apiGroup.MapPost(
             "/search",
-            async (
-                string locationId,
-                string term,
-                KrogerService kroger,
-                bool isProduceCategory = false,
-                int start = 0,
-                int limit = 10
-            ) =>
-            {
-                var response = await kroger.SearchProducts(
-                    locationId,
-                    term,
-                    start,
-                    limit,
-                    isProduceCategory
-                );
-                return Results.Ok(response);
-            }
+            async (ProductSearchRequest req, KrogerService kroger) =>
+                Results.Ok(await kroger.SearchProducts(req))
         );
 
         apiGroup.MapPost(
             "/cleanup",
             async (CleanupRequest req, AiCleanupService aiCleanup) =>
-            {
-                var classifiedItems = await aiCleanup.CleanupList(req.Items ?? []);
-                return Results.Ok(
-                    new CleanupResponse
-                    {
-                        CleanedItems = [.. classifiedItems.Select(item => item.Item)],
-                        ClassifiedItems = classifiedItems,
-                    }
-                );
-            }
+                Results.Ok(await aiCleanup.CleanupList(req.Items ?? []))
         );
 
         apiGroup.MapPost(

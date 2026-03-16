@@ -16,24 +16,18 @@ public class KrogerService(KrogerClient krogerClient, ApiLogger apiLogger)
         return result;
     }
 
-    public async Task<ProductSearchResponse> SearchProducts(
-        string locationId,
-        string term,
-        int start = 0,
-        int limit = 10,
-        bool isProduceCategory = false
-    )
+    public async Task<ProductSearchResponse> SearchProducts(ProductSearchRequest req)
     {
         var transactionId = Guid.NewGuid();
-        var primaryPage = await krogerClient.SearchProducts(term, locationId, start, limit);
+        var primaryPage = await krogerClient.SearchProducts(req.Item.Item, req.LocationId, req.Start, req.Limit);
 
         List<KrogerProduct> results;
-        var total = primaryPage.TotalCount;
+        int total;
 
-        if (isProduceCategory)
+        if (string.Equals(req.Item.Category, "produce", StringComparison.OrdinalIgnoreCase))
         {
-            var produceTerm = $"produce {term}";
-            var producePage = await krogerClient.SearchProducts(produceTerm, locationId, start, limit);
+            var produceTerm = $"produce {req.Item.Item}";
+            var producePage = await krogerClient.SearchProducts(produceTerm, req.LocationId, req.Start, req.Limit);
 
             apiLogger.Log(
                 nameof(SearchProducts),
@@ -48,8 +42,8 @@ public class KrogerService(KrogerClient krogerClient, ApiLogger apiLogger)
                 transactionId
             );
 
-            results = MergeProducts(primaryPage.Results, producePage.Results);
-            total = Math.Max(primaryPage.TotalCount, producePage.TotalCount);
+            results = MergeProducts(producePage.Results, primaryPage.Results);
+            total = results.Count;
         }
         else
         {
@@ -67,6 +61,7 @@ public class KrogerService(KrogerClient krogerClient, ApiLogger apiLogger)
             );
 
             results = primaryPage.Results;
+            total = primaryPage.TotalCount;
         }
 
         var response = new ProductSearchResponse
@@ -139,6 +134,6 @@ public class KrogerService(KrogerClient krogerClient, ApiLogger apiLogger)
         };
     }
 
-    private static List<KrogerProduct> MergeProducts(List<KrogerProduct> primary, List<KrogerProduct> produce)
+    private static List<KrogerProduct> MergeProducts(List<KrogerProduct> produce, List<KrogerProduct> primary)
         => [.. primary.Concat(produce).DistinctBy(p => p.Upc ?? p.ProductId ?? p.Description, StringComparer.OrdinalIgnoreCase)];
 }

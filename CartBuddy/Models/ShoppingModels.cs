@@ -147,7 +147,7 @@ public partial class CartLine : ObservableObject
 
 }
 
-public class SearchGroup(string query, int totalCount, int pageSize, bool isProduceCategory = false) : ObservableCollection<ProductMatch>
+public class SearchGroup(string query, int totalCount, int pageSize, string category = "other") : ObservableCollection<ProductMatch>
 {
     private int _totalCount = totalCount;
     private int _loadedCount;
@@ -157,7 +157,7 @@ public class SearchGroup(string query, int totalCount, int pageSize, bool isProd
 
     public int PageSize { get; } = pageSize;
 
-    public bool IsProduceCategory { get; } = isProduceCategory;
+    public string Category { get; } = category;
 
     public int TotalCount
     {

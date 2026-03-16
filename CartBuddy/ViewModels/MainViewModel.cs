@@ -153,20 +153,8 @@ public partial class MainViewModel : ObservableObject
         try
         {
             var rawTerms = ParseTerms(RawItemsText);
-            var cleanupResponse = await _api.CleanupList(new CleanupRequest { Items = rawTerms });
-
-            var classifiedItems = cleanupResponse.ClassifiedItems;
-            if (classifiedItems is not { Count: > 0 })
-            {
-                classifiedItems =
-                [
-                    .. rawTerms.Select(item => new CleanupItem
-                    {
-                        Item = item,
-                        Category = "other",
-                    }),
-                ];
-            }
+            var classifiedItems = await _api.CleanupList(new CleanupRequest { Items = rawTerms })
+                ?? [.. rawTerms.Select(item => new CategoryItem { Item = item, Category = "other" })];
 
             RawItemsText = string.Join(Environment.NewLine, classifiedItems.Select(item => item.Item));
 
@@ -174,25 +162,17 @@ public partial class MainViewModel : ObservableObject
             AllProducts.Clear();
             foreach (var searchItem in classifiedItems)
             {
-                var term = searchItem.Item;
-                var isProduceCategory = string.Equals(
-                    searchItem.Category,
-                    "produce",
-                    StringComparison.OrdinalIgnoreCase
-                );
-
                 var page = await SearchProducts(
-                    term,
                     PreferencesService.StoreId,
+                    searchItem,
                     0,
-                    SearchConstants.PageSize,
-                    isProduceCategory
+                    SearchConstants.PageSize
                 );
                 var group = new SearchGroup(
-                    term,
+                    searchItem.Item,
                     page.TotalCount,
                     SearchConstants.PageSize,
-                    isProduceCategory
+                    searchItem.Category
                 );
                 group.AddMatches(page.Results);
                 SearchGroups.Add(group);
@@ -205,7 +185,7 @@ public partial class MainViewModel : ObservableObject
                 }
                 else
                 {
-                    AllProducts.Add(new ProductMatch { Query = term, IsNoResult = true });
+                    AllProducts.Add(new ProductMatch { Query = searchItem.Item, IsNoResult = true });
                 }
             }
 
@@ -244,11 +224,10 @@ public partial class MainViewModel : ObservableObject
         try
         {
             var page = await SearchProducts(
-                group.Query,
                 PreferencesService.StoreId,
+                new CategoryItem { Item = group.Query, Category = group.Category },
                 group.LoadedCount,
-                group.PageSize,
-                group.IsProduceCategory
+                group.PageSize
             );
             group.AddMatches(page.Results);
             ProductMatch lastAdded = null;
@@ -496,31 +475,29 @@ public partial class MainViewModel : ObservableObject
     }
 
     private async Task<ProductSearchPage> SearchProducts(
-        string term,
         string locationId,
+        CategoryItem item,
         int start,
-        int limit,
-        bool isProduceCategory = false
+        int limit
     )
     {
         var page = await PollyHelper.ExecuteSearchRetry(() =>
-            _api.SearchProducts(locationId, term, start, limit, isProduceCategory)
+            _api.SearchProducts(new ProductSearchRequest { LocationId = locationId, Item = item, Start = start, Limit = limit })
         );
         return new ProductSearchPage(
-            [.. page.Results.Select(result => MapProductMatch(result, term))],
+            [.. page.Results.Select(result => MapProductMatch(result, item.Item))],
             page.Total
         );
     }
 
-    private static ProductMatch MapProductMatch(ProductSearchResult product, string query)
-    {
-        return new ProductMatch
+    private static ProductMatch MapProductMatch(ProductSearchResult product, string query) =>
+        new()
         {
             Query = query,
             Upc = product.Upc,
             Description = product.Description,
-            Brand = string.IsNullOrWhiteSpace(product.Brand) ? string.Empty : product.Brand,
-            Size = string.IsNullOrWhiteSpace(product.Size) ? string.Empty : product.Size,
+            Brand = product.Brand,
+            Size = product.Size,
             ImageUrl = product.ImageUrl,
             Price = product.Price,
             RegularPrice = product.RegularPrice ?? product.Price,
@@ -529,6 +506,5 @@ public partial class MainViewModel : ObservableObject
             SoldByWeight = product.SoldByWeight,
             AverageWeightPerUnit = product.AverageWeightPerUnit,
         };
-    }
 
 }

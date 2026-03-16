@@ -5,14 +5,7 @@ public class CleanupRequest
     public List<string> Items { get; set; }
 }
 
-public class CleanupResponse
-{
-    public List<string> CleanedItems { get; set; }
-
-    public List<CleanupItem> ClassifiedItems { get; set; }
-}
-
-public class CleanupItem
+public class CategoryItem
 {
     public string Item { get; set; }
 

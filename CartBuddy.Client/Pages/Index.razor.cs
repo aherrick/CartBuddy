@@ -210,17 +210,32 @@ public partial class Index
 
         try
         {
+            var cleanedItems = await Api.PostAsync<CleanupRequest, List<CategoryItem>>(
+                "/api/cleanup",
+                new CleanupRequest { Items = terms }
+            ) ?? [.. terms.Select(t => new CategoryItem { Item = t, Category = "other" })];
+
+            itemsText = string.Join("\n", cleanedItems.Select(i => i.Item));
+
             var isFirst = true;
-            foreach (var term in terms)
+            foreach (var categoryItem in cleanedItems)
             {
-                var response = await Api.GetAsync<ProductSearchResponse>(
-                    $"/api/search?locationId={locationId}&term={Uri.EscapeDataString(term)}&start=0&limit={SearchConstants.PageSize}"
+                var response = await Api.PostAsync<ProductSearchRequest, ProductSearchResponse>(
+                    "/api/search",
+                    new ProductSearchRequest
+                    {
+                        LocationId = locationId,
+                        Item = categoryItem,
+                        Start = 0,
+                        Limit = SearchConstants.PageSize,
+                    }
                 );
 
                 searchResults.Add(
                     new TermSearchResult
                     {
-                        Term = term,
+                        Term = categoryItem.Item,
+                        Category = categoryItem.Category,
                         Results = response?.Results ?? [],
                         TotalAvailable = response?.Total ?? 0,
                         NextStart = SearchConstants.PageSize,
@@ -252,8 +267,15 @@ public partial class Index
 
     private async Task LoadMore(TermSearchResult termResult)
     {
-        var response = await Api.GetAsync<ProductSearchResponse>(
-            $"/api/search?locationId={locationId}&term={Uri.EscapeDataString(termResult.Term)}&start={termResult.NextStart}&limit={SearchConstants.PageSize}"
+        var response = await Api.PostAsync<ProductSearchRequest, ProductSearchResponse>(
+            "/api/search",
+            new ProductSearchRequest
+            {
+                LocationId = locationId,
+                Item = new CategoryItem { Item = termResult.Term, Category = termResult.Category },
+                Start = termResult.NextStart,
+                Limit = SearchConstants.PageSize,
+            }
         );
 
         if (response?.Results != null && response.Results.Count != 0)
@@ -427,6 +449,7 @@ public partial class Index
     private class TermSearchResult
     {
         public string Term { get; set; }
+        public string Category { get; set; }
         public List<ProductSearchResult> Results { get; set; } = [];
         public int TotalAvailable { get; set; }
         public int NextStart { get; set; } = SearchConstants.PageSize;

@@ -29,7 +29,7 @@ public class AiCleanupService(IConfiguration config)
         return client.GetChatClient(deploymentName);
     }
 
-    public async Task<List<CleanupItem>> CleanupList(List<string> rawItems)
+    public async Task<List<CategoryItem>> CleanupList(List<string> rawItems)
     {
         if (rawItems.Count == 0)
         {
@@ -61,6 +61,6 @@ public class AiCleanupService(IConfiguration config)
         );
 
         var result = completion.Value.Content[0].Text;
-        return JsonSerializer.Deserialize<List<CleanupItem>>(result.Trim(), JsonOptions);
+        return JsonSerializer.Deserialize<List<CategoryItem>>(result.Trim(), JsonOptions);
     }
 }
