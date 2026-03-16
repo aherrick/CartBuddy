@@ -78,10 +78,13 @@ public partial class ProductMatch : ObservableObject
 
     public string RegularPriceDisplay =>
         HasSale ? $"(Reg ${RegularPrice:F2})" :
-        SoldByWeight && AverageWeightPerUnit > 0m ? $"~${Price * AverageWeightPerUnit:F2}" :
+        SoldByWeight ? $"${Price:F2}/lb" :
         string.Empty;
 
-    public string PriceDisplay => SoldByWeight ? $"${Price:F2}/lb" : $"${Price:F2}";
+    public string PriceDisplay =>
+        SoldByWeight && AverageWeightPerUnit > 0m ? $"~${Price * AverageWeightPerUnit:F2}" :
+        SoldByWeight ? $"${Price:F2}/lb" :
+        $"${Price:F2}";
 
     public string PromoEndDisplay
     {
