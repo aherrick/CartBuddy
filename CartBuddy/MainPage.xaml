@@ -43,14 +43,14 @@
         </ToolbarItem>
     </ContentPage.ToolbarItems>
 
-    <Grid RowDefinitions="0,*">
+    <Grid RowDefinitions="Auto,*">
         <BoxView x:Name="SnackbarAnchor"
-                 Grid.Row="1"
+                 Grid.Row="0"
                  HeightRequest="1"
                  Margin="0,52,0,0"
                  VerticalOptions="Start"
                  Opacity="0" />
-        <VerticalStackLayout Grid.Row="1" Padding="16,14,16,14" Spacing="14">
+        <VerticalStackLayout Grid.Row="0" Padding="16,14,16,14" Spacing="14">
             <VerticalStackLayout Spacing="10">
                 <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
                     <VerticalStackLayout Spacing="2" VerticalOptions="Center">
