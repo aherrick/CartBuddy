@@ -303,7 +303,14 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
         var regularPrice = variant.Price?.Regular ?? 0m;
         var promoPrice = variant.Price?.Promo ?? 0m;
         var hasPromo = !soldByWeight && promoPrice > 0m;
-        var displayPrice = hasPromo ? promoPrice : regularPrice;
+        var displayPrice = hasPromo ? promoPrice : (soldByWeight && promoPrice > 0m && promoPrice < regularPrice ? promoPrice : regularPrice);
+
+        var averageWeightPerUnit = 0m;
+        if (soldByWeight && item.ItemInformation?.AverageWeightPerUnit is { } avgWt)
+        {
+            var numericPart = avgWt.Split(' ')[0];
+            decimal.TryParse(numericPart, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out averageWeightPerUnit);
+        }
 
         var upc = item.Upc ?? variant.Upc;
         if (string.IsNullOrWhiteSpace(upc))
@@ -325,6 +332,7 @@ public class KrogerClient(HttpClient httpClient, IConfiguration configuration)
             HasPromo = hasPromo,
             PromoEndDate = hasPromo ? variant.Price.ExpirationDate?.Value ?? string.Empty : string.Empty,
             SoldByWeight = soldByWeight,
+            AverageWeightPerUnit = averageWeightPerUnit,
         };
     }
 

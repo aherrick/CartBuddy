@@ -13,4 +13,5 @@ public class ProductSearchResult
     public string PromoEndDate { get; set; }
     public string ImageUrl { get; set; }
     public bool SoldByWeight { get; set; }
+    public decimal AverageWeightPerUnit { get; set; }
 }

@@ -525,6 +525,7 @@ public partial class MainViewModel : ObservableObject
             HasPromo = product.HasPromo,
             PromoEndDate = product.PromoEndDate,
             SoldByWeight = product.SoldByWeight,
+            AverageWeightPerUnit = product.AverageWeightPerUnit,
         };
     }
 

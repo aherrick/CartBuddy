@@ -14,6 +14,7 @@ public class KrogerProduct
     public bool HasPromo { get; set; }
     public string PromoEndDate { get; set; }
     public bool SoldByWeight { get; set; }
+    public decimal AverageWeightPerUnit { get; set; }
 }
 
 public class KrogerProductSearchPage

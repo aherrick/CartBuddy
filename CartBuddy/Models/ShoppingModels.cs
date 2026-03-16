@@ -59,6 +59,11 @@ public partial class ProductMatch : ObservableObject
     [ObservableProperty]
     private bool _soldByWeight;
 
+    [NotifyPropertyChangedFor(nameof(PriceDisplay))]
+    [NotifyPropertyChangedFor(nameof(RegularPriceDisplay))]
+    [ObservableProperty]
+    private decimal _averageWeightPerUnit;
+
     public bool IsNoResult { get; set; }
 
     public string NoResultMessage => ShoppingText.NoMatchesFromKroger;
@@ -71,9 +76,12 @@ public partial class ProductMatch : ObservableObject
             ? string.Empty
             : Brand;
 
-    public string RegularPriceDisplay => HasSale ? $"(Reg ${RegularPrice:F2})" : string.Empty;
+    public string RegularPriceDisplay =>
+        HasSale ? $"(Reg ${RegularPrice:F2})" :
+        SoldByWeight && AverageWeightPerUnit > 0m ? $"~${Price * AverageWeightPerUnit:F2}" :
+        string.Empty;
 
-    public string PriceDisplay => SoldByWeight ? "by wt." : $"${Price:F2}";
+    public string PriceDisplay => SoldByWeight ? $"${Price:F2}/lb" : $"${Price:F2}";
 
     public string PromoEndDisplay
     {

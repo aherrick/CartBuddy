@@ -53,6 +53,15 @@ public class KrogerProductData
 
     [JsonPropertyName("items")]
     public List<KrogerItemVariant> Items { get; set; }
+
+    [JsonPropertyName("itemInformation")]
+    public KrogerItemInformation ItemInformation { get; set; }
+}
+
+public class KrogerItemInformation
+{
+    [JsonPropertyName("averageWeightPerUnit")]
+    public string AverageWeightPerUnit { get; set; }
 }
 
 public class KrogerImage
