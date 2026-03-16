@@ -32,6 +32,15 @@ public class HasTextConverter : IValueConverter
         throw new NotImplementedException();
 }
 
+public class BoolToTextDecorationsConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        value is true ? TextDecorations.Strikethrough : TextDecorations.None;
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+        throw new NotImplementedException();
+}
+
 public class GroupInfoConverter : IMultiValueConverter
 {
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)

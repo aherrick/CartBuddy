@@ -221,6 +221,7 @@
                             ImageUrl="{Binding ImageUrl}"
                             PriceText="{Binding PriceDisplay}"
                             SecondaryPriceText="{Binding RegularPriceDisplay}"
+                            SecondaryPriceStrikethrough="{Binding RegularPriceDisplayIsStrikethrough}"
                             AccentText="{Binding PromoEndDisplay}"
                             AccentColor="{StaticResource SaleRed}"
                             ShowPriceBadge="{Binding HasSale}"

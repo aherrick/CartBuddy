@@ -81,6 +81,8 @@ public partial class ProductMatch : ObservableObject
         SoldByWeight ? $"${Price:F2}/lb" :
         string.Empty;
 
+    public bool RegularPriceDisplayIsStrikethrough => HasSale;
+
     public string PriceDisplay =>
         SoldByWeight && AverageWeightPerUnit > 0m ? $"~${Price * AverageWeightPerUnit:F2}" :
         SoldByWeight ? $"${Price:F2}/lb" :

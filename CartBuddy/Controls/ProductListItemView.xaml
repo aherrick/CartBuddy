@@ -7,6 +7,7 @@
              x:Name="ThisView">
     <ContentView.Resources>
         <converters:HasTextConverter x:Key="HasTextConverter" />
+        <converters:BoolToTextDecorationsConverter x:Key="BoolToTextDecorationsConverter" />
         <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
     </ContentView.Resources>
 
@@ -16,9 +17,9 @@
     </ContentView.GestureRecognizers>
 
     <Grid RowDefinitions="Auto,Auto" RowSpacing="0">
-        <Grid ColumnDefinitions="80,*,Auto" ColumnSpacing="14" Padding="4,12">
-            <Border WidthRequest="80"
-                    HeightRequest="80"
+        <Grid ColumnDefinitions="100,*,Auto" ColumnSpacing="14" Padding="4,12">
+            <Border WidthRequest="92"
+                    HeightRequest="92"
                     Padding="2"
                     Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
                     StrokeThickness="1"
@@ -63,10 +64,10 @@
                        TextColor="{Binding PriceColor, Source={x:Reference ThisView}}"
                        IsVisible="{Binding ShowPriceBadge, Source={x:Reference ThisView}, Converter={StaticResource InvertedBoolConverter}}" />
                 <Label Text="{Binding SecondaryPriceText, Source={x:Reference ThisView}}"
-                       FontSize="11"
+                       FontSize="12"
                        HorizontalTextAlignment="End"
                        TextColor="{StaticResource Gray400}"
-                       TextDecorations="Strikethrough"
+                       TextDecorations="{Binding SecondaryPriceStrikethrough, Source={x:Reference ThisView}, Converter={StaticResource BoolToTextDecorationsConverter}}"
                        IsVisible="{Binding SecondaryPriceText, Source={x:Reference ThisView}, Converter={StaticResource HasTextConverter}}" />
                 <Label Text="{Binding AccentText, Source={x:Reference ThisView}}"
                        FontSize="11"

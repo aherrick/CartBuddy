@@ -22,6 +22,9 @@ public partial class ProductListItemView : ContentView
     public static readonly BindableProperty SecondaryPriceTextProperty =
         BindableProperty.Create(nameof(SecondaryPriceText), typeof(string), typeof(ProductListItemView), string.Empty);
 
+    public static readonly BindableProperty SecondaryPriceStrikethroughProperty =
+        BindableProperty.Create(nameof(SecondaryPriceStrikethrough), typeof(bool), typeof(ProductListItemView), false);
+
     public static readonly BindableProperty AccentTextProperty =
         BindableProperty.Create(nameof(AccentText), typeof(string), typeof(ProductListItemView), string.Empty);
 
@@ -97,6 +100,12 @@ public partial class ProductListItemView : ContentView
     {
         get => (string)GetValue(SecondaryPriceTextProperty);
         set => SetValue(SecondaryPriceTextProperty, value);
+    }
+
+    public bool SecondaryPriceStrikethrough
+    {
+        get => (bool)GetValue(SecondaryPriceStrikethroughProperty);
+        set => SetValue(SecondaryPriceStrikethroughProperty, value);
     }
 
     public string AccentText
