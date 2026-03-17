@@ -179,4 +179,23 @@ public partial class ProductListItemView : ContentView
         get => GetValue(QuantityCommandParameterProperty);
         set => SetValue(QuantityCommandParameterProperty, value);
     }
+
+    private async void OnTapped(object sender, TappedEventArgs e)
+    {
+        if (ItemCommand is null || !ItemCommand.CanExecute(ItemCommandParameter))
+        {
+            return;
+        }
+
+        await Task.WhenAll(
+            CardSurface.ScaleToAsync(0.98, 80, Easing.CubicOut),
+            CardSurface.FadeToAsync(0.85, 80, Easing.CubicOut)
+        );
+        await Task.WhenAll(
+            CardSurface.ScaleToAsync(1.0, 100, Easing.CubicIn),
+            CardSurface.FadeToAsync(1.0, 100, Easing.CubicIn)
+        );
+
+        ItemCommand.Execute(ItemCommandParameter);
+    }
 }
