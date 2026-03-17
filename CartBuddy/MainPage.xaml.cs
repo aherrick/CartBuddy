@@ -15,6 +15,7 @@ public partial class MainPage : ContentPage
     private readonly MainViewModel _viewModel;
     private readonly IAsyncRelayCommand<ProductMatch> _addToCartAndCollapseCommand;
     private CartPopup _cartPopup;
+    private CancellationTokenSource _skeletonAnimCts;
 
     public MainPage(MainViewModel viewModel, IMessenger messenger)
     {
@@ -30,6 +31,7 @@ public partial class MainPage : ContentPage
 
         _viewModel.SearchGroups.CollectionChanged += OnSearchGroupsCollectionChanged;
         _addToCartAndCollapseCommand = new AsyncRelayCommand<ProductMatch>(AddToCartAndCollapse);
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
         messenger.Register<ScrollToProductMessage>(this, static (recipient, message) =>
         {
@@ -73,6 +75,40 @@ public partial class MainPage : ContentPage
     private void OnSearchGroupsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
     {
         SearchListView.DataSource?.Refresh();
+    }
+
+    private void OnViewModelPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(MainViewModel.IsBusy))
+        {
+            return;
+        }
+
+        _skeletonAnimCts?.Cancel();
+        _skeletonAnimCts = new CancellationTokenSource();
+
+        if (_viewModel.IsBusy)
+        {
+            _ = PulseSkeleton(_skeletonAnimCts.Token);
+        }
+        else
+        {
+            SkeletonContainer.Opacity = 1.0;
+        }
+    }
+
+    private async Task PulseSkeleton(CancellationToken ct)
+    {
+        while (!ct.IsCancellationRequested)
+        {
+            await SkeletonContainer.FadeToAsync(0.35, 600, Easing.SinInOut);
+            if (ct.IsCancellationRequested)
+            {
+                break;
+            }
+            await SkeletonContainer.FadeToAsync(1.0, 600, Easing.SinInOut);
+        }
+        SkeletonContainer.Opacity = 1.0;
     }
 
     protected override void OnAppearing()

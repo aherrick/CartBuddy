@@ -90,8 +90,4 @@
 		<ProjectReference Include="..\CartBuddy.Shared\CartBuddy.Shared.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<!-- Workaround: Syncfusion SfShimmer throws MAUIG1001 during XAML SourceGen -> force runtime inflation for MainPage -->
-		<MauiXaml Update="MainPage.xaml" Inflator="Runtime" />
-	</ItemGroup>
 </Project>

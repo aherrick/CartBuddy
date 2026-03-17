@@ -164,3 +164,18 @@ public class ApiLogGroupHeaderConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
         throw new NotImplementedException();
 }
+public class BusyAndNoResultsConverter : IMultiValueConverter
+{
+    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (values.Length < 2 || values[0] is not bool isBusy || values[1] is not bool hasResults)
+        {
+            return false;
+        }
+
+        return isBusy && !hasResults;
+    }
+
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) =>
+        throw new NotImplementedException();
+}
