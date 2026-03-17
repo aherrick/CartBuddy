@@ -1,33 +1,12 @@
-using Azure;
-using Azure.AI.OpenAI;
 using CartBuddy.Shared.Models;
 using OpenAI.Chat;
 using System.Text.Json;
 
 namespace CartBuddy.Server;
 
-public class AiCleanupService(IConfiguration config)
+public class AiCleanupService(ChatClient chatClient)
 {
-    private readonly ChatClient _chatClient = CreateChatClient(config);
-
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-    };
-
-    private static ChatClient CreateChatClient(IConfiguration config)
-    {
-        var endpoint =
-            config["AzureOpenAI:Endpoint"]
-            ?? throw new InvalidOperationException("AzureOpenAI:Endpoint not configured");
-        var apiKey =
-            config["AzureOpenAI:Key"]
-            ?? throw new InvalidOperationException("AzureOpenAI:Key not configured");
-        var deploymentName = config["AzureOpenAI:DeploymentName"] ?? "gpt-4o";
-
-        var client = new AzureOpenAIClient(new Uri(endpoint), new AzureKeyCredential(apiKey));
-        return client.GetChatClient(deploymentName);
-    }
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     public async Task<List<CategoryItem>> CleanupList(List<string> rawItems)
     {
@@ -38,7 +17,7 @@ public class AiCleanupService(IConfiguration config)
 
         var itemList = string.Join("\n", rawItems);
 
-        var completion = await _chatClient.CompleteChatAsync(
+        var completion = await chatClient.CompleteChatAsync(
             [
                 new SystemChatMessage(
                     """

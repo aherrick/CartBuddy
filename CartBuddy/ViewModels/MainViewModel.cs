@@ -13,6 +13,7 @@ public partial class MainViewModel : ObservableObject
 {
     private readonly ICartBuddyApi _api;
     private readonly IMessenger _messenger;
+    private CancellationTokenSource _searchCts = new();
 
     public MainViewModel(ICartBuddyApi api, IMessenger messenger)
     {
@@ -150,11 +151,17 @@ public partial class MainViewModel : ObservableObject
 
         IsBusy = true;
 
+        await _searchCts.CancelAsync();
+        _searchCts = new CancellationTokenSource();
+        var ct = _searchCts.Token;
+
         try
         {
             var rawTerms = ParseTerms(RawItemsText);
-            var classifiedItems = await _api.CleanupList(new CleanupRequest { Items = rawTerms })
+            var classifiedItems = await _api.CleanupList(new CleanupRequest { Items = rawTerms }, ct)
                 ?? [.. rawTerms.Select(item => new CategoryItem { Item = item, Category = "other" })];
+
+            ct.ThrowIfCancellationRequested();
 
             RawItemsText = string.Join(Environment.NewLine, classifiedItems.Select(item => item.Item));
 
@@ -166,7 +173,8 @@ public partial class MainViewModel : ObservableObject
                     PreferencesService.StoreId,
                     searchItem,
                     0,
-                    SearchConstants.PageSize
+                    SearchConstants.PageSize,
+                    ct
                 );
                 var group = new SearchGroup(
                     searchItem.Item,
@@ -196,6 +204,10 @@ public partial class MainViewModel : ObservableObject
             {
                 IsItemsEditorVisible = false;
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // new search was triggered — discard results silently
         }
         catch (Exception ex)
         {
@@ -478,11 +490,13 @@ public partial class MainViewModel : ObservableObject
         string locationId,
         CategoryItem item,
         int start,
-        int limit
+        int limit,
+        CancellationToken cancellationToken = default
     )
     {
-        var page = await PollyHelper.ExecuteSearchRetry(() =>
-            _api.SearchProducts(new ProductSearchRequest { LocationId = locationId, Item = item, Start = start, Limit = limit })
+        var page = await PollyHelper.ExecuteSearchRetry(
+            () => _api.SearchProducts(new ProductSearchRequest { LocationId = locationId, Item = item, Start = start, Limit = limit }, cancellationToken),
+            cancellationToken
         );
         return new ProductSearchPage(
             [.. page.Results.Select(result => MapProductMatch(result, item.Item))],

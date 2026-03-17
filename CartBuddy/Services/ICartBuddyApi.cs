@@ -9,10 +9,10 @@ public interface ICartBuddyApi
     Task<LocationResponse> SearchLocations(string zipCode);
 
     [Post("/api/search")]
-    Task<ProductSearchResponse> SearchProducts([Body] ProductSearchRequest request);
+    Task<ProductSearchResponse> SearchProducts([Body] ProductSearchRequest request, CancellationToken cancellationToken = default);
 
     [Post("/api/cleanup")]
-    Task<List<CategoryItem>> CleanupList([Body] CleanupRequest request);
+    Task<List<CategoryItem>> CleanupList([Body] CleanupRequest request, CancellationToken cancellationToken = default);
 
     [Post("/api/checkout")]
     Task<CheckoutResponse> Checkout(CheckoutRequest request);

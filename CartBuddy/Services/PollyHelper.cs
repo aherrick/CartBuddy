@@ -22,8 +22,8 @@ public static class PollyHelper
             }
         );
 
-    public static Task<T> ExecuteSearchRetry<T>(Func<Task<T>> action)
+    public static Task<T> ExecuteSearchRetry<T>(Func<Task<T>> action, CancellationToken cancellationToken = default)
     {
-        return SearchRetryPolicy.ExecuteAsync(action);
+        return SearchRetryPolicy.ExecuteAsync((_, ct) => action(), new Context(), cancellationToken);
     }
 }
