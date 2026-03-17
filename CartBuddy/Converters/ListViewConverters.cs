@@ -66,6 +66,7 @@ public class GroupInfoConverter : IMultiValueConverter
             "IsCompleted" => group.IsCompleted,
             "HasMore" => group.HasMore,
             "PageSummary" => group.PageSummary,
+            "CategoryLabel" => culture.TextInfo.ToTitleCase(group.Category ?? string.Empty),
             "Group" => group,
             _ => null
         };
@@ -80,6 +81,7 @@ public class GroupInfoConverter : IMultiValueConverter
             "IsCompleted" => false,
             "HasMore" => false,
             "PageSummary" => string.Empty,
+            "CategoryLabel" => string.Empty,
             _ => null
         };
 }

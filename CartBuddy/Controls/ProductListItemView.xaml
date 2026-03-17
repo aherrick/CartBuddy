@@ -16,19 +16,24 @@
                               CommandParameter="{Binding ItemCommandParameter, Source={x:Reference ThisView}}" />
     </ContentView.GestureRecognizers>
 
-    <Grid RowDefinitions="Auto,Auto" RowSpacing="0">
-        <Grid ColumnDefinitions="100,*,Auto" ColumnSpacing="14" Padding="4,12">
-            <Border WidthRequest="92"
-                    HeightRequest="92"
-                    Padding="2"
+    <Border Margin="0,6"
+            Padding="12"
+            BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+            Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+            StrokeShape="RoundRectangle 14"
+            StrokeThickness="1">
+        <Grid ColumnDefinitions="96,*,Auto" ColumnSpacing="14">
+            <Border WidthRequest="88"
+                    HeightRequest="88"
+                    Padding="4"
                     Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
                     StrokeThickness="1"
-                    StrokeShape="RoundRectangle 10"
-                    BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource OffBlack}}">
                 <Image Source="{Binding ImageUrl, Source={x:Reference ThisView}}" Aspect="AspectFit" />
             </Border>
 
-            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+            <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
                 <Label Text="{Binding Title, Source={x:Reference ThisView}}"
                        FontSize="15"
                        FontAttributes="Bold"
@@ -36,7 +41,7 @@
                        MaxLines="2" />
                 <Label Text="{Binding Subtitle, Source={x:Reference ThisView}}"
                        FontSize="13"
-                       TextColor="{StaticResource Gray400}"
+                       TextColor="{StaticResource Gray500}"
                        IsVisible="{Binding Subtitle, Source={x:Reference ThisView}, Converter={StaticResource HasTextConverter}}" />
                 <Label Text="{Binding Detail, Source={x:Reference ThisView}}"
                        FontSize="12"
@@ -44,7 +49,7 @@
                        IsVisible="{Binding Detail, Source={x:Reference ThisView}, Converter={StaticResource HasTextConverter}}" />
             </VerticalStackLayout>
 
-            <VerticalStackLayout Grid.Column="2" Spacing="2" HorizontalOptions="End" VerticalOptions="Center">
+            <VerticalStackLayout Grid.Column="2" Spacing="3" HorizontalOptions="End" VerticalOptions="Center">
                 <Border Padding="10,4"
                         StrokeThickness="0"
                         StrokeShape="RoundRectangle 6"
@@ -91,7 +96,7 @@
                     <Border Padding="10,6"
                             StrokeThickness="0"
                             StrokeShape="RoundRectangle 6"
-                            BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray900}}">
+                            BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource OffBlack}}">
                         <Label Text="{Binding Quantity, Source={x:Reference ThisView}}"
                                WidthRequest="18"
                                HorizontalTextAlignment="Center"
@@ -110,9 +115,5 @@
                 </HorizontalStackLayout>
             </VerticalStackLayout>
         </Grid>
-
-        <BoxView Grid.Row="1"
-                 HeightRequest="1"
-                 BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
-    </Grid>
+    </Border>
 </ContentView>

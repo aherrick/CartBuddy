@@ -184,29 +184,52 @@
                             TextColor="{AppThemeBinding Light={StaticResource Gray500},
                                                         Dark={StaticResource Gray400}}"
                             VerticalOptions="Center" />
-                        <HorizontalStackLayout
+                        <VerticalStackLayout
                             Grid.Column="1"
-                            Spacing="6"
+                            Spacing="4"
                             VerticalOptions="Center">
-                            <Label
-                                FontAttributes="Bold"
-                                FontSize="17"
-                                Text="{Binding Key}" />
-                            <Label
-                                FontFamily="FaSolid"
-                                FontSize="14"
-                                Text="&#xF058;"
-                                TextColor="{StaticResource SaleGreen}"
-                                VerticalOptions="Center">
-                                <Label.IsVisible>
-                                    <MultiBinding Converter="{StaticResource GroupInfoConverter}" ConverterParameter="IsCompleted">
-                                        <Binding Path="Key" />
-                                        <Binding Path="BindingContext.SearchGroups" Source="{x:Reference ThisPage}" />
-                                        <Binding Path="BindingContext.GroupStateVersion" Source="{x:Reference ThisPage}" />
-                                    </MultiBinding>
-                                </Label.IsVisible>
-                            </Label>
-                        </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                <Label
+                                    FontAttributes="Bold"
+                                    FontSize="17"
+                                    Text="{Binding Key}" />
+                                <Label
+                                    FontFamily="FaSolid"
+                                    FontSize="14"
+                                    Text="&#xF058;"
+                                    TextColor="{StaticResource SaleGreen}"
+                                    VerticalOptions="Center">
+                                    <Label.IsVisible>
+                                        <MultiBinding Converter="{StaticResource GroupInfoConverter}" ConverterParameter="IsCompleted">
+                                            <Binding Path="Key" />
+                                            <Binding Path="BindingContext.SearchGroups" Source="{x:Reference ThisPage}" />
+                                            <Binding Path="BindingContext.GroupStateVersion" Source="{x:Reference ThisPage}" />
+                                        </MultiBinding>
+                                    </Label.IsVisible>
+                                </Label>
+                            </HorizontalStackLayout>
+                            <Border
+                                Padding="8,3"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Secondary},
+                                                                  Dark={StaticResource Gray600}}"
+                                HorizontalOptions="Start"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 999">
+                                <Label
+                                    FontAttributes="Bold"
+                                    FontSize="11"
+                                    TextColor="{AppThemeBinding Light={StaticResource Primary},
+                                                                Dark={StaticResource White}}">
+                                    <Label.Text>
+                                        <MultiBinding Converter="{StaticResource GroupInfoConverter}" ConverterParameter="CategoryLabel">
+                                            <Binding Path="Key" />
+                                            <Binding Path="BindingContext.SearchGroups" Source="{x:Reference ThisPage}" />
+                                            <Binding Path="BindingContext.GroupStateVersion" Source="{x:Reference ThisPage}" />
+                                        </MultiBinding>
+                                    </Label.Text>
+                                </Label>
+                            </Border>
+                        </VerticalStackLayout>
                         <Label
                             Grid.Column="2"
                             FontSize="13"

@@ -87,14 +87,25 @@
 
             <VerticalStackLayout
                 Grid.Row="2"
-                                Spacing="8"
-                                HorizontalOptions="Center"
-                                VerticalOptions="Center"
+                Spacing="8"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
                 IsVisible="{Binding IsCartEmpty}">
-                                <Label Text="&#xF291;"
-                                             FontFamily="FaSolid"
-                                             FontSize="42"
-                                             TextColor="{StaticResource Gray500}" />
+                <Label Text="&#xF291;"
+                       FontFamily="FaSolid"
+                       FontSize="42"
+                       HorizontalTextAlignment="Center"
+                       TextColor="{StaticResource Gray500}" />
+                <Label
+                    FontAttributes="Bold"
+                    FontSize="16"
+                    HorizontalTextAlignment="Center"
+                    Text="Your cart is empty" />
+                <Label
+                    FontSize="13"
+                    HorizontalTextAlignment="Center"
+                    Text="Add a few items from the list to build your Kroger cart."
+                    TextColor="{StaticResource Gray400}" />
             </VerticalStackLayout>
         </Grid>
     </Border>
