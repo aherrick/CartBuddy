@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>net10.0-android</TargetFrameworks>
@@ -63,12 +63,6 @@
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<!-- CommunityToolkit.Maui Popups don't support XAML SourceGen on iOS; force runtime inflation -->
-		<MauiXaml Update="CartPopup.xaml" Inflator="Runtime" />
-		<MauiXaml Update="LogDetailPopup.xaml" Inflator="Runtime" />
 	</ItemGroup>
 
 	<ItemGroup>
