@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<controls:BaseItemView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:CartBuddy.Controls"
+             xmlns:converters="clr-namespace:CartBuddy.Converters"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="CartBuddy.Controls.CartItemView"
+             x:Name="ThisView">
+    <controls:BaseItemView.Resources>
+        <converters:HasTextConverter x:Key="HasTextConverter" />
+        <converters:BoolToTextDecorationsConverter x:Key="BoolToTextDecorationsConverter" />
+        <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+    </controls:BaseItemView.Resources>
+
+    <controls:BaseItemView.GestureRecognizers>
+        <TapGestureRecognizer Tapped="OnTapped" />
+    </controls:BaseItemView.GestureRecognizers>
+
+    <Border x:Name="CardSurface"
+            Margin="0,6"
+            Padding="12"
+            BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+            Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+            StrokeShape="RoundRectangle 14"
+            StrokeThickness="1">
+        <Grid>
+            <!-- Left accent tab clipped by the card's RoundRectangle shape -->
+            <BoxView WidthRequest="6"
+                     VerticalOptions="Fill"
+                     HorizontalOptions="Start"
+                     Margin="-12,-12,0,-12"
+                     BackgroundColor="{StaticResource Primary}"
+                     CornerRadius="14,0,14,0" />
+            <Grid ColumnDefinitions="72,*,Auto" ColumnSpacing="12">
+                <Border WidthRequest="72"
+                        HeightRequest="72"
+                        VerticalOptions="Start"
+                        Padding="4"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 12"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource OffBlack}}">
+                    <Image Source="{Binding ImageUrl, Source={x:Reference ThisView}}" Aspect="AspectFit" />
+                </Border>
+
+                <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Start">
+                    <Label Text="{Binding Title, Source={x:Reference ThisView}}"
+                           FontSize="15"
+                           FontAttributes="Bold"
+                           LineBreakMode="TailTruncation"
+                           MaxLines="3" />
+                    <Label Text="{Binding Subtitle, Source={x:Reference ThisView}}"
+                           FontSize="13"
+                           TextColor="{StaticResource Gray500}"
+                           IsVisible="{Binding Subtitle, Source={x:Reference ThisView}, Converter={StaticResource HasTextConverter}}" />
+                    <Label Text="{Binding Detail, Source={x:Reference ThisView}}"
+                           FontSize="12"
+                           TextColor="{StaticResource Gray400}"
+                           IsVisible="{Binding Detail, Source={x:Reference ThisView}, Converter={StaticResource HasTextConverter}}" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Grid.Column="2" Spacing="6" HorizontalOptions="End" VerticalOptions="Start">
+                    <Border Padding="10,4"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 6"
+                            HorizontalOptions="End"
+                            BackgroundColor="{Binding PriceBadgeColor, Source={x:Reference ThisView}}"
+                            IsVisible="{Binding ShowPriceBadge, Source={x:Reference ThisView}}">
+                        <Label Text="{Binding PriceText, Source={x:Reference ThisView}}"
+                               FontSize="17"
+                               FontAttributes="Bold"
+                               HorizontalTextAlignment="End"
+                               TextColor="{StaticResource White}" />
+                    </Border>
+                    <Label Text="{Binding PriceText, Source={x:Reference ThisView}}"
+                           FontSize="17"
+                           FontAttributes="Bold"
+                           HorizontalTextAlignment="End"
+                           TextColor="{Binding PriceColor, Source={x:Reference ThisView}}"
+                           IsVisible="{Binding ShowPriceBadge, Source={x:Reference ThisView}, Converter={StaticResource InvertedBoolConverter}}" />
+                    <Label Text="{Binding SecondaryPriceText, Source={x:Reference ThisView}}"
+                           FontSize="12"
+                           HorizontalTextAlignment="End"
+                           TextColor="{StaticResource Gray400}"
+                           TextDecorations="{Binding SecondaryPriceStrikethrough, Source={x:Reference ThisView}, Converter={StaticResource BoolToTextDecorationsConverter}}"
+                           IsVisible="{Binding SecondaryPriceText, Source={x:Reference ThisView}, Converter={StaticResource HasTextConverter}}" />
+
+                    <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="4"
+                          HorizontalOptions="End" Margin="0,4,0,0"
+                          IsVisible="{Binding ShowQuantityControls, Source={x:Reference ThisView}}">
+                        <Button Text="-" Grid.Column="0"
+                                Command="{Binding DecreaseCommand, Source={x:Reference ThisView}}"
+                                CommandParameter="{Binding QuantityCommandParameter, Source={x:Reference ThisView}}"
+                                Padding="0"
+                                FontSize="13"
+                                WidthRequest="32"
+                                HeightRequest="32"
+                                TextColor="{StaticResource SaleRed}"
+                                BackgroundColor="Transparent"
+                                BorderColor="{StaticResource SaleRed}"
+                                BorderWidth="1" />
+                        <Border Padding="6,6"
+                                Grid.Column="1"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 6"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource OffBlack}}">
+                            <Label Text="{Binding Quantity, Source={x:Reference ThisView}}"
+                                   WidthRequest="16"
+                                   HorizontalTextAlignment="Center"
+                                   VerticalTextAlignment="Center" />
+                        </Border>
+                        <Button Text="+" Grid.Column="2"
+                                Command="{Binding IncreaseCommand, Source={x:Reference ThisView}}"
+                                CommandParameter="{Binding QuantityCommandParameter, Source={x:Reference ThisView}}"
+                                Padding="0"
+                                FontSize="13"
+                                WidthRequest="32"
+                                HeightRequest="32"
+                                TextColor="{StaticResource SaleGreen}"
+                                BackgroundColor="Transparent"
+                                BorderColor="{StaticResource SaleGreen}"
+                                BorderWidth="1" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Grid>
+        </Grid>
+    </Border>
+</controls:BaseItemView>

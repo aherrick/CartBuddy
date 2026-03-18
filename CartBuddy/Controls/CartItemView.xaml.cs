@@ -2,9 +2,9 @@ using System.Windows.Input;
 
 namespace CartBuddy.Controls;
 
-public partial class ProductListItemView : BaseItemView
+public partial class CartItemView : BaseItemView
 {
-    public ProductListItemView()
+    public CartItemView()
     {
         InitializeComponent();
     }

@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<controls:BaseItemView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:CartBuddy.Controls"
              xmlns:converters="clr-namespace:CartBuddy.Converters"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="CartBuddy.Controls.ProductListItemView"
              x:Name="ThisView">
-    <ContentView.Resources>
+    <controls:BaseItemView.Resources>
         <converters:HasTextConverter x:Key="HasTextConverter" />
         <converters:BoolToTextDecorationsConverter x:Key="BoolToTextDecorationsConverter" />
         <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
-    </ContentView.Resources>
+    </controls:BaseItemView.Resources>
 
-    <ContentView.GestureRecognizers>
+    <controls:BaseItemView.GestureRecognizers>
         <TapGestureRecognizer Tapped="OnTapped" />
-    </ContentView.GestureRecognizers>
+    </controls:BaseItemView.GestureRecognizers>
 
     <Border x:Name="CardSurface"
             Margin="0,6"
@@ -24,12 +25,12 @@
             StrokeThickness="1">
         <Grid>
             <!-- Left accent tab clipped by the card's RoundRectangle shape -->
-            <BoxView WidthRequest="4"
+            <BoxView WidthRequest="6"
                      VerticalOptions="Fill"
                      HorizontalOptions="Start"
-                     Margin="-12,0,0,0"
+                     Margin="-12,-12,0,-12"
                      BackgroundColor="{StaticResource Primary}"
-                     CornerRadius="2" />
+                     CornerRadius="14,0,14,0" />
         <Grid ColumnDefinitions="96,*,Auto" ColumnSpacing="14">
             <Border WidthRequest="88"
                     HeightRequest="88"
@@ -125,4 +126,4 @@
         </Grid>
         </Grid>
     </Border>
-</ContentView>
+</controls:BaseItemView>
