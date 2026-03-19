@@ -24,7 +24,7 @@
                         <Label
                             FontAttributes="Bold"
                             FontSize="22"
-                            Text="Terms" />
+                            Text="Search Terms" />
                         <Label
                             FontSize="13"
                             Text="{Binding WorkflowSummary}"
