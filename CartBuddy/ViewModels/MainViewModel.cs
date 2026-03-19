@@ -57,6 +57,8 @@ public partial class MainViewModel : ObservableObject
 
     public bool HasResults => AllProducts.Count > 0;
 
+    public bool ShowResultsView => !IsItemsEditorVisible;
+
     public bool HasItemsText => !string.IsNullOrWhiteSpace(RawItemsText);
 
     public bool HasCartItems => CartItems.Count > 0;
@@ -79,7 +81,7 @@ public partial class MainViewModel : ObservableObject
 
     public bool CanToggleItemsEditor => SearchGroups.Count > 0;
 
-    public string ItemsEditorToggleText => IsItemsEditorVisible ? "Hide List" : "Edit List";
+    public string ItemsEditorToggleText => IsItemsEditorVisible ? "View Results" : "Edit List";
 
     public string ItemsSummary
     {
@@ -126,6 +128,7 @@ public partial class MainViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(ItemsEditorToggleText));
         OnPropertyChanged(nameof(ItemsSummary));
+        OnPropertyChanged(nameof(ShowResultsView));
     }
 
     partial void OnRawItemsTextChanged(string value)
@@ -151,6 +154,8 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
+            IsItemsEditorVisible = false;
+
             await ExecuteBusyAsync(async () =>
             {
                 ResetSearchCancellationToken();
@@ -198,11 +203,6 @@ public partial class MainViewModel : ObservableObject
 
                 SyncGroupSelections();
                 AllGroupsExpanded = false;
-
-                if (SearchGroups.Count > 0)
-                {
-                    IsItemsEditorVisible = false;
-                }
             });
         }
         catch (OperationCanceledException)
@@ -211,6 +211,11 @@ public partial class MainViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            if (!HasResults)
+            {
+                IsItemsEditorVisible = true;
+            }
+
             await NotificationPopupService.Show($"Search failed: {ex.Message}", NotificationPopupType.Error);
         }
     }
@@ -468,6 +473,7 @@ public partial class MainViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(HasResults));
         OnPropertyChanged(nameof(CanToggleItemsEditor));
+        OnPropertyChanged(nameof(ShowResultsView));
     }
 
     private void SyncGroupSelections()

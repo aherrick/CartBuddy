@@ -68,107 +68,111 @@
             Padding="16,14,16,14"
             x:DataType="vm:MainViewModel"
             Spacing="14">
-            <VerticalStackLayout Spacing="10">
-                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
-                    <VerticalStackLayout Spacing="2" VerticalOptions="Center">
-                        <Label
-                            FontAttributes="Bold"
-                            FontSize="22"
-                            Text="Shopping List" />
-                        <Label
-                            FontSize="13"
-                            LineBreakMode="WordWrap"
-                            Text="{Binding ItemsSummary}"
-                            TextColor="{StaticResource Gray400}" />
-                    </VerticalStackLayout>
-                    <Button
-                        Grid.Column="1"
-                        Padding="12,8"
-                        Command="{Binding ToggleItemsEditorCommand}"
-                        CornerRadius="6"
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                    <Label
+                        FontAttributes="Bold"
+                        FontSize="22"
+                        Text="Shopping List" />
+                    <Label
                         FontSize="13"
-                        IsVisible="{Binding CanToggleItemsEditor}"
-                        Text="{Binding ItemsEditorToggleText}"
-                        VerticalOptions="Center" />
-                    <Button
-                        Grid.Column="2"
-                        Padding="12,8"
-                        BackgroundColor="{StaticResource SaleRed}"
-                        Clicked="OnClearSearchClicked"
-                        CornerRadius="6"
-                        FontFamily="FaSolid"
-                        FontSize="14"
-                        IsVisible="{Binding HasItemsText}"
-                        SemanticProperties.Description="Clear shopping list"
-                        SemanticProperties.Hint="Removes the current list and search results"
-                        Text="&#xF1F8;"
-                        TextColor="{StaticResource White}"
-                        VerticalOptions="Center"
-                        WidthRequest="48" />
-                </Grid>
-
-                <BoxView
-                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray200},
-                                                      Dark={StaticResource Gray600}}"
-                    HeightRequest="1"
-                    IsVisible="{Binding IsItemsEditorVisible, Converter={StaticResource InvertedBoolConverter}}" />
-
-                <VerticalStackLayout IsVisible="{Binding IsItemsEditorVisible}" Spacing="10">
-                    <Border
-                        Padding="8"
-                        BackgroundColor="{AppThemeBinding Light={StaticResource White},
-                                                          Dark={StaticResource OffBlack}}"
-                        Stroke="{AppThemeBinding Light={StaticResource Gray200},
-                                                 Dark={StaticResource Gray600}}"
-                        StrokeShape="RoundRectangle 8"
-                        StrokeThickness="1">
-                        <Editor
-                            x:Name="RawItemsEditor"
-                            AutoSize="Disabled"
-                            HeightRequest="140"
-                            MinimumHeightRequest="120"
-                            Placeholder="apples&#10;spinach&#10;pizza&#10;beer"
-                            Text="{Binding RawItemsText}" />
-                    </Border>
-
-                    <HorizontalStackLayout Spacing="10">
-                        <Button
-                            Command="{Binding SearchCommand}"
-                            CornerRadius="6"
-                            HorizontalOptions="Start"
-                            Text="Search">
-                            <Button.ImageSource>
-                                <FontImageSource
-                                    FontFamily="FaSolid"
-                                    Glyph="&#xF002;"
-                                    Size="14" />
-                            </Button.ImageSource>
-                        </Button>
-                    </HorizontalStackLayout>
+                        LineBreakMode="WordWrap"
+                        Text="{Binding ItemsSummary}"
+                        TextColor="{StaticResource Gray400}" />
                 </VerticalStackLayout>
-            </VerticalStackLayout>
-
-            <Button
-                Padding="12,8"
-                Clicked="OnToggleExpandAll"
-                CornerRadius="6"
-                FontSize="13"
-                HorizontalOptions="End"
-                IsVisible="{Binding HasResults}"
-                Text="{Binding AllGroupsExpanded, Converter={StaticResource ExpandAllTextConverter}}" />
+                <Button
+                    Grid.Column="1"
+                    Padding="12,8"
+                    Command="{Binding ToggleItemsEditorCommand}"
+                    CornerRadius="6"
+                    FontSize="13"
+                    IsVisible="{Binding CanToggleItemsEditor}"
+                    Text="{Binding ItemsEditorToggleText}"
+                    VerticalOptions="Center" />
+                <Button
+                    Grid.Column="2"
+                    Padding="12,8"
+                    BackgroundColor="{StaticResource SaleRed}"
+                    Clicked="OnClearSearchClicked"
+                    CornerRadius="6"
+                    FontFamily="FaSolid"
+                    FontSize="14"
+                    IsVisible="{Binding HasItemsText}"
+                    SemanticProperties.Description="Clear shopping list"
+                    SemanticProperties.Hint="Removes the current list and search results"
+                    Text="&#xF1F8;"
+                    TextColor="{StaticResource White}"
+                    VerticalOptions="Center"
+                    WidthRequest="48" />
+            </Grid>
         </VerticalStackLayout>
 
-        <sfListView:SfListView
-            x:Name="SearchListView"
-            Grid.Row="1"
-            Margin="0,0,0,0"
-            AllowGroupExpandCollapse="True"
-            AutoFitMode="Height"
-            GroupHeaderSize="58"
-            IsStickyGroupHeader="True"
-            IsVisible="{Binding HasResults}"
-            ItemsSource="{Binding AllProducts}"
-            SelectionMode="None">
+        <Grid Grid.Row="1">
+            <Grid
+                Padding="16,0,16,16"
+                RowDefinitions="*,Auto"
+                RowSpacing="14"
+                IsVisible="{Binding IsItemsEditorVisible}">
+                <Border
+                    Grid.Row="0"
+                    Padding="12"
+                    Margin="0,0,0,0"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource White},
+                                                      Dark={StaticResource OffBlack}}"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray200},
+                                             Dark={StaticResource Gray600}}"
+                    StrokeShape="RoundRectangle 12"
+                    StrokeThickness="1">
+                    <Editor
+                        x:Name="RawItemsEditor"
+                        AutoSize="Disabled"
+                        MinimumHeightRequest="260"
+                        Placeholder="apples&#10;spinach&#10;pizza&#10;beer"
+                        Text="{Binding RawItemsText}"
+                        VerticalOptions="FillAndExpand" />
+                </Border>
+
+                <Button
+                    Grid.Row="1"
+                    Padding="14,12"
+                    Command="{Binding SearchCommand}"
+                    CornerRadius="8"
+                    HorizontalOptions="Fill"
+                    Text="Search">
+                    <Button.ImageSource>
+                        <FontImageSource
+                            FontFamily="FaSolid"
+                            Glyph="&#xF002;"
+                            Size="14" />
+                    </Button.ImageSource>
+                </Button>
+            </Grid>
+
+            <Grid
+                RowDefinitions="Auto,*"
+                IsVisible="{Binding ShowResultsView}">
+                <Button
+                    Grid.Row="0"
+                    Margin="16,0,16,12"
+                    Padding="12,8"
+                    Clicked="OnToggleExpandAll"
+                    CornerRadius="6"
+                    FontSize="13"
+                    HorizontalOptions="End"
+                    IsVisible="{Binding HasResults}"
+                    Text="{Binding AllGroupsExpanded, Converter={StaticResource ExpandAllTextConverter}}" />
+
+                <sfListView:SfListView
+                    x:Name="SearchListView"
+                    Grid.Row="1"
+                    Margin="0,0,0,0"
+                    AllowGroupExpandCollapse="True"
+                    AutoFitMode="Height"
+                    GroupHeaderSize="58"
+                    IsStickyGroupHeader="True"
+                    IsVisible="{Binding HasResults}"
+                    ItemsSource="{Binding AllProducts}"
+                    SelectionMode="None">
             <sfListView:SfListView.GroupHeaderTemplate>
                 <DataTemplate x:DataType="{x:Null}">
                     <Grid
@@ -299,46 +303,47 @@
                     </Grid>
                 </DataTemplate>
             </sfListView:SfListView.ItemTemplate>
-        </sfListView:SfListView>
+                </sfListView:SfListView>
 
-        <ScrollView x:Name="SkeletonContainer" Grid.Row="1">
-            <ScrollView.IsVisible>
-                <MultiBinding Converter="{StaticResource BusyAndNoResultsConverter}">
-                    <Binding Path="IsBusy" />
-                    <Binding Path="HasResults" />
-                </MultiBinding>
-            </ScrollView.IsVisible>
-            <VerticalStackLayout Padding="16,10,16,16" Spacing="10">
-                <BindableLayout.ItemsSource>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>1</x:String>
-                        <x:String>2</x:String>
-                        <x:String>3</x:String>
-                    </x:Array>
-                </BindableLayout.ItemsSource>
-                <BindableLayout.ItemTemplate>
-                    <DataTemplate>
-                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}" 
-                                Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" 
-                                StrokeShape="RoundRectangle 14" StrokeThickness="1" Padding="12">
-                            <Grid ColumnDefinitions="96,*,Auto" ColumnSpacing="14">
-                                <BoxView WidthRequest="88" HeightRequest="88" CornerRadius="12" 
-                                         BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
-                                <VerticalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
-                                    <BoxView HeightRequest="16" WidthRequest="170" CornerRadius="6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
-                                    <BoxView HeightRequest="12" WidthRequest="120" CornerRadius="6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
-                                    <BoxView HeightRequest="11" WidthRequest="90" CornerRadius="6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
-                                </VerticalStackLayout>
-                                <VerticalStackLayout Grid.Column="2" Spacing="8" HorizontalOptions="End" VerticalOptions="Center">
-                                    <BoxView HeightRequest="22" WidthRequest="72" CornerRadius="6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
-                                    <BoxView HeightRequest="11" WidthRequest="56" CornerRadius="6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
-                                </VerticalStackLayout>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </BindableLayout.ItemTemplate>
-            
-            </VerticalStackLayout>
-        </ScrollView>
+                <ScrollView x:Name="SkeletonContainer" Grid.RowSpan="2">
+                    <ScrollView.IsVisible>
+                        <MultiBinding Converter="{StaticResource BusyAndNoResultsConverter}">
+                            <Binding Path="IsBusy" />
+                            <Binding Path="HasResults" />
+                        </MultiBinding>
+                    </ScrollView.IsVisible>
+                    <VerticalStackLayout Padding="16,10,16,16" Spacing="10">
+                        <BindableLayout.ItemsSource>
+                            <x:Array Type="{x:Type x:String}">
+                                <x:String>1</x:String>
+                                <x:String>2</x:String>
+                                <x:String>3</x:String>
+                            </x:Array>
+                        </BindableLayout.ItemsSource>
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                                        Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                        StrokeShape="RoundRectangle 14" StrokeThickness="1" Padding="12">
+                                    <Grid ColumnDefinitions="96,*,Auto" ColumnSpacing="14">
+                                        <BoxView WidthRequest="88" HeightRequest="88" CornerRadius="12"
+                                                 BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+                                        <VerticalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                                            <BoxView HeightRequest="16" WidthRequest="170" CornerRadius="6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+                                            <BoxView HeightRequest="12" WidthRequest="120" CornerRadius="6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+                                            <BoxView HeightRequest="11" WidthRequest="90" CornerRadius="6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+                                        </VerticalStackLayout>
+                                        <VerticalStackLayout Grid.Column="2" Spacing="8" HorizontalOptions="End" VerticalOptions="Center">
+                                            <BoxView HeightRequest="22" WidthRequest="72" CornerRadius="6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+                                            <BoxView HeightRequest="11" WidthRequest="56" CornerRadius="6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </ScrollView>
+            </Grid>
+        </Grid>
     </Grid>
 </ContentPage>
