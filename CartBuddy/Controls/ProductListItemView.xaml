@@ -88,40 +88,6 @@
                        HorizontalTextAlignment="End"
                        TextColor="{Binding AccentColor, Source={x:Reference ThisView}}"
                        IsVisible="{Binding AccentText, Source={x:Reference ThisView}, Converter={StaticResource HasTextConverter}}" />
-
-                <HorizontalStackLayout Spacing="4"
-                                       HorizontalOptions="End"
-                                       IsVisible="{Binding ShowQuantityControls, Source={x:Reference ThisView}}">
-                    <Button Text="-"
-                            Command="{Binding DecreaseCommand, Source={x:Reference ThisView}}"
-                            CommandParameter="{Binding QuantityCommandParameter, Source={x:Reference ThisView}}"
-                            Padding="10,6"
-                            FontSize="13"
-                            WidthRequest="38"
-                            TextColor="{StaticResource SaleRed}"
-                            BackgroundColor="Transparent"
-                            BorderColor="{StaticResource SaleRed}"
-                            BorderWidth="1" />
-                    <Border Padding="10,6"
-                            StrokeThickness="0"
-                            StrokeShape="RoundRectangle 6"
-                            BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource OffBlack}}">
-                        <Label Text="{Binding Quantity, Source={x:Reference ThisView}}"
-                               WidthRequest="18"
-                               HorizontalTextAlignment="Center"
-                               VerticalTextAlignment="Center" />
-                    </Border>
-                    <Button Text="+"
-                            Command="{Binding IncreaseCommand, Source={x:Reference ThisView}}"
-                            CommandParameter="{Binding QuantityCommandParameter, Source={x:Reference ThisView}}"
-                            Padding="10,6"
-                            FontSize="13"
-                            WidthRequest="38"
-                            TextColor="{StaticResource SaleGreen}"
-                            BackgroundColor="Transparent"
-                            BorderColor="{StaticResource SaleGreen}"
-                            BorderWidth="1" />
-                </HorizontalStackLayout>
             </VerticalStackLayout>
         </Grid>
         </Grid>

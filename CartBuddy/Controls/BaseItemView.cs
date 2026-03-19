@@ -46,21 +46,6 @@ public abstract class BaseItemView : ContentView
     public static readonly BindableProperty ItemCommandParameterProperty =
         BindableProperty.Create(nameof(ItemCommandParameter), typeof(object), typeof(BaseItemView));
 
-    public static readonly BindableProperty ShowQuantityControlsProperty =
-        BindableProperty.Create(nameof(ShowQuantityControls), typeof(bool), typeof(BaseItemView), false);
-
-    public static readonly BindableProperty QuantityProperty =
-        BindableProperty.Create(nameof(Quantity), typeof(int), typeof(BaseItemView), 0);
-
-    public static readonly BindableProperty IncreaseCommandProperty =
-        BindableProperty.Create(nameof(IncreaseCommand), typeof(ICommand), typeof(BaseItemView));
-
-    public static readonly BindableProperty DecreaseCommandProperty =
-        BindableProperty.Create(nameof(DecreaseCommand), typeof(ICommand), typeof(BaseItemView));
-
-    public static readonly BindableProperty QuantityCommandParameterProperty =
-        BindableProperty.Create(nameof(QuantityCommandParameter), typeof(object), typeof(BaseItemView));
-
     public string Title
     {
         get => (string)GetValue(TitleProperty);
@@ -143,36 +128,6 @@ public abstract class BaseItemView : ContentView
     {
         get => GetValue(ItemCommandParameterProperty);
         set => SetValue(ItemCommandParameterProperty, value);
-    }
-
-    public bool ShowQuantityControls
-    {
-        get => (bool)GetValue(ShowQuantityControlsProperty);
-        set => SetValue(ShowQuantityControlsProperty, value);
-    }
-
-    public int Quantity
-    {
-        get => (int)GetValue(QuantityProperty);
-        set => SetValue(QuantityProperty, value);
-    }
-
-    public ICommand IncreaseCommand
-    {
-        get => (ICommand)GetValue(IncreaseCommandProperty);
-        set => SetValue(IncreaseCommandProperty, value);
-    }
-
-    public ICommand DecreaseCommand
-    {
-        get => (ICommand)GetValue(DecreaseCommandProperty);
-        set => SetValue(DecreaseCommandProperty, value);
-    }
-
-    public object QuantityCommandParameter
-    {
-        get => GetValue(QuantityCommandParameterProperty);
-        set => SetValue(QuantityCommandParameterProperty, value);
     }
 
     protected void OnTapped(object sender, TappedEventArgs e)
