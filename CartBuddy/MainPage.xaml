@@ -22,6 +22,7 @@
     <ContentPage.Resources>
         <converters:ExpandIconConverter x:Key="ExpandIconConverter" />
         <converters:ExpandAllTextConverter x:Key="ExpandAllTextConverter" />
+        <converters:ExpandAllGlyphConverter x:Key="ExpandAllGlyphConverter" />
         <converters:GroupInfoConverter x:Key="GroupInfoConverter" />
         <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
     </ContentPage.Resources>
@@ -68,7 +69,7 @@
             x:DataType="vm:MainViewModel"
             IsVisible="{Binding HasPreparedSearchTerms}"
             Spacing="14">
-            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="10">
                 <VerticalStackLayout Spacing="2" VerticalOptions="Center">
                     <Label
                         FontAttributes="Bold"
@@ -83,20 +84,52 @@
                 <Button
                     Grid.Column="1"
                     Padding="12,8"
+                    BackgroundColor="{StaticResource Primary}"
                     Clicked="OnEditSearchTermsClicked"
                     CornerRadius="6"
-                    FontSize="13"
-                    Text="{Binding SearchTermsActionText}"
-                    VerticalOptions="Center" />
+                    FontFamily="FaSolid"
+                    FontSize="14"
+                    HeightRequest="44"
+                    MinimumHeightRequest="44"
+                    MinimumWidthRequest="48"
+                    SemanticProperties.Description="Edit shopping list"
+                    SemanticProperties.Hint="Opens the list editor"
+                    Text="&#xF303;"
+                    TextColor="{StaticResource White}"
+                    VerticalOptions="Center"
+                    WidthRequest="48" />
                 <Button
                     Grid.Column="2"
+                    Padding="12,8"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource Gray900}}"
+                    BorderColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                    BorderWidth="1"
+                    Clicked="OnToggleExpandAll"
+                    CornerRadius="6"
+                    FontFamily="FaSolid"
+                    FontSize="14"
+                    HeightRequest="44"
+                    IsVisible="{Binding HasResults}"
+                    MinimumHeightRequest="44"
+                    MinimumWidthRequest="48"
+                    SemanticProperties.Description="Toggle group expansion"
+                    SemanticProperties.Hint="Expands or collapses all shopping list groups"
+                    Text="{Binding AllGroupsExpanded, Converter={StaticResource ExpandAllGlyphConverter}}"
+                    TextColor="{AppThemeBinding Light={StaticResource Tertiary}, Dark={StaticResource Gray200}}"
+                    VerticalOptions="Center"
+                    WidthRequest="48" />
+                <Button
+                    Grid.Column="3"
                     Padding="12,8"
                     BackgroundColor="{StaticResource SaleRed}"
                     Clicked="OnClearSearchClicked"
                     CornerRadius="6"
                     FontFamily="FaSolid"
                     FontSize="14"
+                    HeightRequest="44"
                     IsVisible="{Binding HasPreparedSearchTerms}"
+                    MinimumHeightRequest="44"
+                    MinimumWidthRequest="48"
                     SemanticProperties.Description="Clear shopping list"
                     SemanticProperties.Hint="Removes the current confirmed list and search results"
                     Text="&#xF1F8;"
@@ -114,17 +147,6 @@
                     HeightRequest="1"
                     IsVisible="{Binding HasResults}"
                     BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
-                <Button
-                    Grid.Row="1"
-                    Margin="16,8,16,4"
-                    Padding="12,8"
-                    Clicked="OnToggleExpandAll"
-                    CornerRadius="6"
-                    FontSize="13"
-                    HorizontalOptions="End"
-                    IsVisible="{Binding HasResults}"
-                    Text="{Binding AllGroupsExpanded, Converter={StaticResource ExpandAllTextConverter}}" />
-
                 <VerticalStackLayout
                     Grid.Row="2"
                     Margin="24,8,24,24"
@@ -243,10 +265,16 @@
                         </Label>
                         <Button
                             Grid.Column="3"
-                            Padding="12,6"
+                            Padding="10,4"
+                            BackgroundColor="Transparent"
+                            BorderColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                            BorderWidth="1"
                             Command="{Binding Source={x:Reference ThisPage}, Path=ViewMoreCommand}"
-                            CornerRadius="6"
-                            FontSize="13"
+                            CornerRadius="16"
+                            FontSize="12"
+                            MinimumHeightRequest="32"
+                            MinimumWidthRequest="88"
+                            TextColor="{AppThemeBinding Light={StaticResource Tertiary}, Dark={StaticResource Gray200}}"
                             Text="View More">
                             <Button.CommandParameter>
                                 <MultiBinding Converter="{StaticResource GroupInfoConverter}" ConverterParameter="Group">

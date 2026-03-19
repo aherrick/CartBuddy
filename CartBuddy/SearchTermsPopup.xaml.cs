@@ -32,19 +32,7 @@ public partial class SearchTermsPopup : AppPopup
 
     public IReadOnlyList<CategoryItem> ConfirmedTerms { get; private set; }
 
-    protected override async Task<bool> ShouldCloseAsync()
-    {
-        if (!_viewModel.HasFrozenCleanedItems)
-        {
-            return true;
-        }
-
-        return await Application.Current!.MainPage!.DisplayAlert(
-            "Close Search Terms",
-            "Are you sure you want to close? Your categorized results will be lost.",
-            "Close",
-            "Cancel");
-    }
+    protected override Task<bool> ShouldCloseAsync() => Task.FromResult(true);
 
     private async void OnSearchClicked(object sender, EventArgs e)
     {
