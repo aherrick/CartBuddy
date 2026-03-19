@@ -149,63 +149,61 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
-        IsBusy = true;
-
-        ReplaceSearchCancellationToken(cancelInFlightSearch: true);
-        var ct = _searchCts.Token;
-
         try
         {
-            var rawTerms = ParseTerms(RawItemsText);
-            var classifiedItems = await _api.CleanupList(new CleanupRequest { Items = rawTerms }, ct)
-                ?? [.. rawTerms.Select(item => new CategoryItem { Item = item, Category = "other" })];
-
-            ct.ThrowIfCancellationRequested();
-
-            RawItemsText = string.Join(Environment.NewLine, classifiedItems.Select(item => item.Item));
-
-            SearchGroups.Clear();
-            AllProducts.Clear();
-            foreach (var searchItem in classifiedItems)
+            await ExecuteBusyAsync(async () =>
             {
-                var page = await SearchProducts(
-                    PreferencesService.StoreId,
-                    searchItem,
-                    0,
-                    SearchConstants.PageSize,
-                    ct
-                );
+                ResetSearchCancellationToken();
+                var ct = _searchCts.Token;
 
+                var rawTerms = ParseTerms(RawItemsText);
+                var classifiedItems = await _api.CleanupList(new CleanupRequest { Items = rawTerms }, ct);
                 ct.ThrowIfCancellationRequested();
 
-                var group = new SearchGroup(
-                    searchItem.Item,
-                    page.TotalCount,
-                    SearchConstants.PageSize,
-                    searchItem.Category
-                );
-                group.AddMatches(page.Results);
-                SearchGroups.Add(group);
-                if (page.Results.Count > 0)
+                RawItemsText = string.Join(Environment.NewLine, classifiedItems.Select(item => item.Item));
+
+                ClearSearchResults();
+                foreach (var searchItem in classifiedItems)
                 {
-                    foreach (var product in page.Results)
+                    var page = await SearchProducts(
+                        PreferencesService.StoreId,
+                        searchItem,
+                        0,
+                        SearchConstants.PageSize,
+                        ct
+                    );
+
+                    ct.ThrowIfCancellationRequested();
+
+                    var group = new SearchGroup(
+                        searchItem.Item,
+                        page.TotalCount,
+                        SearchConstants.PageSize,
+                        searchItem.Category
+                    );
+                    group.AddMatches(page.Results);
+                    SearchGroups.Add(group);
+                    if (page.Results.Count > 0)
                     {
-                        AllProducts.Add(product);
+                        foreach (var product in page.Results)
+                        {
+                            AllProducts.Add(product);
+                        }
+                    }
+                    else
+                    {
+                        AllProducts.Add(new ProductMatch { Query = searchItem.Item, IsNoResult = true });
                     }
                 }
-                else
+
+                SyncGroupSelections();
+                AllGroupsExpanded = false;
+
+                if (SearchGroups.Count > 0)
                 {
-                    AllProducts.Add(new ProductMatch { Query = searchItem.Item, IsNoResult = true });
+                    IsItemsEditorVisible = false;
                 }
-            }
-
-            SyncGroupSelections();
-            AllGroupsExpanded = false;
-
-            if (SearchGroups.Count > 0)
-            {
-                IsItemsEditorVisible = false;
-            }
+            });
         }
         catch (OperationCanceledException)
         {
@@ -214,10 +212,6 @@ public partial class MainViewModel : ObservableObject
         catch (Exception ex)
         {
             await NotificationPopupService.Show($"Search failed: {ex.Message}", NotificationPopupType.Error);
-        }
-        finally
-        {
-            IsBusy = false;
         }
     }
 
@@ -233,34 +227,31 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
-        IsBusy = true;
-
         try
         {
-            var page = await SearchProducts(
-                PreferencesService.StoreId,
-                new CategoryItem { Item = group.Query, Category = group.Category },
-                group.LoadedCount,
-                group.PageSize
-            );
-            group.AddMatches(page.Results);
-            foreach (var product in page.Results)
+            await ExecuteBusyAsync(async () =>
             {
-                AllProducts.Add(product);
-            }
-            GroupStateVersion++;
-            if (page.Results.Count > 0)
-            {
-                _messenger.Send(new ScrollToProductMessage(page.Results[^1]));
-            }
+                var page = await SearchProducts(
+                    PreferencesService.StoreId,
+                    new CategoryItem { Item = group.Query, Category = group.Category },
+                    group.LoadedCount,
+                    group.PageSize
+                );
+                group.AddMatches(page.Results);
+                foreach (var product in page.Results)
+                {
+                    AllProducts.Add(product);
+                }
+                GroupStateVersion++;
+                if (page.Results.Count > 0)
+                {
+                    _messenger.Send(new ScrollToProductMessage(page.Results[^1]));
+                }
+            });
         }
         catch (Exception ex)
         {
             await NotificationPopupService.Show($"Couldn't load more: {ex.Message}", NotificationPopupType.Error);
-        }
-        finally
-        {
-            IsBusy = false;
         }
     }
 
@@ -274,46 +265,47 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
-        IsBusy = true;
-
         try
         {
-            var checkout = await _api.Checkout(
-                new CheckoutRequest
-                {
-                    LocationId = PreferencesService.StoreId,
-                    Items =
-                    [
-                        .. cartItems.Select(item => new CartItem
-                        {
-                            Upc = item.Upc,
-                            Description = item.Description,
-                            Price = item.Price,
-                            Quantity = item.Quantity,
-                            ImageUrl = item.ImageUrl,
-                        }),
-                    ],
-                    ReturnUri = Constants.KrogerRedirectUri,
-                }
-            );
-
-            var result = await WebAuthenticator.Default.AuthenticateAsync(
-                new Uri(checkout.AuthUrl),
-                new Uri(Constants.KrogerRedirectUri)
-            );
-
-            if (result.Properties.TryGetValue("error", out var error) && error == "cart")
+            await ExecuteBusyAsync(async () =>
             {
-                throw new InvalidOperationException("Server checkout failed.");
-            }
+                var checkout = await _api.Checkout(
+                    new CheckoutRequest
+                    {
+                        LocationId = PreferencesService.StoreId,
+                        Items =
+                        [
+                            .. cartItems.Select(item => new CartItem
+                            {
+                                Upc = item.Upc,
+                                Description = item.Description,
+                                Price = item.Price,
+                                Quantity = item.Quantity,
+                                ImageUrl = item.ImageUrl,
+                            }),
+                        ],
+                        ReturnUri = Constants.KrogerRedirectUri,
+                    }
+                );
 
-            ClearCart();
-            _messenger.Send(new CloseCartRequestedMessage());
-            await NotificationPopupService.Show(
-                $"Added {cartItems.Count} lines to your Kroger cart",
-                NotificationPopupType.Success
-            );
-            await Launcher.Default.OpenAsync("https://www.kroger.com/cart");
+                var result = await WebAuthenticator.Default.AuthenticateAsync(
+                    new Uri(checkout.AuthUrl),
+                    new Uri(Constants.KrogerRedirectUri)
+                );
+
+                if (result.Properties.TryGetValue("error", out var error) && error == "cart")
+                {
+                    throw new InvalidOperationException("Server checkout failed.");
+                }
+
+                ClearCart();
+                _messenger.Send(new CloseCartRequestedMessage());
+                await NotificationPopupService.Show(
+                    $"Added {cartItems.Count} lines to your Kroger cart",
+                    NotificationPopupType.Success
+                );
+                await Launcher.Default.OpenAsync("https://www.kroger.com/cart");
+            });
         }
         catch (TaskCanceledException)
         {
@@ -322,10 +314,6 @@ public partial class MainViewModel : ObservableObject
         catch (Exception ex)
         {
             await NotificationPopupService.Show($"Checkout failed: {ex.Message}", NotificationPopupType.Error);
-        }
-        finally
-        {
-            IsBusy = false;
         }
     }
 
@@ -403,9 +391,8 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void ClearSearch()
     {
-        ReplaceSearchCancellationToken(cancelInFlightSearch: true);
-        SearchGroups.Clear();
-        AllProducts.Clear();
+        ResetSearchCancellationToken();
+        ClearSearchResults();
         RawItemsText = string.Empty;
         IsItemsEditorVisible = true;
         IsBusy = false;
@@ -447,17 +434,34 @@ public partial class MainViewModel : ObservableObject
         ];
     }
 
-    private void ReplaceSearchCancellationToken(bool cancelInFlightSearch)
+    private void ResetSearchCancellationToken()
     {
         var previous = _searchCts;
         _searchCts = new CancellationTokenSource();
 
-        if (cancelInFlightSearch)
-        {
-            previous.Cancel();
-        }
+        previous.Cancel();
 
         previous.Dispose();
+    }
+
+    private void ClearSearchResults()
+    {
+        SearchGroups.Clear();
+        AllProducts.Clear();
+    }
+
+    private async Task ExecuteBusyAsync(Func<Task> action)
+    {
+        IsBusy = true;
+
+        try
+        {
+            await action();
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     private void UpdateSearchState()
