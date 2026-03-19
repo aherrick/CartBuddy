@@ -39,6 +39,15 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
 
     public bool HasFrozenCleanedItems => FrozenCleanedItems.Count > 0;
 
+    public bool HasPendingEditChanges =>
+        IsEditPhase
+        && HasFrozenCleanedItems
+        && !string.Equals(
+            NormalizeEditableText(RawItemsText),
+            NormalizeEditableText(_editBaselineText),
+            StringComparison.Ordinal
+        );
+
     public bool CanCancelEdit =>
         CurrentPhase == PreparationPhase.Edit
         && HasFrozenCleanedItems;
@@ -79,6 +88,7 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
         _phaseBeforeEdit = PreparationPhase.Edit;
         _editBaselineText = string.Empty;
         IsBusy = false;
+        OnPropertyChanged(nameof(HasPendingEditChanges));
     }
 
     public IReadOnlyList<CategoryItem> GetConfirmedTerms() =>
@@ -98,6 +108,7 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(IsEditPhase));
         OnPropertyChanged(nameof(IsCleanupPreviewPhase));
+        OnPropertyChanged(nameof(HasPendingEditChanges));
         OnPropertyChanged(nameof(CanCancelEdit));
         OnPropertyChanged(nameof(WorkflowSummary));
     }
@@ -105,6 +116,7 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
     partial void OnRawItemsTextChanged(string value)
     {
         OnPropertyChanged(nameof(HasItemsText));
+        OnPropertyChanged(nameof(HasPendingEditChanges));
         OnPropertyChanged(nameof(WorkflowSummary));
 
         if (CurrentPhase == PreparationPhase.Edit)
@@ -141,6 +153,7 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
                 CurrentPhase = PreparationPhase.CleanupPreview;
                 _phaseBeforeEdit = PreparationPhase.Edit;
                 _editBaselineText = string.Empty;
+                OnPropertyChanged(nameof(HasPendingEditChanges));
             });
         }
         catch (OperationCanceledException)
@@ -165,6 +178,7 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
         _editBaselineText = BuildAnnotatedItemsText(FrozenCleanedItems);
         RawItemsText = _editBaselineText;
         CurrentPhase = PreparationPhase.Edit;
+        OnPropertyChanged(nameof(HasPendingEditChanges));
     }
 
     [RelayCommand]
@@ -178,6 +192,7 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
         RawItemsText = _editBaselineText;
         CurrentPhase = PreparationPhase.CleanupPreview;
         _phaseBeforeEdit = PreparationPhase.Edit;
+        OnPropertyChanged(nameof(HasPendingEditChanges));
     }
 
     private static List<string> ParseDraftLines(string input)
@@ -244,6 +259,13 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
 
     private static string BuildAnnotatedItemsText(IEnumerable<CategoryItem> items) =>
         string.Join(Environment.NewLine, items.Select(item => $"{item.Item} ({item.Category})"));
+
+    private static string NormalizeEditableText(string value) =>
+        string.Join(
+            "\n",
+            value
+                .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        );
 
     public enum PreparationPhase
     {

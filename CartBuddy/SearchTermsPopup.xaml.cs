@@ -32,7 +32,25 @@ public partial class SearchTermsPopup : AppPopup
 
     public IReadOnlyList<CategoryItem> ConfirmedTerms { get; private set; }
 
-    protected override Task<bool> ShouldCloseAsync() => Task.FromResult(true);
+    protected override async Task<bool> ShouldCloseAsync()
+    {
+        if (!_viewModel.HasPendingEditChanges)
+        {
+            return true;
+        }
+
+        var currentPage = Shell.Current?.CurrentPage ?? Application.Current?.Windows.FirstOrDefault()?.Page;
+        if (currentPage is null)
+        {
+            return true;
+        }
+
+        return await currentPage.DisplayAlertAsync(
+            "Discard edits?",
+            "Your draft is saved, but these changes have not been re-categorized or applied to the shopping list. Close anyway?",
+            "Close",
+            "Keep Editing");
+    }
 
     private async void OnSearchClicked(object sender, EventArgs e)
     {
