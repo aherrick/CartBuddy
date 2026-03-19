@@ -19,19 +19,23 @@
                 Padding="16,16,16,20"
                 RowDefinitions="Auto,*"
                 RowSpacing="14">
-                <Grid Grid.Row="0">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="12">
                     <VerticalStackLayout Spacing="2" VerticalOptions="Center">
                         <Label
                             FontAttributes="Bold"
                             FontSize="22"
-                            Text="Search Terms" />
+                            Text="Terms" />
                         <Label
                             FontSize="13"
                             Text="{Binding WorkflowSummary}"
                             TextColor="{StaticResource Gray400}" />
                     </VerticalStackLayout>
 
-                    <Grid HorizontalOptions="Center" VerticalOptions="Center">
+                    <Grid
+                        Grid.Column="1"
+                        Margin="0,0,44,0"
+                        HorizontalOptions="End"
+                        VerticalOptions="Center">
                         <Button
                             Padding="12,8"
                             Command="{Binding EditListCommand}"

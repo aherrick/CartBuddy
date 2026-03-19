@@ -59,12 +59,12 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
             if (CurrentPhase == PreparationPhase.CleanupPreview)
             {
                 return HasFrozenCleanedItems
-                    ? $"{FrozenCleanedItems.Count} confirmed terms ready"
+                    ? $"{FrozenCleanedItems.Count} to search"
                     : "Review your cleaned items before searching";
             }
 
             var itemCount = ParseDraftLines(RawItemsText).Count;
-            return itemCount == 0 ? "Enter one item per line" : $"{itemCount} items in list";
+            return itemCount == 0 ? "Enter one item per line" : $"{itemCount} in list";
         }
     }
 
