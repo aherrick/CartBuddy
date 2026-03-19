@@ -151,8 +151,7 @@ public partial class MainViewModel : ObservableObject
 
         IsBusy = true;
 
-        await _searchCts.CancelAsync();
-        _searchCts = new CancellationTokenSource();
+        ReplaceSearchCancellationToken(cancelInFlightSearch: true);
         var ct = _searchCts.Token;
 
         try
@@ -176,6 +175,9 @@ public partial class MainViewModel : ObservableObject
                     SearchConstants.PageSize,
                     ct
                 );
+
+                ct.ThrowIfCancellationRequested();
+
                 var group = new SearchGroup(
                     searchItem.Item,
                     page.TotalCount,
@@ -401,10 +403,12 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void ClearSearch()
     {
+        ReplaceSearchCancellationToken(cancelInFlightSearch: true);
         SearchGroups.Clear();
         AllProducts.Clear();
         RawItemsText = string.Empty;
         IsItemsEditorVisible = true;
+        IsBusy = false;
     }
 
     [RelayCommand]
@@ -441,6 +445,19 @@ public partial class MainViewModel : ObservableObject
                 )
                 .Distinct(StringComparer.OrdinalIgnoreCase),
         ];
+    }
+
+    private void ReplaceSearchCancellationToken(bool cancelInFlightSearch)
+    {
+        var previous = _searchCts;
+        _searchCts = new CancellationTokenSource();
+
+        if (cancelInFlightSearch)
+        {
+            previous.Cancel();
+        }
+
+        previous.Dispose();
     }
 
     private void UpdateSearchState()
