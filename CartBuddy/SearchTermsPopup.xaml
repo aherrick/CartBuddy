@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<local:AppPopup
+    x:Class="CartBuddy.SearchTermsPopup"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:sharedModels="clr-namespace:CartBuddy.Shared.Models;assembly=CartBuddy.Shared"
+    xmlns:local="clr-namespace:CartBuddy"
+    xmlns:vm="clr-namespace:CartBuddy.ViewModels"
+    x:DataType="vm:SearchTermsWorkflowViewModel"
+    Background="Transparent"
+    CanBeDismissedByTappingOutsideOfPopup="False">
+    <Border
+        x:Name="PopupSurface"
+        MinimumHeightRequest="320"
+        VerticalOptions="Start"
+        Style="{StaticResource PopupSurfaceBorder}">
+        <Grid>
+            <Grid
+                Padding="16,16,16,20"
+                RowDefinitions="Auto,*"
+                RowSpacing="14">
+                <Grid Grid.Row="0">
+                    <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                        <Label
+                            FontAttributes="Bold"
+                            FontSize="22"
+                            Text="Search Terms" />
+                        <Label
+                            FontSize="13"
+                            Text="{Binding WorkflowSummary}"
+                            TextColor="{StaticResource Gray400}" />
+                    </VerticalStackLayout>
+
+                    <Grid HorizontalOptions="Center" VerticalOptions="Center">
+                        <Button
+                            Padding="12,8"
+                            Command="{Binding EditListCommand}"
+                            CornerRadius="6"
+                            FontSize="13"
+                            IsVisible="{Binding IsCleanupPreviewPhase}"
+                            Text="Edit List">
+                            <Button.ImageSource>
+                                <FontImageSource
+                                    FontFamily="FaSolid"
+                                    Glyph="&#xF304;"
+                                    Size="13" />
+                            </Button.ImageSource>
+                        </Button>
+                        <Button
+                            Padding="12,8"
+                            Command="{Binding CancelEditCommand}"
+                            CornerRadius="6"
+                            FontSize="13"
+                            IsVisible="{Binding CanCancelEdit}"
+                            Text="Cancel Edit">
+                            <Button.ImageSource>
+                                <FontImageSource
+                                    FontFamily="FaSolid"
+                                    Glyph="&#xF00D;"
+                                    Size="13" />
+                            </Button.ImageSource>
+                        </Button>
+                    </Grid>
+                </Grid>
+
+                <Grid
+                    Grid.Row="1"
+                    RowDefinitions="*,Auto,Auto"
+                    RowSpacing="14"
+                    IsVisible="{Binding IsEditPhase}">
+                    <Border
+                        Grid.Row="0"
+                        Padding="12"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource White},
+                                                          Dark={StaticResource OffBlack}}"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray200},
+                                                 Dark={StaticResource Gray600}}"
+                        StrokeShape="RoundRectangle 12"
+                        StrokeThickness="1">
+                        <Editor
+                            AutoSize="Disabled"
+                            MinimumHeightRequest="260"
+                            Placeholder="apples&#10;spinach&#10;pizza&#10;beer"
+                            Text="{Binding RawItemsText}"
+                            VerticalOptions="Fill" />
+                    </Border>
+
+                    <Label
+                        Grid.Row="1"
+                        FontSize="13"
+                        Text="Categorize your items before searching so you can review the list first."
+                        TextColor="{StaticResource Gray400}" />
+
+                    <Button
+                        Grid.Row="2"
+                        Padding="14,12"
+                        Command="{Binding RunAiCleanupCommand}"
+                        CornerRadius="8"
+                        HorizontalOptions="Fill"
+                        Text="Categorize">
+                        <Button.ImageSource>
+                            <FontImageSource
+                                FontFamily="FaSolid"
+                                Glyph="&#xF544;"
+                                Size="14" />
+                        </Button.ImageSource>
+                    </Button>
+                </Grid>
+
+                <Grid
+                    Grid.Row="1"
+                    RowDefinitions="*,Auto"
+                    RowSpacing="14"
+                    IsVisible="{Binding IsCleanupPreviewPhase}">
+                    <Border
+                        Grid.Row="0"
+                        Padding="14"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource White},
+                                                          Dark={StaticResource OffBlack}}"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray200},
+                                                 Dark={StaticResource Gray600}}"
+                        StrokeShape="RoundRectangle 12"
+                        StrokeThickness="1">
+                        <Grid RowDefinitions="Auto,*" RowSpacing="12">
+                            <VerticalStackLayout Spacing="4">
+                                <Label
+                                    FontAttributes="Bold"
+                                    FontSize="17"
+                                    Text="Review Cleaned List" />
+                                <Label
+                                    FontSize="13"
+                                    Text="These are the exact items and categories that will be sent to search."
+                                    TextColor="{StaticResource Gray400}" />
+                            </VerticalStackLayout>
+
+                            <CollectionView
+                                Grid.Row="1"
+                                ItemsSource="{Binding FrozenCleanedItems}"
+                                SelectionMode="None">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="sharedModels:CategoryItem">
+                                        <Grid Padding="0,8" ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                            <Label
+                                                Grid.Column="0"
+                                                FontSize="16"
+                                                Text="{Binding Item}"
+                                                VerticalOptions="Center" />
+                                            <Border
+                                                Grid.Column="1"
+                                                Padding="8,3"
+                                                BackgroundColor="{AppThemeBinding Light={StaticResource Secondary},
+                                                                                  Dark={StaticResource Gray600}}"
+                                                HorizontalOptions="End"
+                                                StrokeThickness="0"
+                                                StrokeShape="RoundRectangle 999"
+                                                VerticalOptions="Center">
+                                                <Label
+                                                    FontAttributes="Bold"
+                                                    FontSize="11"
+                                                    Text="{Binding Category}"
+                                                    TextColor="{AppThemeBinding Light={StaticResource Primary},
+                                                                                Dark={StaticResource White}}" />
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </Grid>
+                    </Border>
+
+                    <Button
+                        Grid.Row="1"
+                        Padding="14,12"
+                        Clicked="OnSearchClicked"
+                        CornerRadius="8"
+                        HorizontalOptions="Fill"
+                        Text="Search">
+                        <Button.ImageSource>
+                            <FontImageSource
+                                FontFamily="FaSolid"
+                                Glyph="&#xF002;"
+                                Size="14" />
+                        </Button.ImageSource>
+                    </Button>
+                </Grid>
+            </Grid>
+
+            <Grid
+                Background="#60000000"
+                InputTransparent="False"
+                IsVisible="{Binding IsBusy}">
+                <VerticalStackLayout
+                    HorizontalOptions="Center"
+                    Spacing="10"
+                    VerticalOptions="Center">
+                    <ActivityIndicator
+                        Color="White"
+                        HeightRequest="48"
+                        IsRunning="True"
+                        WidthRequest="48" />
+                    <Label
+                        FontAttributes="Bold"
+                        FontSize="15"
+                        Text="Categorizing..."
+                        TextColor="White" />
+                </VerticalStackLayout>
+            </Grid>
+        </Grid>
+    </Border>
+</local:AppPopup>

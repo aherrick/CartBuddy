@@ -34,6 +34,12 @@ public static class PreferencesService
         }
     }
 
+    public static string SearchTermsDraft
+    {
+        get => Preferences.Default.Get(nameof(SearchTermsDraft), "");
+        set => Preferences.Default.Set(nameof(SearchTermsDraft), value);
+    }
+
     public static bool HasStore => !string.IsNullOrEmpty(StoreId);
 
     public static List<CartLine> Cart

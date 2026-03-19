@@ -81,6 +81,8 @@ public class AppPopup : Popup
         surface.ClearValue(VisualElement.MaximumWidthRequestProperty);
     }
 
+    protected virtual Task<bool> ShouldCloseAsync() => Task.FromResult(true);
+
     private void EnsureCloseButton(Border surface)
     {
         if (surface.Content is not { } existingContent)
@@ -111,7 +113,13 @@ public class AppPopup : Popup
         closeButton.SetDynamicResource(Button.TextColorProperty, "Gray400");
         SemanticProperties.SetDescription(closeButton, "Close");
         SemanticProperties.SetHint(closeButton, "Closes this popup");
-        closeButton.Clicked += async (_, _) => await CloseAsync();
+        closeButton.Clicked += async (_, _) =>
+        {
+            if (await ShouldCloseAsync())
+            {
+                await CloseAsync();
+            }
+        };
 
         var chromeGrid = new Grid
         {

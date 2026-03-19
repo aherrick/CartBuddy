@@ -1,9 +1,12 @@
 ﻿using CartBuddy.Messages;
 using CartBuddy.Models;
+using CartBuddy.Services;
+using CartBuddy.Shared.Models;
 using CartBuddy.ViewModels;
 using CommunityToolkit.Maui.Extensions;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Specialized;
 using Syncfusion.Maui.DataSource;
 using Syncfusion.Maui.DataSource.Extensions;
@@ -12,15 +15,19 @@ namespace CartBuddy;
 
 public partial class MainPage : ContentPage
 {
+    private readonly IServiceProvider _serviceProvider;
     private readonly MainViewModel _viewModel;
+    private readonly IBusyOverlayService _busyOverlayService;
     private readonly IAsyncRelayCommand<ProductMatch> _addToCartAndCollapseCommand;
     private CartPopup _cartPopup;
-    private CancellationTokenSource _skeletonAnimCts;
 
-    public MainPage(MainViewModel viewModel, IMessenger messenger)
+    public MainPage(MainViewModel viewModel, IMessenger messenger, IBusyOverlayService busyOverlayService, IServiceProvider serviceProvider)
     {
         InitializeComponent();
+        _serviceProvider = serviceProvider;
         BindingContext = _viewModel = viewModel;
+        _busyOverlayService = busyOverlayService;
+        _busyOverlayService.Attach(this);
 
         // Keep search groups collapsed natively to prevent an open-to-close layout jolt
         // upon initial population of the shopping list.
@@ -84,31 +91,14 @@ public partial class MainPage : ContentPage
             return;
         }
 
-        _skeletonAnimCts?.Cancel();
-        _skeletonAnimCts = new CancellationTokenSource();
-
         if (_viewModel.IsBusy)
         {
-            _ = PulseSkeleton(_skeletonAnimCts.Token);
+            _busyOverlayService.Show();
         }
         else
         {
-            SkeletonContainer.Opacity = 1.0;
+            _busyOverlayService.Hide();
         }
-    }
-
-    private async Task PulseSkeleton(CancellationToken ct)
-    {
-        while (!ct.IsCancellationRequested)
-        {
-            await SkeletonContainer.FadeToAsync(0.35, 600, Easing.SinInOut);
-            if (ct.IsCancellationRequested)
-            {
-                break;
-            }
-            await SkeletonContainer.FadeToAsync(1.0, 600, Easing.SinInOut);
-        }
-        SkeletonContainer.Opacity = 1.0;
     }
 
     protected override void OnAppearing()
@@ -182,11 +172,32 @@ public partial class MainPage : ContentPage
         _cartPopup = null;
     }
 
+    private async void OnEditSearchTermsClicked(object sender, EventArgs e)
+    {
+        if (_viewModel.IsBusy)
+        {
+            return;
+        }
+
+        var workflowViewModel = _serviceProvider.GetRequiredService<SearchTermsWorkflowViewModel>();
+        workflowViewModel.LoadConfirmedTerms(_viewModel.GetConfirmedSearchTerms());
+
+        var popup = new SearchTermsPopup(workflowViewModel);
+        await this.ShowPopupAsync(popup, null);
+
+        if (popup.ConfirmedTerms is not { Count: > 0 } terms)
+        {
+            return;
+        }
+
+        await _viewModel.ApplyConfirmedSearchTermsAsync(terms);
+    }
+
     private async void OnClearSearchClicked(object sender, EventArgs e)
     {
         var shouldClear = await DisplayAlertAsync(
             "Clear list?",
-            "This will remove your current shopping list and search results.",
+            "This will remove your current confirmed list and search results.",
             "Clear",
             "Cancel"
         );

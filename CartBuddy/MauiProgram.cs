@@ -42,9 +42,11 @@ public static class MauiProgram
                 httpClient.BaseAddress = new Uri(Constants.CartBuddyServerBaseUrl);
             });
         builder.Services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+        builder.Services.AddSingleton<IBusyOverlayService, BusyOverlayService>();
 
         // ViewModels
         builder.Services.AddTransient<MainViewModel>();
+        builder.Services.AddTransient<SearchTermsWorkflowViewModel>();
         builder.Services.AddTransient<StorePickerViewModel>();
         builder.Services.AddTransient<LogsViewModel>();
 

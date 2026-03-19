@@ -1,10 +1,10 @@
 ﻿using System.Collections.ObjectModel;
+using CartBuddy.Messages;
 using CartBuddy.Models;
 using CartBuddy.Services;
 using CartBuddy.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CartBuddy.Messages;
 using CommunityToolkit.Mvvm.Messaging;
 
 namespace CartBuddy.ViewModels;
@@ -14,18 +14,18 @@ public partial class MainViewModel : ObservableObject
     private readonly ICartBuddyApi _api;
     private readonly IMessenger _messenger;
     private CancellationTokenSource _searchCts = new();
+    private string _lastKnownStoreId;
+    private bool _cartLoaded;
 
     public MainViewModel(ICartBuddyApi api, IMessenger messenger)
     {
         _api = api;
         _messenger = messenger;
+        ConfirmedSearchTerms.CollectionChanged += (_, _) => UpdateSearchTermState();
         SearchGroups.CollectionChanged += (_, _) => UpdateSearchState();
         AllProducts.CollectionChanged += (_, _) => UpdateSearchState();
         CartItems.CollectionChanged += (_, _) => UpdateCartState();
     }
-
-    [ObservableProperty]
-    private string _rawItemsText = string.Empty;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -33,8 +33,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _isDarkMode;
 
-    [ObservableProperty]
-    private bool _isItemsEditorVisible = true;
+    public ObservableCollection<CategoryItem> ConfirmedSearchTerms { get; } = [];
 
     public ObservableCollection<SearchGroup> SearchGroups { get; } = [];
 
@@ -48,18 +47,15 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private int _groupStateVersion;
 
-    private string _lastKnownStoreId;
-    private bool _cartLoaded;
-
     public bool HasStore => PreferencesService.HasStore;
 
     public string StoreDisplay => HasStore ? PreferencesService.StoreName : "No store selected";
 
     public bool HasResults => AllProducts.Count > 0;
 
-    public bool ShowResultsView => !IsItemsEditorVisible;
+    public bool ShowEmptyState => !HasResults && !IsBusy;
 
-    public bool HasItemsText => !string.IsNullOrWhiteSpace(RawItemsText);
+    public bool HasPreparedSearchTerms => ConfirmedSearchTerms.Count > 0;
 
     public bool HasCartItems => CartItems.Count > 0;
 
@@ -79,18 +75,20 @@ public partial class MainViewModel : ObservableObject
     public string CartSummary =>
         HasCartItems ? $"{CartItemCount} items | ${CartTotal:F2}" : "Cart is empty";
 
-    public bool CanToggleItemsEditor => SearchGroups.Count > 0;
+    public string SearchTermsSummary =>
+        HasPreparedSearchTerms
+            ? $"{ConfirmedSearchTerms.Count} confirmed terms"
+            : "Build and review a list before searching";
 
-    public string ItemsEditorToggleText => IsItemsEditorVisible ? "View Results" : "Edit List";
+    public string SearchTermsActionText => HasPreparedSearchTerms ? "Edit List" : "Build List";
 
-    public string ItemsSummary
-    {
-        get
-        {
-            var itemCount = ParseTerms(RawItemsText).Count;
-            return itemCount == 0 ? "Enter one item per line" : $"{itemCount} items in list";
-        }
-    }
+    public string EmptyStateTitle =>
+        HasPreparedSearchTerms ? "No results to show" : "Start a shopping list";
+
+    public string EmptyStateDescription =>
+        HasPreparedSearchTerms
+            ? "Edit your confirmed list to run a fresh search on the main page."
+            : "Build and review a cleaned shopping list in the popup, then search Kroger from here.";
 
     public string ThemeActionText => IsDarkMode ? "Use Light Mode" : "Use Dark Mode";
 
@@ -114,35 +112,24 @@ public partial class MainViewModel : ObservableObject
 
         OnPropertyChanged(nameof(HasStore));
         OnPropertyChanged(nameof(StoreDisplay));
+        UpdateSearchTermState();
         UpdateSearchState();
         UpdateCartState();
     }
 
-    partial void OnIsDarkModeChanged(bool value)
-    {
-        PreferencesService.Theme = value ? AppTheme.Dark : AppTheme.Light;
-        OnPropertyChanged(nameof(ThemeActionText));
-    }
+    public List<CategoryItem> GetConfirmedSearchTerms() =>
+        [.. ConfirmedSearchTerms.Select(item => item.Clone())];
 
-    partial void OnIsItemsEditorVisibleChanged(bool value)
+    public async Task ApplyConfirmedSearchTermsAsync(IReadOnlyList<CategoryItem> terms)
     {
-        OnPropertyChanged(nameof(ItemsEditorToggleText));
-        OnPropertyChanged(nameof(ItemsSummary));
-        OnPropertyChanged(nameof(ShowResultsView));
-    }
+        ResetSearchCancellationToken();
+        SetConfirmedSearchTerms(terms);
+        ClearSearchResults();
+        AllGroupsExpanded = true;
 
-    partial void OnRawItemsTextChanged(string value)
-    {
-        OnPropertyChanged(nameof(HasItemsText));
-        OnPropertyChanged(nameof(ItemsSummary));
-    }
-
-    [RelayCommand]
-    private async Task Search()
-    {
-        if (string.IsNullOrWhiteSpace(RawItemsText))
+        if (!HasPreparedSearchTerms)
         {
-            await NotificationPopupService.Show("Paste a list first", NotificationPopupType.Info);
+            IsBusy = false;
             return;
         }
 
@@ -154,25 +141,17 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            IsItemsEditorVisible = false;
-
             await ExecuteBusyAsync(async () =>
             {
-                ResetSearchCancellationToken();
                 var ct = _searchCts.Token;
+                var nextGroups = new List<SearchGroup>(ConfirmedSearchTerms.Count);
+                var nextProducts = new List<ProductMatch>();
 
-                var rawTerms = ParseTerms(RawItemsText);
-                var classifiedItems = await _api.CleanupList(new CleanupRequest { Items = rawTerms }, ct);
-                ct.ThrowIfCancellationRequested();
-
-                RawItemsText = string.Join(Environment.NewLine, classifiedItems.Select(item => item.Item));
-
-                ClearSearchResults();
-                foreach (var searchItem in classifiedItems)
+                foreach (var confirmedItem in ConfirmedSearchTerms)
                 {
                     var page = await SearchProducts(
                         PreferencesService.StoreId,
-                        searchItem,
+                        confirmedItem,
                         0,
                         SearchConstants.PageSize,
                         ct
@@ -181,27 +160,25 @@ public partial class MainViewModel : ObservableObject
                     ct.ThrowIfCancellationRequested();
 
                     var group = new SearchGroup(
-                        searchItem.Item,
+                        confirmedItem.Item,
                         page.TotalCount,
                         SearchConstants.PageSize,
-                        searchItem.Category
+                        confirmedItem.Category
                     );
                     group.AddMatches(page.Results);
-                    SearchGroups.Add(group);
-                    if (page.Results.Count > 0)
+                    nextGroups.Add(group);
+
+                    if (group.Count > 0)
                     {
-                        foreach (var product in page.Results)
-                        {
-                            AllProducts.Add(product);
-                        }
+                        nextProducts.AddRange(group);
                     }
                     else
                     {
-                        AllProducts.Add(new ProductMatch { Query = searchItem.Item, IsNoResult = true });
+                        nextProducts.Add(new ProductMatch { Query = group.Query, IsNoResult = true });
                     }
                 }
 
-                SyncGroupSelections();
+                ApplySearchResults(nextGroups, nextProducts);
                 AllGroupsExpanded = false;
             });
         }
@@ -211,13 +188,14 @@ public partial class MainViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            if (!HasResults)
-            {
-                IsItemsEditorVisible = true;
-            }
-
             await NotificationPopupService.Show($"Search failed: {ex.Message}", NotificationPopupType.Error);
         }
+    }
+
+    partial void OnIsDarkModeChanged(bool value)
+    {
+        PreferencesService.Theme = value ? AppTheme.Dark : AppTheme.Light;
+        OnPropertyChanged(nameof(ThemeActionText));
     }
 
     [RelayCommand]
@@ -397,16 +375,9 @@ public partial class MainViewModel : ObservableObject
     private void ClearSearch()
     {
         ResetSearchCancellationToken();
+        ConfirmedSearchTerms.Clear();
         ClearSearchResults();
-        RawItemsText = string.Empty;
-        IsItemsEditorVisible = true;
-        IsBusy = false;
-    }
-
-    [RelayCommand]
-    private void ToggleItemsEditor()
-    {
-        IsItemsEditorVisible = !IsItemsEditorVisible;
+        AllGroupsExpanded = true;
     }
 
     [RelayCommand]
@@ -421,31 +392,12 @@ public partial class MainViewModel : ObservableObject
         IsDarkMode = !IsDarkMode;
     }
 
-    private static List<string> ParseTerms(string input)
-    {
-        if (string.IsNullOrWhiteSpace(input))
-        {
-            return [];
-        }
-
-        return
-        [
-            .. input
-                .Split(
-                    ['\r', '\n'],
-                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
-                )
-                .Distinct(StringComparer.OrdinalIgnoreCase),
-        ];
-    }
-
     private void ResetSearchCancellationToken()
     {
         var previous = _searchCts;
         _searchCts = new CancellationTokenSource();
 
         previous.Cancel();
-
         previous.Dispose();
     }
 
@@ -469,11 +421,24 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    partial void OnIsBusyChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ShowEmptyState));
+    }
+
     private void UpdateSearchState()
     {
         OnPropertyChanged(nameof(HasResults));
-        OnPropertyChanged(nameof(CanToggleItemsEditor));
-        OnPropertyChanged(nameof(ShowResultsView));
+        OnPropertyChanged(nameof(ShowEmptyState));
+    }
+
+    private void UpdateSearchTermState()
+    {
+        OnPropertyChanged(nameof(HasPreparedSearchTerms));
+        OnPropertyChanged(nameof(SearchTermsSummary));
+        OnPropertyChanged(nameof(SearchTermsActionText));
+        OnPropertyChanged(nameof(EmptyStateTitle));
+        OnPropertyChanged(nameof(EmptyStateDescription));
     }
 
     private void SyncGroupSelections()
@@ -531,6 +496,38 @@ public partial class MainViewModel : ObservableObject
         );
     }
 
+    private void SetConfirmedSearchTerms(IEnumerable<CategoryItem> terms)
+    {
+        ConfirmedSearchTerms.Clear();
+
+        foreach (var term in terms)
+        {
+            if (string.IsNullOrWhiteSpace(term?.Item))
+            {
+                continue;
+            }
+
+            ConfirmedSearchTerms.Add(term.Clone());
+        }
+    }
+
+    private void ApplySearchResults(IReadOnlyList<SearchGroup> groups, IReadOnlyList<ProductMatch> products)
+    {
+        ClearSearchResults();
+
+        foreach (var group in groups)
+        {
+            SearchGroups.Add(group);
+        }
+
+        foreach (var product in products)
+        {
+            AllProducts.Add(product);
+        }
+
+        SyncGroupSelections();
+    }
+
     private static ProductMatch MapProductMatch(ProductSearchResult product, string query) =>
         new()
         {
@@ -547,5 +544,4 @@ public partial class MainViewModel : ObservableObject
             SoldByWeight = product.SoldByWeight,
             AverageWeightPerUnit = product.AverageWeightPerUnit,
         };
-
 }
