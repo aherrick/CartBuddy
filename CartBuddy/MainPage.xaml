@@ -57,7 +57,7 @@
     <Grid RowDefinitions="Auto,*">
         <BoxView
             x:Name="SnackbarAnchor"
-            Grid.Row="0"
+            Grid.Row="1"
             Margin="0,62,0,0"
             HeightRequest="1"
             Opacity="0"
@@ -142,7 +142,7 @@
         </VerticalStackLayout>
 
         <Grid Grid.Row="1">
-            <Grid RowDefinitions="Auto,Auto,*">
+            <Grid RowDefinitions="Auto,*">
                 <BoxView
                     Grid.Row="0"
                     BackgroundColor="{AppThemeBinding Light={StaticResource Gray200},
@@ -150,8 +150,8 @@
                     HeightRequest="1"
                     IsVisible="{Binding HasResults}" />
                 <VerticalStackLayout
-                    Grid.Row="2"
-                    Margin="24,8,24,24"
+                    Grid.Row="1"
+                    Margin="24,0"
                     HorizontalOptions="Center"
                     IsVisible="{Binding ShowEmptyState}"
                     MaximumWidthRequest="360"
@@ -181,7 +181,7 @@
 
                 <sfListView:SfListView
                     x:Name="SearchListView"
-                    Grid.Row="2"
+                    Grid.Row="1"
                     Margin="0,0,0,0"
                     AllowGroupExpandCollapse="True"
                     AutoFitMode="Height"
