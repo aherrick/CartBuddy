@@ -52,6 +52,34 @@ public partial class SearchTermsPopup : AppPopup
             "Keep Editing");
     }
 
+    private async void OnClearListClicked(object sender, EventArgs e)
+    {
+        if (!_viewModel.CanClearList)
+        {
+            return;
+        }
+
+        var currentPage = Shell.Current?.CurrentPage ?? Application.Current?.Windows.FirstOrDefault()?.Page;
+        if (currentPage is null)
+        {
+            _viewModel.ClearDraft();
+            return;
+        }
+
+        var shouldClear = await currentPage.DisplayAlertAsync(
+            "Clear list?",
+            "This removes the current draft from this editor so you can start over.",
+            "Clear",
+            "Cancel");
+
+        if (!shouldClear)
+        {
+            return;
+        }
+
+        _viewModel.ClearDraft();
+    }
+
     private async void OnSearchClicked(object sender, EventArgs e)
     {
         if (!_viewModel.HasFrozenCleanedItems)

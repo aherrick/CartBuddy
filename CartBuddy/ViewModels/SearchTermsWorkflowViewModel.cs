@@ -39,6 +39,10 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
 
     public bool HasFrozenCleanedItems => FrozenCleanedItems.Count > 0;
 
+    public bool CanClearList =>
+        IsEditPhase
+        && (HasItemsText || HasFrozenCleanedItems);
+
     public bool HasPendingEditChanges =>
         IsEditPhase
         && HasFrozenCleanedItems
@@ -90,6 +94,15 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
     public IReadOnlyList<CategoryItem> GetConfirmedTerms() =>
         [.. FrozenCleanedItems.Select(item => item.Clone())];
 
+    public void ClearDraft()
+    {
+        InvalidateFrozenList();
+        RawItemsText = string.Empty;
+        CurrentPhase = PreparationPhase.Edit;
+        OnPropertyChanged(nameof(CanClearList));
+        OnPropertyChanged(nameof(HasPendingEditChanges));
+    }
+
     public void CancelPendingWork()
     {
         var previous = _cleanupCts;
@@ -104,6 +117,7 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(IsEditPhase));
         OnPropertyChanged(nameof(IsCleanupPreviewPhase));
+        OnPropertyChanged(nameof(CanClearList));
         OnPropertyChanged(nameof(HasPendingEditChanges));
         OnPropertyChanged(nameof(CanCancelEdit));
         OnPropertyChanged(nameof(WorkflowSummary));
@@ -112,6 +126,7 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
     partial void OnRawItemsTextChanged(string value)
     {
         OnPropertyChanged(nameof(HasItemsText));
+        OnPropertyChanged(nameof(CanClearList));
         OnPropertyChanged(nameof(HasPendingEditChanges));
         OnPropertyChanged(nameof(WorkflowSummary));
 
@@ -248,6 +263,7 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
 
     private void UpdateWorkflowState()
     {
+        OnPropertyChanged(nameof(CanClearList));
         OnPropertyChanged(nameof(HasFrozenCleanedItems));
         OnPropertyChanged(nameof(CanCancelEdit));
         OnPropertyChanged(nameof(WorkflowSummary));

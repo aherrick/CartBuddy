@@ -99,13 +99,14 @@
                                 BackgroundColor="Transparent"
                                 BorderColor="{StaticResource SaleRed}"
                                 BorderWidth="1" />
-                        <Border Padding="6,6"
+                        <Border Padding="8,6"
                                 Grid.Column="1"
+                            MinimumWidthRequest="36"
                                 StrokeThickness="0"
                                 StrokeShape="RoundRectangle 6"
                                 BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource OffBlack}}">
                             <Label Text="{Binding Quantity, Source={x:Reference ThisView}}"
-                                   WidthRequest="16"
+                               MinimumWidthRequest="20"
                                    HorizontalTextAlignment="Center"
                                    VerticalTextAlignment="Center" />
                         </Border>

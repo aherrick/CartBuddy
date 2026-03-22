@@ -95,20 +95,41 @@
                         Text="Categorize your items before searching so you can review the list first."
                         TextColor="{StaticResource Gray400}" />
 
-                    <Button
+                    <Grid
                         Grid.Row="2"
-                        Padding="14,12"
-                        Command="{Binding RunAiCleanupCommand}"
-                        CornerRadius="8"
-                        HorizontalOptions="Fill"
-                        Text="Categorize">
-                        <Button.ImageSource>
-                            <FontImageSource
-                                FontFamily="FaSolid"
-                                Glyph="&#xF544;"
-                                Size="14" />
-                        </Button.ImageSource>
-                    </Button>
+                        ColumnDefinitions="Auto,*"
+                        ColumnSpacing="10">
+                        <Button
+                            Grid.Column="0"
+                            Padding="14,12"
+                            Clicked="OnClearListClicked"
+                            CornerRadius="8"
+                            IsEnabled="{Binding CanClearList}"
+                            Text="Clear List"
+                            TextColor="{StaticResource White}"
+                            BackgroundColor="{StaticResource SaleRed}">
+                            <Button.ImageSource>
+                                <FontImageSource
+                                    FontFamily="FaSolid"
+                                    Glyph="&#xF1F8;"
+                                    Size="14" />
+                            </Button.ImageSource>
+                        </Button>
+                        <Button
+                            Grid.Column="1"
+                            Padding="14,12"
+                            Command="{Binding RunAiCleanupCommand}"
+                            CornerRadius="8"
+                            HorizontalOptions="Fill"
+                            Text="Categorize">
+                            <Button.ImageSource>
+                                <FontImageSource
+                                    FontFamily="FaSolid"
+                                    Glyph="&#xF544;"
+                                    Size="14" />
+                            </Button.ImageSource>
+                        </Button>
+                    </Grid>
                 </Grid>
 
                 <Grid

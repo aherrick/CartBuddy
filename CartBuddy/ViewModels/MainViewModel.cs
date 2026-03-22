@@ -252,6 +252,11 @@ public partial class MainViewModel : ObservableObject
         {
             await ExecuteBusyAsync(async () =>
             {
+                var useBrowserCheckout = DeviceInfo.Platform == DevicePlatform.WinUI;
+                var returnUri = useBrowserCheckout
+                    ? Constants.KrogerBrowserReturnUri
+                    : Constants.KrogerRedirectUri;
+
                 var checkout = await _api.Checkout(
                     new CheckoutRequest
                     {
@@ -267,9 +272,20 @@ public partial class MainViewModel : ObservableObject
                                 ImageUrl = item.ImageUrl,
                             }),
                         ],
-                        ReturnUri = Constants.KrogerRedirectUri,
+                        ReturnUri = returnUri,
                     }
                 );
+
+                if (useBrowserCheckout)
+                {
+                    _messenger.Send(new CloseCartRequestedMessage());
+                    await Launcher.Default.OpenAsync(new Uri(checkout.AuthUrl));
+                    await NotificationPopupService.Show(
+                        "Checkout opened in your browser. Finish sign-in there to add items to Kroger.",
+                        NotificationPopupType.Info
+                    );
+                    return;
+                }
 
                 var result = await WebAuthenticator.Default.AuthenticateAsync(
                     new Uri(checkout.AuthUrl),
