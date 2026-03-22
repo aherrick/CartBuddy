@@ -14,15 +14,6 @@ public class ExpandIconConverter : IValueConverter
         throw new NotImplementedException();
 }
 
-public class ExpandAllTextConverter : IValueConverter
-{
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
-        value is bool expanded && expanded ? "Collapse Groups" : "Expand Groups";
-
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
-        throw new NotImplementedException();
-}
-
 public class ExpandAllGlyphConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>

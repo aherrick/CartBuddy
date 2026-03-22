@@ -11,7 +11,6 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
 {
     private readonly ICartBuddyApi _api;
     private CancellationTokenSource _cleanupCts = new();
-    private PreparationPhase _phaseBeforeEdit = PreparationPhase.Edit;
     private string _editBaselineText = string.Empty;
 
     public SearchTermsWorkflowViewModel(ICartBuddyApi api)
@@ -85,7 +84,6 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
 
         RawItemsText = BuildAnnotatedItemsText(FrozenCleanedItems);
         CurrentPhase = HasFrozenCleanedItems ? PreparationPhase.CleanupPreview : PreparationPhase.Edit;
-        _phaseBeforeEdit = PreparationPhase.Edit;
         _editBaselineText = string.Empty;
         IsBusy = false;
         OnPropertyChanged(nameof(HasPendingEditChanges));
@@ -162,7 +160,6 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
                 ApplyCleanupPreview(rawTerms, cleanedItems);
                 RawItemsText = BuildAnnotatedItemsText(FrozenCleanedItems);
                 CurrentPhase = PreparationPhase.CleanupPreview;
-                _phaseBeforeEdit = PreparationPhase.Edit;
                 _editBaselineText = string.Empty;
                 OnPropertyChanged(nameof(HasPendingEditChanges));
             });
@@ -185,7 +182,6 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
             return;
         }
 
-        _phaseBeforeEdit = CurrentPhase;
         _editBaselineText = BuildAnnotatedItemsText(FrozenCleanedItems);
         RawItemsText = _editBaselineText;
         CurrentPhase = PreparationPhase.Edit;
@@ -202,7 +198,6 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
 
         RawItemsText = _editBaselineText;
         CurrentPhase = PreparationPhase.CleanupPreview;
-        _phaseBeforeEdit = PreparationPhase.Edit;
         OnPropertyChanged(nameof(HasPendingEditChanges));
     }
 
@@ -257,7 +252,6 @@ public partial class SearchTermsWorkflowViewModel : ObservableObject
     private void InvalidateFrozenList()
     {
         FrozenCleanedItems.Clear();
-        _phaseBeforeEdit = PreparationPhase.Edit;
         _editBaselineText = string.Empty;
     }
 

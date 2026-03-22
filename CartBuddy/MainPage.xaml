@@ -21,7 +21,6 @@
 
     <ContentPage.Resources>
         <converters:ExpandIconConverter x:Key="ExpandIconConverter" />
-        <converters:ExpandAllTextConverter x:Key="ExpandAllTextConverter" />
         <converters:ExpandAllGlyphConverter x:Key="ExpandAllGlyphConverter" />
         <converters:GroupInfoConverter x:Key="GroupInfoConverter" />
         <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
