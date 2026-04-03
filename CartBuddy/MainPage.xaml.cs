@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Specialized;
 using Syncfusion.Maui.DataSource;
 using Syncfusion.Maui.DataSource.Extensions;
+using Syncfusion.Maui.ListView;
 
 namespace CartBuddy;
 
@@ -44,6 +45,17 @@ public partial class MainPage : ContentPage
         {
             var page = (MainPage)recipient;
             page.SearchListView.ScrollTo(message.Item, ScrollToPosition.End, true);
+        });
+        messenger.Register<ExpandGroupMessage>(this, static (recipient, message) =>
+        {
+            var page = (MainPage)recipient;
+            var group = page.SearchListView.DataSource?.Groups
+                ?.OfType<GroupResult>()
+                .FirstOrDefault(g => string.Equals(g.Key as string, message.Query, StringComparison.OrdinalIgnoreCase));
+            if (group is not null)
+            {
+                page.SearchListView.ExpandGroup(group);
+            }
         });
         messenger.Register<CloseCartRequestedMessage>(this, static (recipient, message) =>
         {
@@ -82,6 +94,33 @@ public partial class MainPage : ContentPage
     private void OnSearchGroupsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
     {
         SearchListView.DataSource?.Refresh();
+    }
+
+    private void OnGroupExpanded(object sender, GroupExpandCollapseChangedEventArgs e)
+    {
+        SyncGroupExpansion(e.Groups, true);
+    }
+
+    private void OnGroupCollapsed(object sender, GroupExpandCollapseChangedEventArgs e)
+    {
+        SyncGroupExpansion(e.Groups, false);
+    }
+
+    private void SyncGroupExpansion(IList<GroupResult> groups, bool isExpanded)
+    {
+        foreach (var result in groups)
+        {
+            if (result.Key is not string key)
+            {
+                continue;
+            }
+            var group = _viewModel.SearchGroups
+                .FirstOrDefault(g => string.Equals(g.Query, key, StringComparison.OrdinalIgnoreCase));
+            if (group is not null)
+            {
+                group.IsExpanded = isExpanded;
+            }
+        }
     }
 
     private void OnViewModelPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)

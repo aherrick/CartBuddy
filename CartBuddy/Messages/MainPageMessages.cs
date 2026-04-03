@@ -8,3 +8,8 @@ public sealed class ScrollToProductMessage(ProductMatch item)
 }
 
 public sealed class CloseCartRequestedMessage;
+
+public sealed class ExpandGroupMessage(string query)
+{
+    public string Query { get; } = query;
+}

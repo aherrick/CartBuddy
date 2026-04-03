@@ -180,6 +180,11 @@ public partial class MainViewModel : ObservableObject
 
                 ApplySearchResults(nextGroups, nextProducts);
                 AllGroupsExpanded = false;
+
+                if (nextGroups.Count > 0)
+                {
+                    _messenger.Send(new ExpandGroupMessage(nextGroups[0].Query));
+                }
             });
         }
         catch (OperationCanceledException)
@@ -210,6 +215,8 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
+        var wasExpanded = group.IsExpanded;
+
         try
         {
             await ExecuteBusyAsync(async () =>
@@ -226,7 +233,12 @@ public partial class MainViewModel : ObservableObject
                     AllProducts.Add(product);
                 }
                 GroupStateVersion++;
-                if (page.Results.Count > 0)
+
+                if (!wasExpanded)
+                {
+                    _messenger.Send(new ExpandGroupMessage(group.Query));
+                }
+                else if (page.Results.Count > 0)
                 {
                     _messenger.Send(new ScrollToProductMessage(page.Results[^1]));
                 }

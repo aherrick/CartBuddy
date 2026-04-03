@@ -195,6 +195,8 @@ public class SearchGroup(string query, int totalCount, int pageSize, string cate
         set => SetProperty(ref _isCompleted, value, nameof(IsCompleted));
     }
 
+    public bool IsExpanded { get; set; } = true;
+
     public bool HasMore => LoadedCount < TotalCount;
 
     public string PageSummary => TotalCount == 0 ? ShoppingText.NoMatchesFromKroger : $"{LoadedCount}/{TotalCount}";
